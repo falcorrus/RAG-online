@@ -107,7 +107,7 @@ body.minimized .floating-btn {
     position: absolute;
     top: 10px;
     right: 20px;
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.3s;
     display: flex;
     align-items: center;
@@ -142,9 +142,7 @@ body.minimized .floating-btn {
     color: white;
 }
 
-.container:hover .header-tools {
-    opacity: 1;
-}
+
 
 .icon-btn {
     background: transparent;
