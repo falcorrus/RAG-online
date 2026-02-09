@@ -226,6 +226,9 @@ Email: hr@company.com
     });
 
     function processSearch(query) {
+        // Hide keyboard on mobile
+        queryInput.blur();
+
         // UI Transition
         document.body.classList.add('has-results');
         resultsArea.classList.remove('hidden');
