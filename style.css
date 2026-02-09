@@ -109,6 +109,37 @@ body.minimized .floating-btn {
     right: 20px;
     opacity: 0;
     transition: opacity 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.language-switcher {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 2px;
+}
+
+.lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    color: var(--text-primary);
+}
+
+.lang-btn.active {
+    background: var(--accent-color);
+    color: white;
 }
 
 .container:hover .header-tools {

@@ -20,7 +20,12 @@
 
     <main class="container" id="mainContainer">
         <div class="header-tools">
-            <button class="icon-btn" id="minimizeBtn" title="Свернуть">
+            <div class="language-switcher">
+                <button class="lang-btn active" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="pt">PT</button>
+            </div>
+            <button class="icon-btn" id="minimizeBtn" title="Свернуть" data-i18n-title="minimize_btn_title">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="4 14 10 14 10 20"></polyline>
                     <polyline points="20 10 14 10 14 4"></polyline>
@@ -31,21 +36,21 @@
         <div class="search-wrapper" id="searchWrapper">
             <div class="logo-area">
                 <div class="sparkle-icon">✨</div>
-                <h1>AI Knowledge Base</h1>
+                <h1 data-i18n="title_main">AI Knowledge Base</h1>
             </div>
 
             <div class="input-container" id="inputContainer">
                 <textarea id="queryInput" placeholder="Задайте вопрос по базе знаний..." rows="1" data-gramm="false"
-                    wt-ignore-input="true"></textarea>
+                    wt-ignore-input="true" data-i18n-placeholder="input_placeholder"></textarea>
 
-                <button id="clearBtn" class="clear-btn hidden" title="Clear">
+                <button id="clearBtn" class="clear-btn hidden" title="Clear" data-i18n-title="clear_btn_title">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
 
-                <button id="sendBtn" class="send-btn" aria-label="Send">
+                <button id="sendBtn" class="send-btn" aria-label="Send" data-i18n-aria="send_btn_aria">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round" />
@@ -54,9 +59,9 @@
             </div>
 
             <div class="suggestions" id="suggestions">
-                <div class="suggestion-chip">Как оформить отпуск?</div>
-                <div class="suggestion-chip">График работы</div>
-                <div class="suggestion-chip">Контакты HR</div>
+                <div class="suggestion-chip" data-i18n="suggestion_1">Как оформить отпуск?</div>
+                <div class="suggestion-chip" data-i18n="suggestion_2">График работы</div>
+                <div class="suggestion-chip" data-i18n="suggestion_3">Контакты HR</div>
             </div>
         </div>
 
@@ -71,9 +76,9 @@
             <div class="answer-card hidden" id="answerCard">
                 <div class="answer-content" id="answerContent"></div>
                 <div class="answer-footer">
-                    <span class="source-badge">Источник: Внутренняя документация</span>
+                    <span class="source-badge" data-i18n="source_label">Источник: Внутренняя документация</span>
                     <div class="actions">
-                        <button class="action-btn" title="Copy">
+                        <button class="action-btn" title="Copy" data-i18n-title="copy_btn_title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
