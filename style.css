@@ -104,14 +104,21 @@ body.minimized .floating-btn {
 
 /* Header Tools (Minimize) */
 .header-tools {
-    position: absolute;
-    top: 10px;
+    position: fixed;
+    top: 20px;
     right: 20px;
     opacity: 1;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, transform 0.3s;
     display: flex;
     align-items: center;
     gap: 12px;
+    z-index: 100;
+}
+
+body.minimized .header-tools {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
 }
 
 .language-switcher {
