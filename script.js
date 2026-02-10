@@ -25,9 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const suggestions = document.querySelectorAll('.suggestion-chip');
     const langBtns = document.querySelectorAll('.lang-btn');
 
+    // Auth Elements
+    const authPanel = document.getElementById('authPanel');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const authEmail = document.getElementById('authEmail');
+    const authPass = document.getElementById('authPass');
+    const authBtn = document.getElementById('authBtn');
+    const authTitle = document.getElementById('authTitle');
+    const toggleAuthMode = document.getElementById('toggleAuthMode');
+    const authError = document.getElementById('authError');
+
     // State
-    let knowledgeBase = []; 
     let currentLang = 'ru';
+    let isRegisterMode = false;
 
     const translations = {
         ru: {
@@ -51,251 +61,186 @@ document.addEventListener('DOMContentLoaded', () => {
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
             response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
-        },
-        en: {
-            title_main: "AI Knowledge Base",
-            minimize_btn_title: "Minimize",
-            admin_btn_title: "Settings",
-            input_placeholder: "Ask a question...",
-            suggestion_1: "How to apply for leave?",
-            suggestion_2: "Work schedule",
-            suggestion_3: "HR Contacts",
-            source_label: "Source: Internal Documentation",
-            send_btn_aria: "Send",
-            clear_btn_title: "Clear",
-            copy_btn_title: "Copy",
-            admin_title: "Admin Settings",
-            kb_upload_label: "Knowledge Base (.md)",
-            drop_zone_text: "Drag & drop .md file or click to browse",
-            initially_open_label: "Initially open",
-            default_lang_label: "Default Language",
-            save_btn: "Save Changes",
-            status_analyzing: "Analyzing knowledge base...",
-            status_ai_thinking: "AI is thinking...",
-            response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
         }
     };
 
-    const synonyms = {
-        "стоянк": "парковк",
-        "парков": "стоянк",
-        "денег": "цены",
-        "стоимос": "цены",
-        "оплат": "цены",
-        "платит": "цены",
-        "ребенок": "детск",
-        "малыш": "детск"
-    };
+    // --- API Helpers ---
+    async function apiRequest(path, method = 'GET', body = null) {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = localStorage.getItem('token');
+        if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    // --- AI API Integration ---
-    async function callAI(query, context) {
-        try {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, context })
-            });
-            if (response.status === 429) return null;
-            if (!response.ok) return null;
-            const data = await response.json();
-            return data.answer || null;
-        } catch (err) {
-            return null;
+        const options = { method, headers };
+        if (body) options.body = JSON.stringify(body);
+
+        const response = await fetch(path, options);
+        if (response.status === 401) {
+            localStorage.removeItem('token');
+            showAuth();
         }
+        return response;
     }
 
-    // --- Data Management ---
-    function parseKnowledgeBase(text) {
-        const blocks = text.split(/\n(?=\*\*|#)/);
-        const kb = [];
-        blocks.forEach(block => {
-            const lines = block.trim().split('\n');
-            if (lines.length >= 2) {
-                const question = lines[0].replace(/[\*#«»]/g, '').trim();
-                const answer = lines.slice(1).join('\n').trim();
-                if (question && answer) {
-                    kb.push({ 
-                        question, 
-                        answer,
-                        qBuffer: question.toLowerCase().replace(/[?.,!«»()]/g, ''),
-                        aBuffer: answer.toLowerCase().replace(/[?.,!«»()]/g, '')
-                    });
-                }
-            }
+    // --- Auth Logic ---
+    function showAuth() {
+        authPanel.classList.remove('hidden');
+        settingsPanel.classList.add('hidden');
+        adminOverlay.classList.remove('hidden');
+    }
+
+    async function handleAuth() {
+        const email = authEmail.value;
+        const password = authPass.value;
+        const path = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+
+        const resp = await fetch(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
         });
-        knowledgeBase = kb;
+
+        const data = await resp.json();
+        if (resp.ok) {
+            localStorage.setItem('token', data.token);
+            authError.classList.add('hidden');
+            initSettings(); // Reload settings for this user
+            authPanel.classList.add('hidden');
+            settingsPanel.classList.remove('hidden');
+        } else {
+            authError.textContent = data.detail || 'Ошибка входа';
+            authError.classList.remove('hidden');
+        }
     }
 
-    const settings = {
-        initiallyOpen: localStorage.getItem('initiallyOpen') !== 'false',
-        defaultLang: localStorage.getItem('defaultLang') || 'ru',
-        kbFileName: localStorage.getItem('kbFileName') || null,
-        kbRawContent: localStorage.getItem('kbRawContent') || null
-    };
+    toggleAuthMode.addEventListener('click', () => {
+        isRegisterMode = !isRegisterMode;
+        authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
+        authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+        toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+    });
 
-    function initSettings() {
-        if (!settings.initiallyOpen) document.body.classList.add('minimized');
-        setLanguage(settings.defaultLang);
-        initiallyOpenToggle.checked = settings.initiallyOpen;
-        defaultLangSelect.value = settings.defaultLang;
-        if (settings.kbRawContent) parseKnowledgeBase(settings.kbRawContent);
-        if (settings.kbFileName) showFileInfo(settings.kbFileName);
+    authBtn.addEventListener('click', handleAuth);
+
+    // --- Settings & UI ---
+    async function initSettings() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const resp = await apiRequest('/api/tenant/settings');
+        if (resp.ok) {
+            const settings = await resp.json();
+            if (!settings.initiallyOpen) document.body.classList.add('minimized');
+            initiallyOpenToggle.checked = settings.initiallyOpen;
+            defaultLangSelect.value = settings.defaultLang;
+            setLanguage(settings.defaultLang);
+        }
+
+        const kbResp = await apiRequest('/api/tenant/kb');
+        if (kbResp.ok) {
+            const kbData = await kbResp.json();
+            if (kbData.content) showFileInfo("Загруженная база знаний");
+        }
     }
 
-    function saveSettings() {
-        localStorage.setItem('initiallyOpen', initiallyOpenToggle.checked);
-        localStorage.setItem('defaultLang', defaultLangSelect.value);
-        setLanguage(defaultLangSelect.value);
-        adminOverlay.classList.add('hidden');
-        if (localStorage.getItem('kbRawContent')) parseKnowledgeBase(localStorage.getItem('kbRawContent'));
+    async function saveSettings() {
+        const settings = {
+            initiallyOpen: initiallyOpenToggle.checked,
+            defaultLang: defaultLangSelect.value
+        };
+        const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
+        if (resp.ok) {
+            setLanguage(settings.defaultLang);
+            adminOverlay.classList.add('hidden');
+        }
     }
 
-    function handleFileSelect(file) {
-        if (!file.name.endsWith('.md')) return alert('Please select a .md file');
+    async function handleFileSelect(file) {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             const content = e.target.result;
-            localStorage.setItem('kbRawContent', content);
-            localStorage.setItem('kbFileName', file.name);
-            parseKnowledgeBase(content);
-            showFileInfo(file.name);
+            const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
+            if (resp.ok) showFileInfo(file.name);
         };
         reader.readAsText(file);
     }
 
     async function processSearch(query) {
+        if (!localStorage.getItem('token')) return showAuth();
+        
         queryInput.blur();
         document.body.classList.add('has-results');
         resultsArea.classList.remove('hidden');
         answerCard.classList.add('hidden');
         loader.classList.remove('hidden');
-        statusText.textContent = translations[currentLang].status_analyzing;
+        statusText.textContent = translations[currentLang]?.status_analyzing || "...";
 
-        let response = null;
-        const kbContent = localStorage.getItem('kbRawContent');
+        const resp = await apiRequest('/api/chat', 'POST', { query });
+        const data = await resp.json();
 
-        if (kbContent) {
-            statusText.textContent = translations[currentLang].status_ai_thinking;
-            response = await callAI(query, kbContent);
-        }
-
-        if (!response) {
-            const qClean = query.toLowerCase().replace(/[?.,!«»()]/g, '');
-            let queryWords = qClean.split(/\s+/).filter(w => w.length >= 3);
-            let expandedWords = [...queryWords];
-            queryWords.forEach(w => {
-                const stem = w.substring(0, 6);
-                if (synonyms[stem]) expandedWords.push(synonyms[stem]);
-            });
-
-            let bestMatch = null;
-            let maxScore = 0;
-
-            knowledgeBase.forEach(item => {
-                let score = 0;
-                expandedWords.forEach(qW => {
-                    const qStem = qW.substring(0, 4);
-                    if (item.qBuffer.includes(qStem)) score += 3;
-                    else if (item.aBuffer.includes(qStem)) score += 1;
-                });
-                if (score > maxScore) { maxScore = score; bestMatch = item; }
-            });
-            if (bestMatch && maxScore > 0) response = bestMatch.answer;
-        }
-
-        setTimeout(() => {
-            loader.classList.add('hidden');
-            statusText.textContent = "";
-            typeWriterEffect(response || translations[currentLang].response_fallback, answerContent);
+        loader.classList.add('hidden');
+        statusText.textContent = "";
+        
+        if (resp.ok) {
+            typeWriterEffect(data.answer, answerContent);
             answerCard.classList.remove('hidden');
-        }, 300);
+        } else {
+            typeWriterEffect("Ошибка запроса. Пожалуйста, войдите снова.", answerContent);
+        }
     }
 
-    function showFileInfo(name) {
-        if (fileNameDisplay) fileNameDisplay.textContent = name;
-        if (fileInfo) fileInfo.classList.remove('hidden');
-        if (kbDropZone) {
-            const content = kbDropZone.querySelector('.drop-zone-content');
-            if (content) content.classList.add('hidden');
+    // --- Event Listeners ---
+    adminBtn.addEventListener('click', () => {
+        const token = localStorage.getItem('token');
+        if (!token) showAuth();
+        else {
+            authPanel.classList.add('hidden');
+            settingsPanel.classList.remove('hidden');
+            adminOverlay.classList.remove('hidden');
         }
-    }
-    function setLanguage(lang) {
-        currentLang = translations[lang] ? lang : 'ru';
-        document.documentElement.lang = currentLang;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+    });
+
+    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+    saveAdminBtn.addEventListener('click', saveSettings);
+    kbDropZone.addEventListener('click', () => kbFileInput.click());
+    kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
+    
+    if (sendBtn) sendBtn.addEventListener('click', () => { 
+        const query = queryInput.value.trim(); 
+        if (query) processSearch(query); 
+    });
+
+    if (queryInput) {
+        queryInput.addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                const query = queryInput.value.trim(); 
+                if (query) processSearch(query); 
+            } 
         });
-        langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
-    }
-    if (adminBtn) adminBtn.addEventListener('click', async () => {
-        try {
-            const response = await fetch('/api/admin');
-            if (response.ok) {
-                adminOverlay.classList.remove('hidden');
+        queryInput.addEventListener('input', () => {
+            const val = queryInput.value.trim();
+            if (val.length === 0) {
+                document.body.classList.remove('has-results');
+                resultsArea.classList.add('hidden');
             }
-        } catch (err) {
-            console.error('Admin access denied');
-        }
-    });
-    if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
-    if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
-    if (kbDropZone) kbDropZone.addEventListener('click', () => kbFileInput.click());
-    if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
-    if (kbDropZone) {
-        kbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); kbDropZone.classList.add('dragover'); });
-        kbDropZone.addEventListener('dragleave', () => kbDropZone.classList.remove('dragover'));
-        kbDropZone.addEventListener('drop', (e) => { e.preventDefault(); kbDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]); });
+        });
     }
-    if (removeFileBtn) removeFileBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        try {
-            localStorage.removeItem('kbFileName');
-            localStorage.removeItem('kbRawContent');
-        } catch (err) {}
-        knowledgeBase = [];
-        if (fileInfo) fileInfo.classList.add('hidden');
-        if (kbDropZone) kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-    });
-    langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
-    if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
-    if (floatingBtn) floatingBtn.addEventListener('click', () => { 
-        document.body.classList.remove('minimized'); 
-        setTimeout(() => queryInput && queryInput.focus(), 300); 
-    });
-    function updateInputState() {
-        if (!queryInput) return;
-        const val = queryInput.value.trim();
-        queryInput.style.height = 'auto';
-        queryInput.style.height = (queryInput.scrollHeight) + 'px';
-        if (val.length > 0) { 
-            if (clearBtn) clearBtn.classList.remove('hidden'); 
-            if (sendBtn) sendBtn.classList.add('active'); 
-        } else { 
-            if (clearBtn) clearBtn.classList.add('hidden'); 
-            if (sendBtn) sendBtn.classList.remove('active'); 
-            document.body.classList.remove('has-results');
-            if (resultsArea) resultsArea.classList.add('hidden');
-        }
+
+    // Helper Functions
+    function showFileInfo(name) {
+        fileNameDisplay.textContent = name;
+        fileInfo.classList.remove('hidden');
+        kbDropZone.querySelector('.drop-zone-content').classList.add('hidden');
     }
-    if (queryInput) queryInput.addEventListener('input', updateInputState);
-    if (clearBtn) clearBtn.addEventListener('click', () => { if (queryInput) queryInput.value = ''; updateInputState(); });
-    suggestions.forEach(chip => { 
-        chip.addEventListener('click', () => { 
-            if (queryInput) {
-                queryInput.value = chip.textContent; 
-                updateInputState(); 
-                processSearch(chip.textContent); 
-            }
-        }); 
-    });
-    if (sendBtn) sendBtn.addEventListener('click', () => { const query = queryInput ? queryInput.value.trim() : ''; if (query) processSearch(query); });
-    if (queryInput) queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const query = queryInput.value.trim(); if (query) processSearch(query); } });
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        // Basic translation logic
+    }
+
     function typeWriterEffect(text, element) {
-        element.innerHTML = "";
-        const formattedHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-        element.style.opacity = 0; element.innerHTML = formattedHTML;
-        void element.offsetWidth; element.style.transition = 'opacity 0.5s ease'; element.style.opacity = 1;
+        element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     }
+
     initSettings();
 });

@@ -42,7 +42,36 @@
 
     <!-- Admin Panel Overlay -->
     <div class="admin-overlay hidden" id="adminOverlay">
-        <div class="admin-panel">
+        <!-- Auth View -->
+        <div class="admin-panel" id="authPanel">
+            <div class="admin-header">
+                <h2 id="authTitle">Вход в систему</h2>
+                <button class="close-btn" onclick="document.getElementById('adminOverlay').classList.add('hidden')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="admin-content">
+                <div class="setting-group">
+                    <label class="setting-label">Email</label>
+                    <input type="email" id="authEmail" class="admin-select" style="width: 100%; box-sizing: border-box;">
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Пароль</label>
+                    <input type="password" id="authPass" class="admin-select" style="width: 100%; box-sizing: border-box;">
+                </div>
+                <p id="authError" style="color: #ff4d4d; font-size: 0.8rem; margin-top: 10px;" class="hidden"></p>
+            </div>
+            <div class="admin-footer">
+                <button class="action-btn" id="toggleAuthMode">Нет аккаунта? Регистрация</button>
+                <button class="save-btn" id="authBtn">Войти</button>
+            </div>
+        </div>
+
+        <!-- Admin View -->
+        <div class="admin-panel hidden" id="settingsPanel">
             <div class="admin-header">
                 <h2 data-i18n="admin_title">Настройки администратора</h2>
                 <button class="close-btn" id="closeAdminBtn">
