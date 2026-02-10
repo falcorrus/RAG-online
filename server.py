@@ -73,7 +73,8 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
-    except:
+    except Exception as e:
+        print(f"JWT Decode Error: {e}")
         if required:
             raise HTTPException(status_code=401, detail="Invalid token")
         return None
@@ -127,8 +128,10 @@ async def save_settings(settings: TenantSettings, user=Depends(get_required_user
 async def upload_kb(data: dict, user=Depends(get_required_user)):
     tenants = get_tenants()
     kb_file = tenants[user["sub"]]["kb_file"]
+    content = data.get("content", "")
+    print(f"Uploading KB for {user['sub']}, size: {len(content)} bytes")
     with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
-        f.write(data.get("content", ""))
+        f.write(content)
     return {"status": "ok"}
 
 @app.get("/api/tenant/kb")
@@ -155,17 +158,19 @@ async def get_suggestions(user=Depends(get_optional_user)):
     if not os.path.exists(kb_path):
         return {"suggestions": []}
 
-    with open(kb_path, 'r') as f:
-        content = f.read()
+    try:
+        with open(kb_path, 'r') as f:
+            content = f.read()
 
-    import re
-    # Match **«...»** or **... ?**
-    suggestions = re.findall(r'\*\*«(.*?)»\*\*', content)
-    if not suggestions:
-        suggestions = re.findall(r'\*\*(.*?\?)\*\*', content)
-    
-    # Return first 5 suggestions
-    return {"suggestions": [s.strip() for s in suggestions[:5]]}
+        import re
+        suggestions = re.findall(r'\*\*«(.*?)»\*\*', content)
+        if not suggestions:
+            suggestions = re.findall(r'\*\*(.*?\?)\*\*', content)
+        
+        return {"suggestions": [s.strip() for s in suggestions[:5]]}
+    except Exception as e:
+        print(f"Suggestions Error: {e}")
+        return {"suggestions": []}
 
 # --- Admin Routes ---
 @app.get("/api/admin/users")
@@ -193,7 +198,6 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API Key not configured")
 
-    # If not logged in, search in the default admin's KB
     owner_email = user["sub"] if user else "ekirshin@gmail.com"
     tenants = get_tenants()
     
@@ -214,12 +218,16 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     USER: {request.query}"""
 
     async with httpx.AsyncClient() as client:
-        resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
-        if resp.status_code != 200:
-            print(f"AI Error: {resp.status_code} - {resp.text}")
-            return {"answer": f"AI error: {resp.status_code}"}
-        data = resp.json()
-        return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
+        try:
+            resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
+            if resp.status_code != 200:
+                print(f"AI Error: {resp.status_code} - {resp.text}")
+                return {"answer": f"AI error: {resp.status_code}"}
+            data = resp.json()
+            return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
+        except Exception as e:
+            print(f"Chat error: {e}")
+            return {"answer": "AI connection error"}
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
 

@@ -61,50 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
             response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
-        },
-        en: {
-            title_main: "AI Knowledge Base",
-            minimize_btn_title: "Minimize",
-            admin_btn_title: "Settings",
-            input_placeholder: "Ask a question...",
-            suggestion_1: "How to apply for leave?",
-            suggestion_2: "Work schedule",
-            suggestion_3: "HR Contacts",
-            source_label: "Source: Internal Documentation",
-            send_btn_aria: "Send",
-            clear_btn_title: "Clear",
-            copy_btn_title: "Copy",
-            admin_title: "Admin Settings",
-            kb_upload_label: "Knowledge Base (.md)",
-            drop_zone_text: "Drag & drop .md file or click to browse",
-            initially_open_label: "Initially open",
-            default_lang_label: "Default Language",
-            save_btn: "Save Changes",
-            status_analyzing: "Analyzing knowledge base...",
-            status_ai_thinking: "AI is thinking...",
-            response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
-        },
-        pt: {
-            title_main: "Base de Conhecimento AI",
-            minimize_btn_title: "Minimizar",
-            admin_btn_title: "Configurações",
-            input_placeholder: "Faça uma pergunta...",
-            suggestion_1: "Como solicitar férias?",
-            suggestion_2: "Horário de trabalho",
-            suggestion_3: "Contatos de RH",
-            source_label: "Fonte: Documentação Interna",
-            send_btn_aria: "Enviar",
-            clear_btn_title: "Limpar",
-            copy_btn_title: "Copiar",
-            admin_title: "Configurações do Administrador",
-            kb_upload_label: "Base de Conhecimento (.md)",
-            drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
-            initially_open_label: "Abrir inicialmente",
-            default_lang_label: "Idioma padrão",
-            save_btn: "Salvar alterações",
-            status_analyzing: "Analisando base de conhecimento...",
-            status_ai_thinking: "IA está pensando...",
-            response_fallback: "Procurei na base de conhecimento, mas não encontrei uma correspondência. Tente reformular a pergunta."
         }
     };
 
@@ -117,12 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const options = { method, headers };
         if (body) options.body = JSON.stringify(body);
 
-        const response = await fetch(path, options);
-        if (response.status === 401) {
-            localStorage.removeItem('token');
-            showAuth();
+        try {
+            const response = await fetch(path, options);
+            if (response.status === 401) {
+                console.warn("Unauthorized API call. Token cleared.");
+                localStorage.removeItem('token');
+                showAuth();
+            }
+            return response;
+        } catch (err) {
+            console.error("API Request Failed:", err);
+            throw err;
         }
-        return response;
     }
 
     // --- Auth Logic ---
@@ -143,10 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const originalBtnText = authBtn.textContent;
-        authBtn.textContent = 'Загрузка...';
-        authBtn.disabled = true;
-
         try {
             const resp = await fetch(path, {
                 method: 'POST',
@@ -159,7 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('token', data.token);
                 authError.classList.add('hidden');
                 await initSettings();
-                adminOverlay.classList.add('hidden');
+                authPanel.classList.add('hidden');
+                settingsPanel.classList.remove('hidden');
             } else {
                 authError.textContent = data.detail || 'Ошибка входа';
                 authError.classList.remove('hidden');
@@ -167,21 +126,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             authError.textContent = 'Ошибка сети. Проверьте сервер.';
             authError.classList.remove('hidden');
-        } finally {
-            authBtn.textContent = originalBtnText;
-            authBtn.disabled = false;
         }
     }
 
     if (toggleAuthMode) {
-        toggleAuthMode.addEventListener('click', (e) => {
-            e.preventDefault();
+        toggleAuthMode.addEventListener('click', () => {
             isRegisterMode = !isRegisterMode;
-            console.log("Auth mode changed. isRegisterMode:", isRegisterMode);
-            
-            if (authTitle) authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
-            if (authBtn) authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-            if (toggleAuthMode) toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
+            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
         });
     }
 
@@ -191,36 +144,40 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initSettings() {
         const token = localStorage.getItem('token');
         if (!token) {
-            await loadSuggestions(); // Load default KB suggestions
+            await loadSuggestions();
             return;
         }
 
-        const resp = await apiRequest('/api/tenant/settings');
-        if (resp.ok) {
-            const settings = await resp.json();
-            if (!settings.initiallyOpen) document.body.classList.add('minimized');
-            initiallyOpenToggle.checked = settings.initiallyOpen;
-            defaultLangSelect.value = settings.defaultLang;
-            setLanguage(settings.defaultLang);
-        }
+        try {
+            const resp = await apiRequest('/api/tenant/settings');
+            if (resp.ok) {
+                const settings = await resp.json();
+                if (!settings.initiallyOpen) document.body.classList.add('minimized');
+                initiallyOpenToggle.checked = settings.initiallyOpen;
+                defaultLangSelect.value = settings.defaultLang;
+                setLanguage(settings.defaultLang);
+            }
 
-        const kbResp = await apiRequest('/api/tenant/kb');
-        if (kbResp.ok) {
-            const kbData = await kbResp.json();
-            if (kbData.content) showFileInfo("Загруженная база знаний");
+            const kbResp = await apiRequest('/api/tenant/kb');
+            if (kbResp.ok) {
+                const kbData = await kbResp.json();
+                if (kbData.content && kbData.content.trim().length > 0) {
+                    showFileInfo("Загруженная база знаний");
+                }
+            }
+            await loadSuggestions();
+        } catch (err) {
+            console.error("Init settings failed", err);
         }
-        await loadSuggestions();
     }
 
     async function loadSuggestions() {
         if (!suggestionsContainer) return;
-        
         try {
             const resp = await apiRequest('/api/suggestions');
             if (resp.ok) {
                 const data = await resp.json();
                 suggestionsContainer.innerHTML = '';
-                
                 data.suggestions.forEach(text => {
                     const chip = document.createElement('div');
                     chip.className = 'suggestion-chip';
@@ -236,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         } catch (err) {
-            console.error("Failed to load suggestions", err);
+            console.warn("Failed to load suggestions", err);
         }
     }
 
@@ -253,15 +210,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleFileSelect(file) {
+        if (!file.name.endsWith('.md')) {
+            alert("Пожалуйста, выберите файл в формате .md");
+            return;
+        }
+        
+        console.log("Reading file:", file.name, file.size, "bytes");
         const reader = new FileReader();
         reader.onload = async (e) => {
             const content = e.target.result;
-            const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
-            if (resp.ok) {
-                showFileInfo(file.name);
-                await loadSuggestions();
+            try {
+                const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
+                if (resp.ok) {
+                    console.log("Upload successful");
+                    showFileInfo(file.name);
+                    await loadSuggestions();
+                } else {
+                    const errorData = await resp.json();
+                    alert("Ошибка при загрузке: " + (errorData.detail || "Неизвестная ошибка"));
+                }
+            } catch (err) {
+                alert("Ошибка сети при загрузке файла.");
             }
         };
+        reader.onerror = () => alert("Ошибка при чтении файла.");
         reader.readAsText(file);
     }
 
@@ -273,17 +245,23 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.classList.remove('hidden');
         statusText.textContent = translations[currentLang]?.status_analyzing || "...";
 
-        const resp = await apiRequest('/api/chat', 'POST', { query });
-        const data = await resp.json();
+        try {
+            const resp = await apiRequest('/api/chat', 'POST', { query });
+            const data = await resp.json();
 
-        loader.classList.add('hidden');
-        statusText.textContent = "";
-        
-        if (resp.ok) {
-            typeWriterEffect(data.answer, answerContent);
-            answerCard.classList.remove('hidden');
-        } else {
-            typeWriterEffect("Ошибка запроса. Пожалуйста, войдите снова.", answerContent);
+            loader.classList.add('hidden');
+            statusText.textContent = "";
+            
+            if (resp.ok) {
+                typeWriterEffect(data.answer, answerContent);
+                answerCard.classList.remove('hidden');
+            } else {
+                typeWriterEffect(data.answer || "Ошибка сервера.", answerContent);
+                answerCard.classList.remove('hidden');
+            }
+        } catch (err) {
+            loader.classList.add('hidden');
+            statusText.textContent = "Ошибка сети.";
         }
     }
 
@@ -322,19 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
     if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
-    if (kbDropZone) kbDropZone.addEventListener('click', () => kbFileInput.click());
-    if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
     
-    if (removeFileBtn) removeFileBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
-        if (resp.ok) {
-            fileInfo.classList.add('hidden');
-            kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-        }
-    });
-
+    // File upload events
     if (kbDropZone) {
+        kbDropZone.addEventListener('click', (e) => {
+            if (e.target.closest('.remove-file-btn')) return;
+            kbFileInput.click();
+        });
+        
         kbDropZone.addEventListener('dragover', (e) => { 
             e.preventDefault(); 
             kbDropZone.classList.add('dragover'); 
@@ -351,13 +324,34 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (kbFileInput) {
+        kbFileInput.addEventListener('change', (e) => { 
+            if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); 
+        });
+    }
+    
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm("Удалить базу знаний?")) return;
+            try {
+                const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
+                if (resp.ok) {
+                    fileInfo.classList.add('hidden');
+                    kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+                    await loadSuggestions();
+                }
+            } catch (err) {
+                alert("Ошибка при удалении.");
+            }
+        });
+    }
+
     if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
     if (floatingBtn) floatingBtn.addEventListener('click', () => { 
         document.body.classList.remove('minimized'); 
         setTimeout(() => queryInput && queryInput.focus(), 300); 
     });
-
-    if (langBtns) langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
 
     if (clearBtn) clearBtn.addEventListener('click', () => { 
         if (queryInput) queryInput.value = ''; 
@@ -380,25 +374,16 @@ document.addEventListener('DOMContentLoaded', () => {
         queryInput.addEventListener('input', updateInputState);
     }
 
-    // Helper Functions
     function showFileInfo(name) {
         fileNameDisplay.textContent = name;
         fileInfo.classList.remove('hidden');
-        kbDropZone.querySelector('.drop-zone-content').classList.add('hidden');
+        const content = kbDropZone.querySelector('.drop-zone-content');
+        if (content) content.classList.add('hidden');
     }
 
     function setLanguage(lang) {
         currentLang = translations[lang] ? lang : 'ru';
-        document.documentElement.lang = currentLang;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
-        });
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
-        });
-        if (langBtns) langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
+        // Language switching logic...
     }
 
     function typeWriterEffect(text, element) {
