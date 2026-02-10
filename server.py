@@ -170,8 +170,13 @@ async def get_suggestions(request: Request, lang: str = "ru", auth: str = Header
 async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None)):
     user = await get_current_user(auth, False)
     owner_email = user["sub"] if user else get_tenant_by_host(req.headers.get("host"))
-    tenants = get_tenants()
     
+    lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
+    target_lang = lang_map.get(request.lang, "Russian")
+    
+    print(f"Chat request: email={owner_email}, lang={request.lang} ({target_lang}), query={request.query[:50]}")
+    
+    tenants = get_tenants()
     if owner_email not in tenants: return {"answer": "Knowledge base not configured."}
     
     kb_path = os.path.join(STORAGE_DIR, tenants[owner_email]["kb_file"])
@@ -179,26 +184,35 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     if os.path.exists(kb_path):
         with open(kb_path, 'r') as f: context = f.read()
 
-    lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
-    target_lang = lang_map.get(request.lang, "Russian")
-
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+    
+    # Ultra-strict prompt for language enforcement
     prompt = f"""You are a specialized Knowledge Base assistant.
-    CRITICAL: Your entire response MUST be in {target_lang}.
-    Use ONLY the provided CONTEXT to answer. If the answer is not in the context, politely say you don't know in {target_lang}.
-    
-    CONTEXT:
-    {context}
-    
-    USER QUESTION: {request.query}
-    ANSWER IN {target_lang}:"""
+SYSTEM RULES:
+1. You MUST answer EXCLUSIVELY in {target_lang}.
+2. Even if the USER QUESTION is in another language, you answer ONLY in {target_lang}.
+3. Even if the CONTEXT is in another language, you answer ONLY in {target_lang}.
+4. Use ONLY the provided CONTEXT. If info is missing, say "I don't know" in {target_lang}.
+5. Do NOT use your general knowledge.
+
+CONTEXT:
+---
+{context}
+---
+
+USER QUESTION: {request.query}
+YOUR ANSWER IN {target_lang}:"""
 
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
             data = resp.json()
-            return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
-        except: return {"answer": "AI connection error"}
+            answer = data['candidates'][0]['content']['parts'][0]['text']
+            print(f"AI response received ({len(answer)} chars)")
+            return {"answer": answer}
+        except Exception as e:
+            print(f"Chat error: {e}")
+            return {"answer": "AI connection error"}
 
 # Proxy other tenant routes
 @app.get("/api/tenant/settings")
