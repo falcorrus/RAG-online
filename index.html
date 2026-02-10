@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="minimized">
+<body>
     <div class="background-gradient"></div>
 
     <div class="floating-btn" id="floatingBtn">
@@ -24,12 +24,90 @@
             <button class="lang-btn" data-lang="en">EN</button>
             <button class="lang-btn" data-lang="pt">PT</button>
         </div>
+        <button class="icon-btn" id="adminBtn" title="Настройки" data-i18n-title="admin_btn_title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+            </svg>
+        </button>
         <button class="icon-btn" id="minimizeBtn" title="Свернуть" data-i18n-title="minimize_btn_title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="4 14 10 14 10 20"></polyline>
                 <polyline points="20 10 14 10 14 4"></polyline>
             </svg>
         </button>
+    </div>
+
+    <!-- Admin Panel Overlay -->
+    <div class="admin-overlay hidden" id="adminOverlay">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2 data-i18n="admin_title">Настройки администратора</h2>
+                <button class="close-btn" id="closeAdminBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="admin-content">
+                <!-- File Drop Zone -->
+                <div class="setting-group">
+                    <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
+                    <div class="drop-zone" id="kbDropZone">
+                        <div class="drop-zone-content">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p data-i18n="drop_zone_text">Перетащите .md файл или кликните для выбора</p>
+                            <input type="file" id="kbFileInput" accept=".md" class="hidden">
+                        </div>
+                        <div class="file-info hidden" id="fileInfo">
+                            <span class="file-name"></span>
+                            <button class="remove-file-btn" id="removeFileBtn">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toggles -->
+                <div class="setting-group">
+                    <div class="toggle-wrapper">
+                        <span class="setting-label" data-i18n="initially_open_label">Изначально открыто</span>
+                        <label class="switch">
+                            <input type="checkbox" id="initiallyOpenToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Default Language -->
+                <div class="setting-group">
+                    <label class="setting-label" data-i18n="default_lang_label">Язык по умолчанию</label>
+                    <select class="admin-select" id="defaultLangSelect">
+                        <option value="ru">Русский (RU)</option>
+                        <option value="en">English (EN)</option>
+                        <option value="pt">Português (PT)</option>
+                    </select>
+                </div>
+
+                <!-- AI Settings -->
+                <div class="setting-group" style="margin-top: 10px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05)">
+                    <label class="setting-label">Использовать Google Gemini ИИ</label>
+                    <input type="password" id="apiKeyInput" class="admin-select" style="background-image:none" placeholder="AIzaSy...">
+                    <p style="font-size: 0.7rem; color: #666; margin-top: 5px;">Используется модель Gemini 1.5 Flash. База знаний передается как контекст для точных ответов.</p>
+                </div>
+            </div>
+
+            <div class="admin-footer">
+                <button class="save-btn" id="saveAdminBtn" data-i18n="save_btn">Сохранить изменения</button>
+            </div>
+        </div>
     </div>
 
     <main class="container" id="mainContainer">

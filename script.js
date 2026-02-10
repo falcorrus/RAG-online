@@ -5,8 +5,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = document.getElementById('clearBtn');
     const minimizeBtn = document.getElementById('minimizeBtn');
     const floatingBtn = document.getElementById('floatingBtn');
+    const adminBtn = document.getElementById('adminBtn');
+    const adminOverlay = document.getElementById('adminOverlay');
+    const closeAdminBtn = document.getElementById('closeAdminBtn');
+    const saveAdminBtn = document.getElementById('saveAdminBtn');
+    const kbDropZone = document.getElementById('kbDropZone');
+    const kbFileInput = document.getElementById('kbFileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileNameDisplay = fileInfo.querySelector('.file-name');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
+    const defaultLangSelect = document.getElementById('defaultLangSelect');
+    const apiKeyInput = document.getElementById('apiKeyInput');
 
-    // Areas
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
     const answerContent = document.getElementById('answerContent');
@@ -15,12 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const suggestions = document.querySelectorAll('.suggestion-chip');
     const langBtns = document.querySelectorAll('.lang-btn');
 
-    // Translations
+    // State
+    let knowledgeBase = []; 
+    let currentLang = 'ru';
+
     const translations = {
         ru: {
-            // UI Text
             title_main: "AI Knowledge Base",
             minimize_btn_title: "Свернуть",
+            admin_btn_title: "Настройки",
             input_placeholder: "Задайте вопрос по базе знаний...",
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
@@ -29,19 +43,20 @@ document.addEventListener('DOMContentLoaded', () => {
             send_btn_aria: "Отправить",
             clear_btn_title: "Очистить",
             copy_btn_title: "Копировать",
-
-            // Status & Responses
+            admin_title: "Настройки администратора",
+            kb_upload_label: "База знаний (.md)",
+            drop_zone_text: "Перетащите .md файл или кликните для выбора",
+            initially_open_label: "Изначально открыто",
+            default_lang_label: "Язык по умолчанию",
+            save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
-            status_generating: "Формирую ответ...",
-
-            response_vacation: "Согласно графику отпусков, вы можете брать **28 календарных дней** в году. \n\nВажно: одна из частей отпуска должна быть не менее 14 дней. Заявление нужно подать за 2 недели до начала.",
-            response_remote: "Политика компании позволяет работать удаленно **до 3 дней в неделю**. \n\nЭто нужно согласовать с вашим руководителем. Если хотите перейти на полную удаленку, потребуется доп. соглашение.",
-            response_hr: "Вы можете связаться с HR-отделом по почте **hr@company.com**.\nТакже доступен внутренний номер 1024 (Мария Иванова).",
-            response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. \n\nВот что есть общего:\n"
+            status_ai_thinking: "Gemini формирует ответ...",
+            response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
         },
         en: {
             title_main: "AI Knowledge Base",
             minimize_btn_title: "Minimize",
+            admin_btn_title: "Settings",
             input_placeholder: "Ask a question...",
             suggestion_1: "How to apply for leave?",
             suggestion_2: "Work schedule",
@@ -50,253 +65,246 @@ document.addEventListener('DOMContentLoaded', () => {
             send_btn_aria: "Send",
             clear_btn_title: "Clear",
             copy_btn_title: "Copy",
-
+            admin_title: "Admin Settings",
+            kb_upload_label: "Knowledge Base (.md)",
+            drop_zone_text: "Drag & drop .md file or click to browse",
+            initially_open_label: "Initially open",
+            default_lang_label: "Default Language",
+            save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
-            status_generating: "Generating answer...",
-
-            response_vacation: "According to the vacation schedule, you can take **28 calendar days** per year. \n\nImportant: one part of the vacation must be at least 14 days. You need to apply 2 weeks in advance.",
-            response_remote: "Company policy allows remote work **up to 3 days a week**. \n\nThis must be agreed with your manager. If you want to switch to full remote work, an additional agreement is required.",
-            response_hr: "You can contact the HR department via email **hr@company.com**.\nInternal extension 1024 (Maria Ivanova) is also available.",
-            response_fallback: "I searched the knowledge base but couldn't find an exact match. \n\nHere is what I found:\n"
-        },
-        pt: {
-            title_main: "Base de Conhecimento IA",
-            minimize_btn_title: "Minimizar",
-            input_placeholder: "Faça uma pergunta...",
-            suggestion_1: "Como pedir férias?",
-            suggestion_2: "Horário de trabalho",
-            suggestion_3: "Contatos de RH",
-            source_label: "Fonte: Documentação Interna",
-            send_btn_aria: "Enviar",
-            clear_btn_title: "Limpar",
-            copy_btn_title: "Copiar",
-
-            status_analyzing: "Analisando base de conhecimento...",
-            status_generating: "Gerando resposta...",
-
-            response_vacation: "De acordo com o cronograma de férias, você pode tirar **28 dias corridos** por ano. \n\nImportante: uma das partes das férias deve ter pelo menos 14 dias. Você precisa solicitar com 2 semanas de antecedência.",
-            response_remote: "A política da empresa permite trabalho remoto **até 3 dias por semana**. \n\nIsso deve ser acordado com seu gerente. Se quiser mudar para trabalho remoto total, é necessário um acordo adicional.",
-            response_hr: "Você pode entrar em contato com o departamento de RH pelo e-mail **hr@company.com**.\nO ramal interno 1024 (Maria Ivanova) também está disponível.",
-            response_fallback: "Pesquisei na base de conhecimento, mas não encontrei uma correspondência exata. \n\nAqui está o que encontrei:\n"
+            status_ai_thinking: "Gemini is thinking...",
+            response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
         }
     };
 
-    // Mock Data (Static RAG content) - Simplified for fallback
-    const mockFallbackData = `
-**Remote Work / Удаленная работа / Trabalho Remoto**
-Policy: up to 3 days/week. / Политика: до 3 дней. / Política: até 3 dias.
+    // --- Simple Synonym Map for local search ---
+    const synonyms = {
+        "стоянк": "парковк",
+        "парков": "стоянк",
+        "денег": "цены",
+        "стоимос": "цены",
+        "оплат": "цены",
+        "платит": "цены",
+        "ребенок": "детск",
+        "малыш": "детск"
+    };
 
-**Vacation / Отпуск / Férias**
-28 days/year. / 28 дней в году. / 28 dias/ano.
+    // --- AI API Integration ---
+    async function callGemini(query, context) {
+        const apiKey = localStorage.getItem('apiKey');
+        if (!apiKey) return null;
 
-**HR / Кадры / RH**
-Email: hr@company.com
-    `;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        
+        const prompt = `You are a helpful assistant for a company knowledge base. 
+        Use the following documentation to answer the user's question. 
+        If the answer is not in the documentation, state that clearly but politely. 
+        Keep the answer concise and friendly.
+        Answer in the SAME LANGUAGE as the user's question.
+        
+        DOCUMENTATION CONTENT:
+        ---
+        ${context}
+        ---
+        
+        USER QUESTION: ${query}`;
 
-    let currentLang = 'ru';
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
+                })
+            });
 
-    // --- Language Logic ---
-    function setLanguage(lang) {
-        if (!translations[lang]) return;
-        currentLang = lang;
-        document.documentElement.lang = lang;
-
-        // Update Text Content
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[lang][key]) {
-                el.textContent = translations[lang][key];
+            if (response.status === 429) {
+                console.warn("Gemini Rate Limit (429). Falling back to local search...");
+                return null;
             }
-        });
 
-        // Update Placeholders
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (translations[lang][key]) {
-                el.placeholder = translations[lang][key];
-            }
-        });
+            if (!response.ok) return null;
 
-        // Update Titles
-        document.querySelectorAll('[data-i18n-title]').forEach(el => {
-            const key = el.getAttribute('data-i18n-title');
-            if (translations[lang][key]) {
-                el.title = translations[lang][key];
-            }
-        });
-
-        // Update Aria Labels
-        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
-            const key = el.getAttribute('data-i18n-aria');
-            if (translations[lang][key]) {
-                el.setAttribute('aria-label', translations[lang][key]);
-            }
-        });
-
-        // Update Buttons Styling
-        langBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
-        });
-
-        // If there's an active result, we might want to re-translate it? 
-        // For now, let's keep it simple. If the user searches again, it will be in new language.
-    }
-
-    // Init Language
-    langBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lang = btn.getAttribute('data-lang');
-            setLanguage(lang);
-        });
-    });
-
-    // --- Interaction Handlers ---
-
-    // 1. Min/Max Mode
-    minimizeBtn.addEventListener('click', () => {
-        document.body.classList.add('minimized');
-    });
-
-    floatingBtn.addEventListener('click', () => {
-        document.body.classList.remove('minimized');
-        setTimeout(() => queryInput.focus(), 300);
-    });
-
-    // 2. Input Resize & State
-    function updateInputState() {
-        const val = queryInput.value.trim();
-
-        // Auto-resize
-        queryInput.style.height = 'auto';
-        queryInput.style.height = (queryInput.scrollHeight) + 'px';
-        if (queryInput.value === '') {
-            queryInput.style.height = 'auto';
-        }
-
-        // Toggle X Button
-        if (val.length > 0) {
-            clearBtn.classList.remove('hidden');
-            sendBtn.classList.add('active');
-        } else {
-            clearBtn.classList.add('hidden');
-            sendBtn.classList.remove('active');
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (err) {
+            return null;
         }
     }
 
-    queryInput.addEventListener('input', updateInputState);
-
-    // 3. Clear Button
-    clearBtn.addEventListener('click', () => {
-        queryInput.value = '';
-        updateInputState();
-        queryInput.focus();
-    });
-
-
-    // --- Core Search Logic ---
-
-    // Handle Suggestions Click
-    suggestions.forEach(chip => {
-        chip.addEventListener('click', () => {
-            // Put the translated text into input
-            queryInput.value = chip.textContent;
-            updateInputState();
-            queryInput.focus();
-            processSearch(chip.textContent);
-        });
-    });
-
-    // Handle Send Click
-    sendBtn.addEventListener('click', () => {
-        const query = queryInput.value.trim();
-        if (query) {
-            processSearch(query);
-        }
-    });
-
-    // Handle Enter Key
-    queryInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            const query = queryInput.value.trim();
-            if (query) {
-                processSearch(query);
+    // --- Data Management ---
+    function parseKnowledgeBase(text) {
+        const blocks = text.split(/\n(?=\*\*|#)/);
+        const kb = [];
+        blocks.forEach(block => {
+            const lines = block.trim().split('\n');
+            if (lines.length >= 2) {
+                const question = lines[0].replace(/[\*#«»]/g, '').trim();
+                const answer = lines.slice(1).join('\n').trim();
+                if (question && answer) {
+                    kb.push({ 
+                        question, 
+                        answer,
+                        qBuffer: question.toLowerCase().replace(/[?.,!«»()]/g, ''),
+                        aBuffer: answer.toLowerCase().replace(/[?.,!«»()]/g, '')
+                    });
+                }
             }
-        }
-    });
+        });
+        knowledgeBase = kb;
+    }
 
-    function processSearch(query) {
-        // Hide keyboard on mobile
+    const settings = {
+        initiallyOpen: localStorage.getItem('initiallyOpen') !== 'false',
+        defaultLang: localStorage.getItem('defaultLang') || 'ru',
+        kbFileName: localStorage.getItem('kbFileName') || null,
+        kbRawContent: localStorage.getItem('kbRawContent') || null,
+        apiKey: localStorage.getItem('apiKey') || ''
+    };
+
+    function initSettings() {
+        if (!settings.initiallyOpen) document.body.classList.add('minimized');
+        setLanguage(settings.defaultLang);
+        initiallyOpenToggle.checked = settings.initiallyOpen;
+        defaultLangSelect.value = settings.defaultLang;
+        
+        apiKeyInput.value = localStorage.getItem('apiKey') || '';
+        
+        if (settings.kbRawContent) parseKnowledgeBase(settings.kbRawContent);
+        if (settings.kbFileName) showFileInfo(settings.kbFileName);
+    }
+
+    function saveSettings() {
+        localStorage.setItem('initiallyOpen', initiallyOpenToggle.checked);
+        localStorage.setItem('defaultLang', defaultLangSelect.value);
+        localStorage.setItem('apiKey', apiKeyInput.value.trim());
+        setLanguage(defaultLangSelect.value);
+        adminOverlay.classList.add('hidden');
+        if (localStorage.getItem('kbRawContent')) parseKnowledgeBase(localStorage.getItem('kbRawContent'));
+    }
+
+    function handleFileSelect(file) {
+        if (!file.name.endsWith('.md')) return alert('Please select a .md file');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target.result;
+            localStorage.setItem('kbRawContent', content);
+            localStorage.setItem('kbFileName', file.name);
+            parseKnowledgeBase(content);
+            showFileInfo(file.name);
+        };
+        reader.readAsText(file);
+    }
+
+    async function processSearch(query) {
         queryInput.blur();
-
-        // UI Transition
         document.body.classList.add('has-results');
         resultsArea.classList.remove('hidden');
-
-        // Reset State
         answerCard.classList.add('hidden');
         loader.classList.remove('hidden');
         statusText.textContent = translations[currentLang].status_analyzing;
 
-        // Simulate Network Delay & Processing
+        let response = null;
+        const apiKey = localStorage.getItem('apiKey');
+        const kbContent = localStorage.getItem('kbRawContent');
+
+        if (apiKey && kbContent) {
+            statusText.textContent = translations[currentLang].status_ai_thinking;
+            response = await callGemini(query, kbContent);
+        }
+
+        if (!response) {
+            const qClean = query.toLowerCase().replace(/[?.,!«»()]/g, '');
+            let queryWords = qClean.split(/\s+/).filter(w => w.length >= 3);
+            
+            // Expand query with synonyms
+            let expandedWords = [...queryWords];
+            queryWords.forEach(w => {
+                const stem = w.substring(0, 6);
+                if (synonyms[stem]) expandedWords.push(synonyms[stem]);
+            });
+
+            let bestMatch = null;
+            let maxScore = 0;
+
+            knowledgeBase.forEach(item => {
+                let score = 0;
+                const itemFullText = (item.qBuffer + " " + item.aBuffer);
+
+                expandedWords.forEach(qW => {
+                    const qStem = qW.substring(0, 4);
+                    if (item.qBuffer.includes(qStem)) score += 3;
+                    else if (item.aBuffer.includes(qStem)) score += 1;
+                });
+
+                if (score > maxScore) {
+                    maxScore = score;
+                    bestMatch = item;
+                }
+            });
+
+            if (bestMatch && maxScore > 0) response = bestMatch.answer;
+        }
+
         setTimeout(() => {
-            statusText.textContent = translations[currentLang].status_generating;
-
-            setTimeout(() => {
-                const response = simulateAIResponse(query);
-
-                // Show Result
-                loader.classList.add('hidden');
-                statusText.textContent = "";
-
-                typeWriterEffect(response, answerContent);
-                answerCard.classList.remove('hidden');
-
-            }, 800);
-        }, 1200);
+            loader.classList.add('hidden');
+            statusText.textContent = "";
+            typeWriterEffect(response || translations[currentLang].response_fallback, answerContent);
+            answerCard.classList.remove('hidden');
+        }, 300);
     }
 
-    // Mock AI "Chain of Thought" / Retrieval
-    function simulateAIResponse(query) {
-        const q = query.toLowerCase();
-        const t = translations[currentLang];
-
-        // Multi-language keyword matching
-        const isVacation = q.includes('отпуск') || q.includes('vacation') || q.includes('leave') || q.includes('férias');
-        const isRemote = q.includes('удален') || q.includes('remote') || q.includes('home') || q.includes('trabalho');
-        const isHR = q.includes('hr') || q.includes('кадр') || q.includes('rh') || q.includes('contact');
-
-        if (isVacation) {
-            return t.response_vacation;
-        }
-        if (isRemote) {
-            return t.response_remote;
-        }
-        if (isHR) {
-            return t.response_hr;
-        }
-
-        // Fallback
-        return t.response_fallback + mockFallbackData;
+    function showFileInfo(name) {
+        fileNameDisplay.textContent = name;
+        fileInfo.classList.remove('hidden');
+        kbDropZone.querySelector('.drop-zone-content').classList.add('hidden');
     }
-
-    // Typewriter Effect
+    function setLanguage(lang) {
+        currentLang = translations[lang] ? lang : 'ru';
+        document.documentElement.lang = currentLang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+        });
+        langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
+    }
+    adminBtn.addEventListener('click', () => adminOverlay.classList.remove('hidden'));
+    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+    saveAdminBtn.addEventListener('click', saveSettings);
+    kbDropZone.addEventListener('click', () => kbFileInput.click());
+    kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
+    kbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); kbDropZone.classList.add('dragover'); });
+    kbDropZone.addEventListener('dragleave', () => kbDropZone.classList.remove('dragover'));
+    kbDropZone.addEventListener('drop', (e) => { e.preventDefault(); kbDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]); });
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        localStorage.removeItem('kbFileName');
+        localStorage.removeItem('kbRawContent');
+        knowledgeBase = [];
+        fileInfo.classList.add('hidden');
+        kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+    });
+    langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
+    minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
+    floatingBtn.addEventListener('click', () => { document.body.classList.remove('minimized'); setTimeout(() => queryInput.focus(), 300); });
+    function updateInputState() {
+        const val = queryInput.value.trim();
+        queryInput.style.height = 'auto';
+        queryInput.style.height = (queryInput.scrollHeight) + 'px';
+        if (val.length > 0) { clearBtn.classList.remove('hidden'); sendBtn.classList.add('active'); }
+        else { clearBtn.classList.add('hidden'); sendBtn.classList.remove('active'); }
+    }
+    queryInput.addEventListener('input', updateInputState);
+    clearBtn.addEventListener('click', () => { queryInput.value = ''; updateInputState(); });
+    suggestions.forEach(chip => { chip.addEventListener('click', () => { queryInput.value = chip.textContent; updateInputState(); processSearch(chip.textContent); }); });
+    sendBtn.addEventListener('click', () => { const query = queryInput.value.trim(); if (query) processSearch(query); });
+    queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const query = queryInput.value.trim(); if (query) processSearch(query); } });
     function typeWriterEffect(text, element) {
         element.innerHTML = "";
-
-        const formattedHTML = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n/g, '<br>');
-
-        element.style.opacity = 0;
-        element.innerHTML = formattedHTML;
-
-        void element.offsetWidth;
-
-        element.style.transition = 'opacity 0.5s ease';
-        element.style.opacity = 1;
+        const formattedHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        element.style.opacity = 0; element.innerHTML = formattedHTML;
+        void element.offsetWidth; element.style.transition = 'opacity 0.5s ease'; element.style.opacity = 1;
     }
-
-    // Initial call to set defaults in case HTML is static
-    setLanguage('ru');
+    initSettings();
 });
