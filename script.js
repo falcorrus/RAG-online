@@ -42,16 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const translations = {
         ru: {
             title_main: "AI Knowledge Base",
-            minimize_btn_title: "Свернуть",
-            admin_btn_title: "Настройки",
             input_placeholder: "Задайте вопрос по базе знаний...",
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
             source_label: "Источник: Внутренняя документация",
-            send_btn_aria: "Отправить",
-            clear_btn_title: "Очистить",
-            copy_btn_title: "Копировать",
             admin_title: "Настройки администратора",
             kb_upload_label: "База знаний (.md)",
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
@@ -59,8 +54,39 @@ document.addEventListener('DOMContentLoaded', () => {
             default_lang_label: "Язык по умолчанию",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
-            status_ai_thinking: "ИИ формирует ответ...",
-            response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
+            status_ai_thinking: "ИИ формирует ответ..."
+        },
+        en: {
+            title_main: "AI Knowledge Base",
+            input_placeholder: "Ask a question...",
+            suggestion_1: "How to apply for leave?",
+            suggestion_2: "Work schedule",
+            suggestion_3: "HR Contacts",
+            source_label: "Source: Internal Documentation",
+            admin_title: "Admin Settings",
+            kb_upload_label: "Knowledge Base (.md)",
+            drop_zone_text: "Drag & drop .md file or click to browse",
+            initially_open_label: "Initially open",
+            default_lang_label: "Default Language",
+            save_btn: "Save Changes",
+            status_analyzing: "Analyzing knowledge base...",
+            status_ai_thinking: "AI is thinking..."
+        },
+        pt: {
+            title_main: "Base de Conhecimento AI",
+            input_placeholder: "Faça uma pergunta...",
+            suggestion_1: "Como solicitar férias?",
+            suggestion_2: "Horário de trabalho",
+            suggestion_3: "Contatos de RH",
+            source_label: "Fonte: Documentação Interna",
+            admin_title: "Configurações do Administrador",
+            kb_upload_label: "Base de Conhecimento (.md)",
+            drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
+            initially_open_label: "Abrir inicialmente",
+            default_lang_label: "Idioma padrão",
+            save_btn: "Salvar alterações",
+            status_analyzing: "Analisando base de conhecimento...",
+            status_ai_thinking: "IA está pensando..."
         }
     };
 
@@ -76,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(path, options);
             if (response.status === 401) {
-                console.warn("Unauthorized API call. Token cleared.");
                 localStorage.removeItem('token');
                 showAuth();
             }
@@ -117,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('token', data.token);
                 authError.classList.add('hidden');
                 
-                // GA Event: Login/Register
                 gtag('event', isRegisterMode ? 'sign_up' : 'login', {
                     'method': 'email',
                     'tenant_subdomain': data.subdomain || 'unknown'
@@ -229,11 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
                 if (resp.ok) {
-                    // GA Event: KB Upload
-                    gtag('event', 'kb_upload', {
-                        'file_name': file.name,
-                        'file_size': file.size
-                    });
+                    gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
                     await loadSuggestions();
                 } else {
@@ -263,11 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusText.textContent = "";
             
             if (resp.ok) {
-                // GA Event: Search
-                gtag('event', 'search', {
-                    'search_term': query,
-                    'hostname': window.location.hostname
-                });
+                gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
                 typeWriterEffect(data.answer, answerContent);
                 answerCard.classList.remove('hidden');
             } else {
@@ -300,13 +316,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     if (adminBtn) adminBtn.addEventListener('click', () => {
         const token = localStorage.getItem('token');
-        if (!token) {
-            isRegisterMode = false;
-            authTitle.textContent = 'Вход в систему';
-            authBtn.textContent = 'Войти';
-            toggleAuthMode.textContent = 'Нет аккаунта? Регистрация';
-            showAuth();
-        } else {
+        if (!token) showAuth();
+        else {
             authPanel.classList.add('hidden');
             settingsPanel.classList.remove('hidden');
             adminOverlay.classList.remove('hidden');
@@ -322,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
             kbFileInput.click();
         });
         kbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); kbDropZone.classList.add('dragover'); });
-        kbDropZone.addEventListener('dragleave', () => kbDropZone.classList.remove('dragover'));
+        kbDropZone.addEventListener('dragleave', () => { kbDropZone.classList.remove('dragover'); });
         kbDropZone.addEventListener('drop', (e) => { 
             e.preventDefault(); 
             kbDropZone.classList.remove('dragover'); 
@@ -363,6 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
         queryInput.addEventListener('input', updateInputState);
     }
 
+    langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
+
     function showFileInfo(name) {
         fileNameDisplay.textContent = name;
         fileInfo.classList.remove('hidden');
@@ -373,9 +386,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function setLanguage(lang) {
         currentLang = lang;
         document.documentElement.lang = currentLang;
+        langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
+        
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
-            if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+            if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
         loadSuggestions();
     }
