@@ -26,6 +26,10 @@ class ChatRequest(BaseModel):
     query: str
     context: str
 
+@app.get("/api/admin")
+async def admin_auth():
+    return {"status": "ok"}
+
 @app.post("/api/chat")
 async def chat_proxy(request: ChatRequest):
     if not API_KEY:
@@ -71,4 +75,4 @@ async def chat_proxy(request: ChatRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8006)

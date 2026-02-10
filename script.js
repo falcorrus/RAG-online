@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
     const defaultLangSelect = document.getElementById('defaultLangSelect');
-    // API key input is no longer used for core logic but kept in HTML for now
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -77,22 +76,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const synonyms = {
+        "стоянк": "парковк",
+        "парков": "стоянк",
+        "денег": "цены",
+        "стоимос": "цены",
+        "оплат": "цены",
+        "платит": "цены",
+        "ребенок": "детск",
+        "малыш": "детск"
+    };
+
     // --- AI API Integration ---
     async function callAI(query, context) {
-        console.log("Calling backend proxy...");
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query, context })
             });
-            
-            if (!response.ok) throw new Error("Backend error");
-            
+            if (response.status === 429) return null;
+            if (!response.ok) return null;
             const data = await response.json();
             return data.answer || null;
         } catch (err) {
-            console.error("Backend proxy call failed:", err);
             return null;
         }
     }
@@ -131,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setLanguage(settings.defaultLang);
         initiallyOpenToggle.checked = settings.initiallyOpen;
         defaultLangSelect.value = settings.defaultLang;
-        
         if (settings.kbRawContent) parseKnowledgeBase(settings.kbRawContent);
         if (settings.kbFileName) showFileInfo(settings.kbFileName);
     }
@@ -144,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (localStorage.getItem('kbRawContent')) parseKnowledgeBase(localStorage.getItem('kbRawContent'));
     }
 
-    // --- File Handling ---
     function handleFileSelect(file) {
         if (!file.name.endsWith('.md')) return alert('Please select a .md file');
         const reader = new FileReader();
@@ -158,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
-    // --- Search Logic ---
     async function processSearch(query) {
         queryInput.blur();
         document.body.classList.add('has-results');
@@ -167,25 +171,29 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.classList.remove('hidden');
         statusText.textContent = translations[currentLang].status_analyzing;
 
-        const kbContent = localStorage.getItem('kbRawContent');
         let response = null;
+        const kbContent = localStorage.getItem('kbRawContent');
 
-        // Use Backend Proxy as primary AI source
         if (kbContent) {
             statusText.textContent = translations[currentLang].status_ai_thinking;
             response = await callAI(query, kbContent);
         }
 
-        // Fallback to Keyword Search
-        if (!response && knowledgeBase.length > 0) {
+        if (!response) {
             const qClean = query.toLowerCase().replace(/[?.,!«»()]/g, '');
             let queryWords = qClean.split(/\s+/).filter(w => w.length >= 3);
+            let expandedWords = [...queryWords];
+            queryWords.forEach(w => {
+                const stem = w.substring(0, 6);
+                if (synonyms[stem]) expandedWords.push(synonyms[stem]);
+            });
+
             let bestMatch = null;
             let maxScore = 0;
 
             knowledgeBase.forEach(item => {
                 let score = 0;
-                queryWords.forEach(qW => {
+                expandedWords.forEach(qW => {
                     const qStem = qW.substring(0, 4);
                     if (item.qBuffer.includes(qStem)) score += 3;
                     else if (item.aBuffer.includes(qStem)) score += 1;
@@ -203,11 +211,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 
-    // --- UI Helpers ---
     function showFileInfo(name) {
-        fileNameDisplay.textContent = name;
-        fileInfo.classList.remove('hidden');
-        kbDropZone.querySelector('.drop-zone-content').classList.add('hidden');
+        if (fileNameDisplay) fileNameDisplay.textContent = name;
+        if (fileInfo) fileInfo.classList.remove('hidden');
+        if (kbDropZone) {
+            const content = kbDropZone.querySelector('.drop-zone-content');
+            if (content) content.classList.add('hidden');
+        }
     }
     function setLanguage(lang) {
         currentLang = translations[lang] ? lang : 'ru';
@@ -218,39 +228,67 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
     }
-
-    // --- Events ---
-    adminBtn.addEventListener('click', () => adminOverlay.classList.remove('hidden'));
-    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
-    saveAdminBtn.addEventListener('click', saveSettings);
-    kbDropZone.addEventListener('click', () => kbFileInput.click());
-    kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
-    kbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); kbDropZone.classList.add('dragover'); });
-    kbDropZone.addEventListener('dragleave', () => kbDropZone.classList.remove('dragover'));
-    kbDropZone.addEventListener('drop', (e) => { e.preventDefault(); kbDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]); });
-    removeFileBtn.addEventListener('click', (e) => {
+    if (adminBtn) adminBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/admin');
+            if (response.ok) {
+                adminOverlay.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error('Admin access denied');
+        }
+    });
+    if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+    if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
+    if (kbDropZone) kbDropZone.addEventListener('click', () => kbFileInput.click());
+    if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
+    if (kbDropZone) {
+        kbDropZone.addEventListener('dragover', (e) => { e.preventDefault(); kbDropZone.classList.add('dragover'); });
+        kbDropZone.addEventListener('dragleave', () => kbDropZone.classList.remove('dragover'));
+        kbDropZone.addEventListener('drop', (e) => { e.preventDefault(); kbDropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileSelect(e.dataTransfer.files[0]); });
+    }
+    if (removeFileBtn) removeFileBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        localStorage.removeItem('kbFileName');
-        localStorage.removeItem('kbRawContent');
+        try {
+            localStorage.removeItem('kbFileName');
+            localStorage.removeItem('kbRawContent');
+        } catch (err) {}
         knowledgeBase = [];
-        fileInfo.classList.add('hidden');
-        kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+        if (fileInfo) fileInfo.classList.add('hidden');
+        if (kbDropZone) kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
     });
     langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
-    minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
-    floatingBtn.addEventListener('click', () => { document.body.classList.remove('minimized'); setTimeout(() => queryInput.focus(), 300); });
+    if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
+    if (floatingBtn) floatingBtn.addEventListener('click', () => { 
+        document.body.classList.remove('minimized'); 
+        setTimeout(() => queryInput && queryInput.focus(), 300); 
+    });
     function updateInputState() {
+        if (!queryInput) return;
         const val = queryInput.value.trim();
         queryInput.style.height = 'auto';
         queryInput.style.height = (queryInput.scrollHeight) + 'px';
-        if (val.length > 0) { clearBtn.classList.remove('hidden'); sendBtn.classList.add('active'); }
-        else { clearBtn.classList.add('hidden'); sendBtn.classList.remove('active'); }
+        if (val.length > 0) { 
+            if (clearBtn) clearBtn.classList.remove('hidden'); 
+            if (sendBtn) sendBtn.classList.add('active'); 
+        } else { 
+            if (clearBtn) clearBtn.classList.add('hidden'); 
+            if (sendBtn) sendBtn.classList.remove('active'); 
+        }
     }
-    queryInput.addEventListener('input', updateInputState);
-    clearBtn.addEventListener('click', () => { queryInput.value = ''; updateInputState(); });
-    suggestions.forEach(chip => { chip.addEventListener('click', () => { queryInput.value = chip.textContent; updateInputState(); processSearch(chip.textContent); }); });
-    sendBtn.addEventListener('click', () => { const query = queryInput.value.trim(); if (query) processSearch(query); });
-    queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const query = queryInput.value.trim(); if (query) processSearch(query); } });
+    if (queryInput) queryInput.addEventListener('input', updateInputState);
+    if (clearBtn) clearBtn.addEventListener('click', () => { if (queryInput) queryInput.value = ''; updateInputState(); });
+    suggestions.forEach(chip => { 
+        chip.addEventListener('click', () => { 
+            if (queryInput) {
+                queryInput.value = chip.textContent; 
+                updateInputState(); 
+                processSearch(chip.textContent); 
+            }
+        }); 
+    });
+    if (sendBtn) sendBtn.addEventListener('click', () => { const query = queryInput ? queryInput.value.trim() : ''; if (query) processSearch(query); });
+    if (queryInput) queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const query = queryInput.value.trim(); if (query) processSearch(query); } });
     function typeWriterEffect(text, element) {
         element.innerHTML = "";
         const formattedHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
