@@ -274,6 +274,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { 
             if (clearBtn) clearBtn.classList.add('hidden'); 
             if (sendBtn) sendBtn.classList.remove('active'); 
+            document.body.classList.remove('has-results');
+            if (resultsArea) resultsArea.classList.add('hidden');
         }
     }
     if (queryInput) queryInput.addEventListener('input', updateInputState);
