@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const answerContent = document.getElementById('answerContent');
     const loader = document.getElementById('loader');
     const statusText = document.getElementById('statusText');
-    const suggestions = document.querySelectorAll('.suggestion-chip');
+    const suggestionsContainer = document.getElementById('suggestions');
     const langBtns = document.querySelectorAll('.lang-btn');
 
     // Auth Elements
@@ -190,7 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Settings & UI ---
     async function initSettings() {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+            await loadSuggestions(); // Load default KB suggestions
+            return;
+        }
 
         const resp = await apiRequest('/api/tenant/settings');
         if (resp.ok) {
@@ -205,6 +208,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kbResp.ok) {
             const kbData = await kbResp.json();
             if (kbData.content) showFileInfo("Загруженная база знаний");
+        }
+        await loadSuggestions();
+    }
+
+    async function loadSuggestions() {
+        if (!suggestionsContainer) return;
+        
+        try {
+            const resp = await apiRequest('/api/suggestions');
+            if (resp.ok) {
+                const data = await resp.json();
+                suggestionsContainer.innerHTML = '';
+                
+                data.suggestions.forEach(text => {
+                    const chip = document.createElement('div');
+                    chip.className = 'suggestion-chip';
+                    chip.textContent = text;
+                    chip.addEventListener('click', () => {
+                        if (queryInput) {
+                            queryInput.value = text;
+                            updateInputState();
+                            processSearch(text);
+                        }
+                    });
+                    suggestionsContainer.appendChild(chip);
+                });
+            }
+        } catch (err) {
+            console.error("Failed to load suggestions", err);
         }
     }
 
@@ -225,7 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = async (e) => {
             const content = e.target.result;
             const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
-            if (resp.ok) showFileInfo(file.name);
+            if (resp.ok) {
+                showFileInfo(file.name);
+                await loadSuggestions();
+            }
         };
         reader.readAsText(file);
     }
@@ -299,6 +334,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    if (kbDropZone) {
+        kbDropZone.addEventListener('dragover', (e) => { 
+            e.preventDefault(); 
+            kbDropZone.classList.add('dragover'); 
+        });
+        kbDropZone.addEventListener('dragleave', () => {
+            kbDropZone.classList.remove('dragover'); 
+        });
+        kbDropZone.addEventListener('drop', (e) => { 
+            e.preventDefault(); 
+            kbDropZone.classList.remove('dragover'); 
+            if (e.dataTransfer.files.length > 0) {
+                handleFileSelect(e.dataTransfer.files[0]); 
+            }
+        });
+    }
+
     if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
     if (floatingBtn) floatingBtn.addEventListener('click', () => { 
         document.body.classList.remove('minimized'); 
@@ -311,18 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (queryInput) queryInput.value = ''; 
         updateInputState(); 
     });
-
-    if (suggestions) {
-        suggestions.forEach(chip => { 
-            chip.addEventListener('click', () => { 
-                if (queryInput) {
-                    queryInput.value = chip.textContent; 
-                    updateInputState(); 
-                    processSearch(chip.textContent); 
-                }
-            }); 
-        });
-    }
 
     if (sendBtn) sendBtn.addEventListener('click', () => { 
         const query = queryInput.value.trim(); 

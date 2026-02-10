@@ -141,6 +141,32 @@ async def get_kb(user=Depends(get_required_user)):
             return {"content": f.read()}
     return {"content": ""}
 
+@app.get("/api/suggestions")
+async def get_suggestions(user=Depends(get_optional_user)):
+    owner_email = user["sub"] if user else "ekirshin@gmail.com"
+    tenants = get_tenants()
+    
+    if owner_email not in tenants:
+        return {"suggestions": []}
+
+    kb_file = tenants[owner_email]["kb_file"]
+    kb_path = os.path.join(STORAGE_DIR, kb_file)
+    
+    if not os.path.exists(kb_path):
+        return {"suggestions": []}
+
+    with open(kb_path, 'r') as f:
+        content = f.read()
+
+    import re
+    # Match **«...»** or **... ?**
+    suggestions = re.findall(r'\*\*«(.*?)»\*\*', content)
+    if not suggestions:
+        suggestions = re.findall(r'\*\*(.*?\?)\*\*', content)
+    
+    # Return first 5 suggestions
+    return {"suggestions": [s.strip() for s in suggestions[:5]]}
+
 # --- Admin Routes ---
 @app.get("/api/admin/users")
 async def list_users(user=Depends(get_required_user)):
