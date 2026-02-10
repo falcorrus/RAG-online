@@ -1,1 +1,11 @@
-{}
+{
+    "ekirshin@gmail.com": {
+        "password": "$2b$12$A9Tau5fmBPxvxSRHcaZv8O.wMyTMF66bCuPXR0QgyBG65ESbmuEUa",
+        "is_admin": true,
+        "settings": {
+            "initiallyOpen": true,
+            "defaultLang": "ru"
+        },
+        "kb_file": "kb_d279662200a84f9b9da577b65f440968.md"
+    }
+}

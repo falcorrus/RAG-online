@@ -190,7 +190,8 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     async with httpx.AsyncClient() as client:
         resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
         if resp.status_code != 200:
-            return {"answer": "AI error"}
+            print(f"AI Error: {resp.status_code} - {resp.text}")
+            return {"answer": f"AI error: {resp.status_code}"}
         data = resp.json()
         return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
 

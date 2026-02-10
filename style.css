@@ -24,6 +24,7 @@
     
     /* Status */
     --color-error: #ef4444;
+    --accent-color: #6366f1;
 
     --transition-speed: 0.3s;
     --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -573,7 +574,7 @@ body.has-results .results-area {
 .setting-label {
     font-size: 0.9rem;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 /* Drop Zone */
@@ -697,7 +698,7 @@ input:checked + .slider:before {
 
 /* Admin Select */
 .admin-select {
-    background: var(--input-bg);
+    background: var(--bg-input);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     padding: 10px 14px;

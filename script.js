@@ -83,6 +83,28 @@ document.addEventListener('DOMContentLoaded', () => {
             status_analyzing: "Analyzing knowledge base...",
             status_ai_thinking: "AI is thinking...",
             response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
+        },
+        pt: {
+            title_main: "Base de Conhecimento AI",
+            minimize_btn_title: "Minimizar",
+            admin_btn_title: "Configurações",
+            input_placeholder: "Faça uma pergunta...",
+            suggestion_1: "Como solicitar férias?",
+            suggestion_2: "Horário de trabalho",
+            suggestion_3: "Contatos de RH",
+            source_label: "Fonte: Documentação Interna",
+            send_btn_aria: "Enviar",
+            clear_btn_title: "Limpar",
+            copy_btn_title: "Copiar",
+            admin_title: "Configurações do Administrador",
+            kb_upload_label: "Base de Conhecimento (.md)",
+            drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
+            initially_open_label: "Abrir inicialmente",
+            default_lang_label: "Idioma padrão",
+            save_btn: "Salvar alterações",
+            status_analyzing: "Analisando base de conhecimento...",
+            status_ai_thinking: "IA está pensando...",
+            response_fallback: "Procurei na base de conhecimento, mas não encontrei uma correspondência. Tente reformular a pergunta."
         }
     };
 
@@ -115,30 +137,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = authPass.value;
         const path = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
 
-        const resp = await fetch(path, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await resp.json();
-        if (resp.ok) {
-            localStorage.setItem('token', data.token);
-            authError.classList.add('hidden');
-            initSettings();
-            adminOverlay.classList.add('hidden');
-        } else {
-            authError.textContent = data.detail || 'Ошибка входа';
+        if (!email || !password) {
+            authError.textContent = 'Введите email и пароль';
             authError.classList.remove('hidden');
+            return;
+        }
+
+        const originalBtnText = authBtn.textContent;
+        authBtn.textContent = 'Загрузка...';
+        authBtn.disabled = true;
+
+        try {
+            const resp = await fetch(path, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await resp.json();
+            if (resp.ok) {
+                localStorage.setItem('token', data.token);
+                authError.classList.add('hidden');
+                await initSettings();
+                adminOverlay.classList.add('hidden');
+            } else {
+                authError.textContent = data.detail || 'Ошибка входа';
+                authError.classList.remove('hidden');
+            }
+        } catch (err) {
+            authError.textContent = 'Ошибка сети. Проверьте сервер.';
+            authError.classList.remove('hidden');
+        } finally {
+            authBtn.textContent = originalBtnText;
+            authBtn.disabled = false;
         }
     }
 
     if (toggleAuthMode) {
-        toggleAuthMode.addEventListener('click', () => {
+        toggleAuthMode.addEventListener('click', (e) => {
+            e.preventDefault();
             isRegisterMode = !isRegisterMode;
-            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
-            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            console.log("Auth mode changed. isRegisterMode:", isRegisterMode);
+            
+            if (authTitle) authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
+            if (authBtn) authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+            if (toggleAuthMode) toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
         });
     }
 
@@ -310,6 +353,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
         if (langBtns) langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
     }
