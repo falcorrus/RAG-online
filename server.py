@@ -174,7 +174,7 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     target_lang = lang_map.get(request.lang, "Russian")
     
-    print(f"Chat request: email={owner_email}, lang={request.lang} ({target_lang}), query={request.query[:50]}")
+    print(f"Chat request: email={owner_email}, lang={request.lang} ({target_lang}), query={request.query[:50]}", flush=True)
     
     tenants = get_tenants()
     if owner_email not in tenants: return {"answer": "Knowledge base not configured."}
@@ -188,12 +188,12 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     
     # Ultra-strict prompt for language enforcement
     prompt = f"""You are a specialized Knowledge Base assistant.
-SYSTEM RULES:
-1. You MUST answer EXCLUSIVELY in {target_lang}.
-2. Even if the USER QUESTION is in another language, you answer ONLY in {target_lang}.
-3. Even if the CONTEXT is in another language, you answer ONLY in {target_lang}.
-4. Use ONLY the provided CONTEXT. If info is missing, say "I don't know" in {target_lang}.
-5. Do NOT use your general knowledge.
+SYSTEM RULES (MANDATORY):
+1. You MUST answer EXCLUSIVELY in {target_lang}. THIS IS THE MOST IMPORTANT RULE.
+2. If the USER QUESTION is in Russian, you MUST TRANSLATE the answer to {target_lang}.
+3. If the CONTEXT is in Russian, you MUST TRANSLATE the relevant information to {target_lang}.
+4. NEVER output text in Russian if the target language is {target_lang}.
+5. Use ONLY the provided CONTEXT. If info is missing, say "I don't know" in {target_lang}.
 
 CONTEXT:
 ---
@@ -201,17 +201,17 @@ CONTEXT:
 ---
 
 USER QUESTION: {request.query}
-YOUR ANSWER IN {target_lang}:"""
+YOUR RESPONSE (MUST BE ENTIRELY IN {target_lang}):"""
 
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
             data = resp.json()
             answer = data['candidates'][0]['content']['parts'][0]['text']
-            print(f"AI response received ({len(answer)} chars)")
+            print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
             return {"answer": answer}
         except Exception as e:
-            print(f"Chat error: {e}")
+            print(f"Chat error: {e}", flush=True)
             return {"answer": "AI connection error"}
 
 # Proxy other tenant routes
