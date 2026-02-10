@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleFileSelect(file) {
-        if (!file.name.endsWith('.md')) {
+        if (!file.name.toLowerCase().endsWith('.md')) {
             alert("Пожалуйста, выберите файл в формате .md");
             return;
         }
