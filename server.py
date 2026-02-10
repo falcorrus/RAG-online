@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -14,7 +14,6 @@ from datetime import datetime, timedelta
 
 load_dotenv(override=True)
 API_KEY = os.getenv("GEMINI_API_KEY")
-print(f"Server starting with API_KEY starting with: {API_KEY[:8]}...")
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-change-me")
 STORAGE_DIR = "storage"
 TENANTS_FILE = os.path.join(STORAGE_DIR, "tenants.json")
@@ -40,6 +39,7 @@ app.add_middleware(
 class UserAuth(BaseModel):
     email: str
     password: str
+    subdomain: Optional[str] = None
 
 class TenantSettings(BaseModel):
     initiallyOpen: bool
@@ -51,12 +51,40 @@ class ChatRequest(BaseModel):
 
 # --- Utils ---
 def get_tenants():
+    if not os.path.exists(TENANTS_FILE):
+        return {}
     with open(TENANTS_FILE, 'r') as f:
         return json.load(f)
 
 def save_tenants(tenants):
     with open(TENANTS_FILE, 'w') as f:
         json.dump(tenants, f, indent=4)
+
+def get_tenant_by_host(host: str):
+    """Identify tenant by subdomain or return default admin email."""
+    if not host:
+        return "ekirshin@gmail.com"
+    
+    parts = host.split('.')
+    # Check for subdomain like tenant.rag.reloto.ru
+    # parts: ['tenant', 'rag', 'reloto', 'ru']
+    if len(parts) >= 4 and parts[-3] == 'rag':
+        subdomain = parts[0]
+        tenants = get_tenants()
+        for email, data in tenants.items():
+            if data.get("subdomain") == subdomain:
+                return email
+    
+    # Check for direct subdomain like tenant.reloto.ru (if configured that way)
+    if len(parts) == 3 and parts[-2] == 'reloto':
+        subdomain = parts[0]
+        if subdomain != 'rag':
+            tenants = get_tenants()
+            for email, data in tenants.items():
+                if data.get("subdomain") == subdomain:
+                    return email
+
+    return "ekirshin@gmail.com"
 
 def create_token(email: str, is_admin: bool = False):
     payload = {
@@ -76,7 +104,6 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
     except Exception as e:
-        print(f"JWT Decode Error: {e}")
         if required:
             raise HTTPException(status_code=401, detail="Invalid token")
         return None
@@ -95,14 +122,18 @@ async def register(auth: UserAuth):
     if auth.email in tenants:
         raise HTTPException(status_code=400, detail="User already exists")
     
+    # If subdomain not provided, use email prefix
+    sub = auth.subdomain or auth.email.split('@')[0]
+    
     tenants[auth.email] = {
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
+        "subdomain": sub,
         "settings": {"initiallyOpen": True, "defaultLang": "ru"},
         "kb_file": f"kb_{uuid.uuid4().hex}.md"
     }
     save_tenants(tenants)
-    return {"token": create_token(auth.email, tenants[auth.email]["is_admin"])}
+    return {"token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub}
 
 @app.post("/api/auth/login")
 async def login(auth: UserAuth):
@@ -111,7 +142,7 @@ async def login(auth: UserAuth):
     if not user or not pwd_context.verify(auth.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    return {"token": create_token(auth.email, user.get("is_admin", False))}
+    return {"token": create_token(auth.email, user.get("is_admin", False)), "subdomain": user.get("subdomain")}
 
 # --- Tenant Routes ---
 @app.get("/api/tenant/settings")
@@ -129,30 +160,18 @@ async def save_settings(settings: TenantSettings, user=Depends(get_required_user
 async def generate_all_suggestions(owner_email: str, content: str):
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     all_suggestions = {}
-
     for code, name in lang_map.items():
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-            prompt = f"""Based on the following knowledge base content, generate 3 short, typical questions a user might ask.
-            The questions MUST be in {name}.
-            Return ONLY a JSON list of strings, nothing else.
-            Example format: ["Question 1", "Question 2", "Question 3"]
-            
-            CONTENT:
-            {content[:5000]}"""
-
+            prompt = f"Based on content, generate 3 typical questions in {name}. Return ONLY JSON list of strings. CONTENT: {content[:5000]}"
             async with httpx.AsyncClient() as client:
                 resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=10.0)
                 if resp.status_code == 200:
                     data = resp.json()
                     text = data['candidates'][0]['content']['parts'][0]['text']
-                    import json as json_lib
                     cleaned_text = text.replace('```json', '').replace('```', '').strip()
-                    all_suggestions[code] = json_lib.loads(cleaned_text)
-                else:
-                    all_suggestions[code] = []
-        except Exception as e:
-            print(f"Error generating {code} suggestions: {e}")
+                    all_suggestions[code] = json.loads(cleaned_text)
+        except:
             all_suggestions[code] = []
     
     tenants = get_tenants()
@@ -164,14 +183,9 @@ async def generate_all_suggestions(owner_email: str, content: str):
 async def upload_kb(data: dict, user=Depends(get_required_user)):
     tenants = get_tenants()
     kb_file = tenants[user["sub"]]["kb_file"]
-    content = data.get("content", "")
-    print(f"Uploading KB for {user['sub']}, size: {len(content)} bytes")
     with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
-        f.write(content)
-    
-    # Generate suggestions for all languages immediately
-    await generate_all_suggestions(user["sub"], content)
-    
+        f.write(data.get("content", ""))
+    await generate_all_suggestions(user["sub"], data.get("content", ""))
     return {"status": "ok"}
 
 @app.get("/api/tenant/kb")
@@ -185,24 +199,19 @@ async def get_kb(user=Depends(get_required_user)):
     return {"content": ""}
 
 @app.get("/api/suggestions")
-async def get_suggestions(lang: str = "ru", user=Depends(get_optional_user)):
-    owner_email = user["sub"] if user else "ekirshin@gmail.com"
+async def get_suggestions(request: Request, lang: str = "ru", user=Depends(get_optional_user)):
+    host = request.headers.get("host", "")
+    owner_email = user["sub"] if user else get_tenant_by_host(host)
     tenants = get_tenants()
     
     if owner_email not in tenants:
         return {"suggestions": []}
 
-    # Return from cache if exists
     cache = tenants[owner_email].get("suggestions_cache", {})
     if lang in cache and cache[lang]:
         return {"suggestions": cache[lang]}
 
-    # Fallback suggestions
-    fallback = {
-        "ru": ["Как оформить отпуск?", "График работы", "Контакты HR"],
-        "en": ["How to apply for leave?", "Work schedule", "HR Contacts"],
-        "pt": ["Como solicitar férias?", "Horário de trabalho", "Contatos de RH"]
-    }
+    fallback = {"ru": ["Как оформить отпуск?", "График работы"], "en": ["Work schedule", "HR Contacts"]}
     return {"suggestions": fallback.get(lang, fallback["ru"])}
 
 # --- Admin Routes ---
@@ -211,31 +220,20 @@ async def list_users(user=Depends(get_required_user)):
     if not user.get("admin"):
         raise HTTPException(status_code=403, detail="Forbidden")
     tenants = get_tenants()
-    return [{"email": email, "is_admin": data.get("is_admin", False)} for email, data in tenants.items()]
-
-@app.post("/api/admin/reset-password")
-async def reset_password(data: dict, user=Depends(get_required_user)):
-    if not user.get("admin"):
-        raise HTTPException(status_code=403, detail="Forbidden")
-    tenants = get_tenants()
-    target_email = data.get("email")
-    if target_email in tenants:
-        tenants[target_email]["password"] = pwd_context.hash(data.get("new_password"))
-        save_tenants(tenants)
-        return {"status": "ok"}
-    raise HTTPException(status_code=404, detail="User not found")
+    return [{"email": email, "subdomain": data.get("subdomain"), "is_admin": data.get("is_admin", False)} for email, data in tenants.items()]
 
 # --- AI API ---
 @app.post("/api/chat")
-async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
+async def chat_proxy(request: ChatRequest, req: Request, user=Depends(get_optional_user)):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API Key not configured")
 
-    owner_email = user["sub"] if user else "ekirshin@gmail.com"
+    host = req.headers.get("host", "")
+    owner_email = user["sub"] if user else get_tenant_by_host(host)
     tenants = get_tenants()
     
     if owner_email not in tenants:
-        return {"answer": "База знаний еще не настроена администратором."}
+        return {"answer": "База знаний еще не настроена."}
 
     kb_file = tenants[owner_email]["kb_file"]
     kb_path = os.path.join(STORAGE_DIR, kb_file)
@@ -248,37 +246,17 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     target_lang = lang_map.get(request.lang, "Russian")
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-    prompt = f"""You are a specialized AI Knowledge Base assistant.
-Your goal is to answer the USER's question using ONLY the provided CONTEXT.
-
-RULES:
-1. Use ONLY the provided CONTEXT to answer.
-2. If the answer is not in the CONTEXT, politely say that you don't have this information in your database.
-3. Do NOT use your general knowledge to answer questions about the company, prices, or rules if they are not in the CONTEXT.
-4. Keep the answer friendly and concise.
-5. You MUST answer in {target_lang}.
-
-CONTEXT:
----
-{context}
----
-
-USER QUESTION: {request.query}
-ANSWER:"""
+    prompt = f"""You are a specialized Knowledge Base assistant. Use ONLY the provided CONTEXT.
+    If answer is not in CONTEXT, say you don't know. Answer in {target_lang}.
+    CONTEXT: {context}
+    USER: {request.query}"""
 
     async with httpx.AsyncClient() as client:
         try:
-            print(f"Sending prompt to Gemini for query: {request.query[:50]}...")
             resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
-            if resp.status_code != 200:
-                print(f"AI Error: {resp.status_code} - {resp.text}")
-                return {"answer": f"AI error: {resp.status_code}"}
             data = resp.json()
-            answer = data['candidates'][0]['content']['parts'][0]['text']
-            print(f"Gemini response received ({len(answer)} chars)")
-            return {"answer": answer}
-        except Exception as e:
-            print(f"Chat error: {e}")
+            return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
+        except:
             return {"answer": "AI connection error"}
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
