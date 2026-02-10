@@ -125,23 +125,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (resp.ok) {
             localStorage.setItem('token', data.token);
             authError.classList.add('hidden');
-            initSettings(); // Reload settings for this user
-            authPanel.classList.add('hidden');
-            settingsPanel.classList.remove('hidden');
+            initSettings();
+            adminOverlay.classList.add('hidden');
         } else {
             authError.textContent = data.detail || 'Ошибка входа';
             authError.classList.remove('hidden');
         }
     }
 
-    toggleAuthMode.addEventListener('click', () => {
-        isRegisterMode = !isRegisterMode;
-        authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
-        authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-        toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
-    });
+    if (toggleAuthMode) {
+        toggleAuthMode.addEventListener('click', () => {
+            isRegisterMode = !isRegisterMode;
+            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
+            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+        });
+    }
 
-    authBtn.addEventListener('click', handleAuth);
+    if (authBtn) authBtn.addEventListener('click', handleAuth);
 
     // --- Settings & UI ---
     async function initSettings() {
@@ -210,13 +211,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateInputState() {
+        if (!queryInput) return;
+        const val = queryInput.value.trim();
+        queryInput.style.height = 'auto';
+        queryInput.style.height = (queryInput.scrollHeight) + 'px';
+        
+        if (val.length > 0) { 
+            if (clearBtn) clearBtn.classList.remove('hidden'); 
+            if (sendBtn) sendBtn.classList.add('active'); 
+        } else { 
+            if (clearBtn) clearBtn.classList.add('hidden'); 
+            if (sendBtn) sendBtn.classList.remove('active'); 
+            document.body.classList.remove('has-results');
+            if (resultsArea) resultsArea.classList.add('hidden');
+        }
+    }
+
     // --- Event Listeners ---
     if (adminBtn) adminBtn.addEventListener('click', () => {
         const token = localStorage.getItem('token');
-        if (!token) showAuth();
-        else {
-            if (authPanel) authPanel.classList.add('hidden');
-            if (settingsPanel) settingsPanel.classList.remove('hidden');
+        if (!token) {
+            isRegisterMode = false;
+            authTitle.textContent = 'Вход в систему';
+            authBtn.textContent = 'Войти';
+            toggleAuthMode.textContent = 'Нет аккаунта? Регистрация';
+            showAuth();
+        } else {
+            authPanel.classList.add('hidden');
+            settingsPanel.classList.remove('hidden');
             adminOverlay.classList.remove('hidden');
         }
     });
@@ -226,6 +249,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (kbDropZone) kbDropZone.addEventListener('click', () => kbFileInput.click());
     if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
     
+    if (removeFileBtn) removeFileBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
+        if (resp.ok) {
+            fileInfo.classList.add('hidden');
+            kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+        }
+    });
+
     if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
     if (floatingBtn) floatingBtn.addEventListener('click', () => { 
         document.body.classList.remove('minimized'); 
@@ -233,6 +265,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (langBtns) langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
+
+    if (clearBtn) clearBtn.addEventListener('click', () => { 
+        if (queryInput) queryInput.value = ''; 
+        updateInputState(); 
+    });
+
+    if (suggestions) {
+        suggestions.forEach(chip => { 
+            chip.addEventListener('click', () => { 
+                if (queryInput) {
+                    queryInput.value = chip.textContent; 
+                    updateInputState(); 
+                    processSearch(chip.textContent); 
+                }
+            }); 
+        });
+    }
 
     if (sendBtn) sendBtn.addEventListener('click', () => { 
         const query = queryInput.value.trim(); 
@@ -247,13 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (query) processSearch(query); 
             } 
         });
-        queryInput.addEventListener('input', () => {
-            const val = queryInput.value.trim();
-            if (val.length === 0) {
-                document.body.classList.remove('has-results');
-                resultsArea.classList.add('hidden');
-            }
-        });
+        queryInput.addEventListener('input', updateInputState);
     }
 
     // Helper Functions
@@ -269,10 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
-        });
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
         if (langBtns) langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
     }
