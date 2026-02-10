@@ -248,23 +248,35 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     target_lang = lang_map.get(request.lang, "Russian")
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-    prompt = f"""You are a helpful assistant for a company knowledge base. 
-    Use the provided CONTEXT to answer the USER's question.
-    CRITICAL: Your answer MUST be entirely in {target_lang}.
-    
-    CONTEXT:
-    {context}
-    
-    USER: {request.query}"""
+    prompt = f"""You are a specialized AI Knowledge Base assistant.
+Your goal is to answer the USER's question using ONLY the provided CONTEXT.
+
+RULES:
+1. Use ONLY the provided CONTEXT to answer.
+2. If the answer is not in the CONTEXT, politely say that you don't have this information in your database.
+3. Do NOT use your general knowledge to answer questions about the company, prices, or rules if they are not in the CONTEXT.
+4. Keep the answer friendly and concise.
+5. You MUST answer in {target_lang}.
+
+CONTEXT:
+---
+{context}
+---
+
+USER QUESTION: {request.query}
+ANSWER:"""
 
     async with httpx.AsyncClient() as client:
         try:
+            print(f"Sending prompt to Gemini for query: {request.query[:50]}...")
             resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
             if resp.status_code != 200:
                 print(f"AI Error: {resp.status_code} - {resp.text}")
                 return {"answer": f"AI error: {resp.status_code}"}
             data = resp.json()
-            return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
+            answer = data['candidates'][0]['content']['parts'][0]['text']
+            print(f"Gemini response received ({len(answer)} chars)")
+            return {"answer": answer}
         except Exception as e:
             print(f"Chat error: {e}")
             return {"answer": "AI connection error"}
