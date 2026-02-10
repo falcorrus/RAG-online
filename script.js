@@ -61,6 +61,50 @@ document.addEventListener('DOMContentLoaded', () => {
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
             response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
+        },
+        en: {
+            title_main: "AI Knowledge Base",
+            minimize_btn_title: "Minimize",
+            admin_btn_title: "Settings",
+            input_placeholder: "Ask a question...",
+            suggestion_1: "How to apply for leave?",
+            suggestion_2: "Work schedule",
+            suggestion_3: "HR Contacts",
+            source_label: "Source: Internal Documentation",
+            send_btn_aria: "Send",
+            clear_btn_title: "Clear",
+            copy_btn_title: "Copy",
+            admin_title: "Admin Settings",
+            kb_upload_label: "Knowledge Base (.md)",
+            drop_zone_text: "Drag & drop .md file or click to browse",
+            initially_open_label: "Initially open",
+            default_lang_label: "Default Language",
+            save_btn: "Save Changes",
+            status_analyzing: "Analyzing knowledge base...",
+            status_ai_thinking: "AI is thinking...",
+            response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
+        },
+        pt: {
+            title_main: "Base de Conhecimento IA",
+            minimize_btn_title: "Minimizar",
+            admin_btn_title: "Configurações",
+            input_placeholder: "Faça uma pergunta...",
+            suggestion_1: "Como solicitar férias?",
+            suggestion_2: "Horário de trabalho",
+            suggestion_3: "Contatos de RH",
+            source_label: "Fonte: Documentação Interna",
+            send_btn_aria: "Enviar",
+            clear_btn_title: "Limpar",
+            copy_btn_title: "Copiar",
+            admin_title: "Configurações do Administrador",
+            kb_upload_label: "Base de Conhecimento (.md)",
+            drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
+            initially_open_label: "Abrir inicialmente",
+            default_lang_label: "Idioma padrão",
+            save_btn: "Salvar alterações",
+            status_analyzing: "Analisando base de conhecimento...",
+            status_ai_thinking: "A IA está pensando...",
+            response_fallback: "Eu pesquisei na base de conhecimento mas não encontrei uma correspondência exata."
         }
     };
 
@@ -174,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadSuggestions() {
         if (!suggestionsContainer) return;
         try {
-            const resp = await apiRequest('/api/suggestions');
+            const resp = await apiRequest(`/api/suggestions?lang=${currentLang}`);
             if (resp.ok) {
                 const data = await resp.json();
                 suggestionsContainer.innerHTML = '';
@@ -246,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusText.textContent = translations[currentLang]?.status_analyzing || "...";
 
         try {
-            const resp = await apiRequest('/api/chat', 'POST', { query });
+            const resp = await apiRequest('/api/chat', 'POST', { query, lang: currentLang });
             const data = await resp.json();
 
             loader.classList.add('hidden');
@@ -382,9 +426,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setLanguage(lang) {
-        currentLang = translations[lang] ? lang : 'ru';
-        // Language switching logic...
+        if (!translations[lang]) lang = 'ru';
+        currentLang = lang;
+        
+        // Update active class on buttons
+        langBtns.forEach(btn => {
+            if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        // Translate elements with data-i18n
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) el.textContent = translations[lang][key];
+        });
+
+        // Translate placeholders
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[lang][key]) el.placeholder = translations[lang][key];
+        });
+
+        // Translate titles
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (translations[lang][key]) el.title = translations[lang][key];
+        });
+
+        // Translate aria-labels
+        document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+            const key = el.getAttribute('data-i18n-aria');
+            if (translations[lang][key]) el.setAttribute('aria-label', translations[lang][key]);
+        });
+
+        loadSuggestions();
     }
+
+    // Add language button listeners
+    langBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            setLanguage(btn.getAttribute('data-lang'));
+        });
+    });
 
     function typeWriterEffect(text, element) {
         element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');

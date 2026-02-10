@@ -12,8 +12,9 @@ from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta
 
-load_dotenv()
+load_dotenv(override=True)
 API_KEY = os.getenv("GEMINI_API_KEY")
+print(f"Server starting with API_KEY starting with: {API_KEY[:8]}...")
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-change-me")
 STORAGE_DIR = "storage"
 TENANTS_FILE = os.path.join(STORAGE_DIR, "tenants.json")
@@ -46,6 +47,7 @@ class TenantSettings(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str
+    lang: Optional[str] = "ru"
 
 # --- Utils ---
 def get_tenants():
@@ -124,6 +126,40 @@ async def save_settings(settings: TenantSettings, user=Depends(get_required_user
     save_tenants(tenants)
     return {"status": "ok"}
 
+async def generate_all_suggestions(owner_email: str, content: str):
+    lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
+    all_suggestions = {}
+
+    for code, name in lang_map.items():
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+            prompt = f"""Based on the following knowledge base content, generate 3 short, typical questions a user might ask.
+            The questions MUST be in {name}.
+            Return ONLY a JSON list of strings, nothing else.
+            Example format: ["Question 1", "Question 2", "Question 3"]
+            
+            CONTENT:
+            {content[:5000]}"""
+
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=10.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data['candidates'][0]['content']['parts'][0]['text']
+                    import json as json_lib
+                    cleaned_text = text.replace('```json', '').replace('```', '').strip()
+                    all_suggestions[code] = json_lib.loads(cleaned_text)
+                else:
+                    all_suggestions[code] = []
+        except Exception as e:
+            print(f"Error generating {code} suggestions: {e}")
+            all_suggestions[code] = []
+    
+    tenants = get_tenants()
+    if owner_email in tenants:
+        tenants[owner_email]["suggestions_cache"] = all_suggestions
+        save_tenants(tenants)
+
 @app.post("/api/tenant/kb")
 async def upload_kb(data: dict, user=Depends(get_required_user)):
     tenants = get_tenants()
@@ -132,6 +168,10 @@ async def upload_kb(data: dict, user=Depends(get_required_user)):
     print(f"Uploading KB for {user['sub']}, size: {len(content)} bytes")
     with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
         f.write(content)
+    
+    # Generate suggestions for all languages immediately
+    await generate_all_suggestions(user["sub"], content)
+    
     return {"status": "ok"}
 
 @app.get("/api/tenant/kb")
@@ -145,32 +185,25 @@ async def get_kb(user=Depends(get_required_user)):
     return {"content": ""}
 
 @app.get("/api/suggestions")
-async def get_suggestions(user=Depends(get_optional_user)):
+async def get_suggestions(lang: str = "ru", user=Depends(get_optional_user)):
     owner_email = user["sub"] if user else "ekirshin@gmail.com"
     tenants = get_tenants()
     
     if owner_email not in tenants:
         return {"suggestions": []}
 
-    kb_file = tenants[owner_email]["kb_file"]
-    kb_path = os.path.join(STORAGE_DIR, kb_file)
-    
-    if not os.path.exists(kb_path):
-        return {"suggestions": []}
+    # Return from cache if exists
+    cache = tenants[owner_email].get("suggestions_cache", {})
+    if lang in cache and cache[lang]:
+        return {"suggestions": cache[lang]}
 
-    try:
-        with open(kb_path, 'r') as f:
-            content = f.read()
-
-        import re
-        suggestions = re.findall(r'\*\*«(.*?)»\*\*', content)
-        if not suggestions:
-            suggestions = re.findall(r'\*\*(.*?\?)\*\*', content)
-        
-        return {"suggestions": [s.strip() for s in suggestions[:5]]}
-    except Exception as e:
-        print(f"Suggestions Error: {e}")
-        return {"suggestions": []}
+    # Fallback suggestions
+    fallback = {
+        "ru": ["Как оформить отпуск?", "График работы", "Контакты HR"],
+        "en": ["How to apply for leave?", "Work schedule", "HR Contacts"],
+        "pt": ["Como solicitar férias?", "Horário de trabalho", "Contatos de RH"]
+    }
+    return {"suggestions": fallback.get(lang, fallback["ru"])}
 
 # --- Admin Routes ---
 @app.get("/api/admin/users")
@@ -211,10 +244,17 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
         with open(kb_path, 'r') as f:
             context = f.read()
 
+    lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
+    target_lang = lang_map.get(request.lang, "Russian")
+
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-    prompt = f"""You are a helpful assistant for a company knowledge base. Use context to answer.
+    prompt = f"""You are a helpful assistant for a company knowledge base. 
+    Use the provided CONTEXT to answer the USER's question.
+    CRITICAL: Your answer MUST be entirely in {target_lang}.
+    
     CONTEXT:
     {context}
+    
     USER: {request.query}"""
 
     async with httpx.AsyncClient() as client:
