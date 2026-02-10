@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
     const defaultLangSelect = document.getElementById('defaultLangSelect');
-    const apiKeyInput = document.getElementById('apiKeyInput');
+    // API key input is no longer used for core logic but kept in HTML for now
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
             default_lang_label: "Язык по умолчанию",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
-            status_ai_thinking: "Gemini формирует ответ...",
+            status_ai_thinking: "ИИ формирует ответ...",
             response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
         },
         en: {
@@ -72,63 +72,27 @@ document.addEventListener('DOMContentLoaded', () => {
             default_lang_label: "Default Language",
             save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
-            status_ai_thinking: "Gemini is thinking...",
+            status_ai_thinking: "AI is thinking...",
             response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
         }
     };
 
-    // --- Simple Synonym Map for local search ---
-    const synonyms = {
-        "стоянк": "парковк",
-        "парков": "стоянк",
-        "денег": "цены",
-        "стоимос": "цены",
-        "оплат": "цены",
-        "платит": "цены",
-        "ребенок": "детск",
-        "малыш": "детск"
-    };
-
     // --- AI API Integration ---
-    async function callGemini(query, context) {
-        const apiKey = localStorage.getItem('apiKey');
-        if (!apiKey) return null;
-
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        
-        const prompt = `You are a helpful assistant for a company knowledge base. 
-        Use the following documentation to answer the user's question. 
-        If the answer is not in the documentation, state that clearly but politely. 
-        Keep the answer concise and friendly.
-        Answer in the SAME LANGUAGE as the user's question.
-        
-        DOCUMENTATION CONTENT:
-        ---
-        ${context}
-        ---
-        
-        USER QUESTION: ${query}`;
-
+    async function callAI(query, context) {
+        console.log("Calling backend proxy...");
         try {
-            const response = await fetch(url, {
+            const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.3, maxOutputTokens: 1000 }
-                })
+                body: JSON.stringify({ query, context })
             });
-
-            if (response.status === 429) {
-                console.warn("Gemini Rate Limit (429). Falling back to local search...");
-                return null;
-            }
-
-            if (!response.ok) return null;
-
+            
+            if (!response.ok) throw new Error("Backend error");
+            
             const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
+            return data.answer || null;
         } catch (err) {
+            console.error("Backend proxy call failed:", err);
             return null;
         }
     }
@@ -159,8 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initiallyOpen: localStorage.getItem('initiallyOpen') !== 'false',
         defaultLang: localStorage.getItem('defaultLang') || 'ru',
         kbFileName: localStorage.getItem('kbFileName') || null,
-        kbRawContent: localStorage.getItem('kbRawContent') || null,
-        apiKey: localStorage.getItem('apiKey') || ''
+        kbRawContent: localStorage.getItem('kbRawContent') || null
     };
 
     function initSettings() {
@@ -169,8 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initiallyOpenToggle.checked = settings.initiallyOpen;
         defaultLangSelect.value = settings.defaultLang;
         
-        apiKeyInput.value = localStorage.getItem('apiKey') || '';
-        
         if (settings.kbRawContent) parseKnowledgeBase(settings.kbRawContent);
         if (settings.kbFileName) showFileInfo(settings.kbFileName);
     }
@@ -178,12 +139,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveSettings() {
         localStorage.setItem('initiallyOpen', initiallyOpenToggle.checked);
         localStorage.setItem('defaultLang', defaultLangSelect.value);
-        localStorage.setItem('apiKey', apiKeyInput.value.trim());
         setLanguage(defaultLangSelect.value);
         adminOverlay.classList.add('hidden');
         if (localStorage.getItem('kbRawContent')) parseKnowledgeBase(localStorage.getItem('kbRawContent'));
     }
 
+    // --- File Handling ---
     function handleFileSelect(file) {
         if (!file.name.endsWith('.md')) return alert('Please select a .md file');
         const reader = new FileReader();
@@ -197,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     }
 
+    // --- Search Logic ---
     async function processSearch(query) {
         queryInput.blur();
         document.body.classList.add('has-results');
@@ -205,45 +167,31 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.classList.remove('hidden');
         statusText.textContent = translations[currentLang].status_analyzing;
 
-        let response = null;
-        const apiKey = localStorage.getItem('apiKey');
         const kbContent = localStorage.getItem('kbRawContent');
+        let response = null;
 
-        if (apiKey && kbContent) {
+        // Use Backend Proxy as primary AI source
+        if (kbContent) {
             statusText.textContent = translations[currentLang].status_ai_thinking;
-            response = await callGemini(query, kbContent);
+            response = await callAI(query, kbContent);
         }
 
-        if (!response) {
+        // Fallback to Keyword Search
+        if (!response && knowledgeBase.length > 0) {
             const qClean = query.toLowerCase().replace(/[?.,!«»()]/g, '');
             let queryWords = qClean.split(/\s+/).filter(w => w.length >= 3);
-            
-            // Expand query with synonyms
-            let expandedWords = [...queryWords];
-            queryWords.forEach(w => {
-                const stem = w.substring(0, 6);
-                if (synonyms[stem]) expandedWords.push(synonyms[stem]);
-            });
-
             let bestMatch = null;
             let maxScore = 0;
 
             knowledgeBase.forEach(item => {
                 let score = 0;
-                const itemFullText = (item.qBuffer + " " + item.aBuffer);
-
-                expandedWords.forEach(qW => {
+                queryWords.forEach(qW => {
                     const qStem = qW.substring(0, 4);
                     if (item.qBuffer.includes(qStem)) score += 3;
                     else if (item.aBuffer.includes(qStem)) score += 1;
                 });
-
-                if (score > maxScore) {
-                    maxScore = score;
-                    bestMatch = item;
-                }
+                if (score > maxScore) { maxScore = score; bestMatch = item; }
             });
-
             if (bestMatch && maxScore > 0) response = bestMatch.answer;
         }
 
@@ -255,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
     }
 
+    // --- UI Helpers ---
     function showFileInfo(name) {
         fileNameDisplay.textContent = name;
         fileInfo.classList.remove('hidden');
@@ -269,6 +218,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
     }
+
+    // --- Events ---
     adminBtn.addEventListener('click', () => adminOverlay.classList.remove('hidden'));
     closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
     saveAdminBtn.addEventListener('click', saveSettings);
