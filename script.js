@@ -188,8 +188,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function processSearch(query) {
-        if (!localStorage.getItem('token')) return showAuth();
-        
         queryInput.blur();
         document.body.classList.add('has-results');
         resultsArea.classList.remove('hidden');

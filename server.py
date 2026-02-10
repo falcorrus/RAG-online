@@ -64,15 +64,26 @@ def create_token(email: str, is_admin: bool = False):
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-async def get_current_user(authorization: str = Header(None)):
+async def get_current_user(authorization: str = Header(None), required: bool = True):
     if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing or invalid token")
+        if required:
+            raise HTTPException(status_code=401, detail="Missing or invalid token")
+        return None
     token = authorization.split(" ")[1]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         return payload
     except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        if required:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return None
+
+# Helpers for Dependency Injection
+async def get_required_user(authorization: str = Header(None)):
+    return await get_current_user(authorization, required=True)
+
+async def get_optional_user(authorization: str = Header(None)):
+    return await get_current_user(authorization, required=False)
 
 # --- Auth Routes ---
 @app.post("/api/auth/register")
@@ -101,19 +112,19 @@ async def login(auth: UserAuth):
 
 # --- Tenant Routes ---
 @app.get("/api/tenant/settings")
-async def get_settings(user=Depends(get_current_user)):
+async def get_settings(user=Depends(get_required_user)):
     tenants = get_tenants()
     return tenants[user["sub"]]["settings"]
 
 @app.post("/api/tenant/settings")
-async def save_settings(settings: TenantSettings, user=Depends(get_current_user)):
+async def save_settings(settings: TenantSettings, user=Depends(get_required_user)):
     tenants = get_tenants()
     tenants[user["sub"]]["settings"] = settings.dict()
     save_tenants(tenants)
     return {"status": "ok"}
 
 @app.post("/api/tenant/kb")
-async def upload_kb(data: dict, user=Depends(get_current_user)):
+async def upload_kb(data: dict, user=Depends(get_required_user)):
     tenants = get_tenants()
     kb_file = tenants[user["sub"]]["kb_file"]
     with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
@@ -121,7 +132,7 @@ async def upload_kb(data: dict, user=Depends(get_current_user)):
     return {"status": "ok"}
 
 @app.get("/api/tenant/kb")
-async def get_kb(user=Depends(get_current_user)):
+async def get_kb(user=Depends(get_required_user)):
     tenants = get_tenants()
     kb_file = tenants[user["sub"]]["kb_file"]
     path = os.path.join(STORAGE_DIR, kb_file)
@@ -132,14 +143,14 @@ async def get_kb(user=Depends(get_current_user)):
 
 # --- Admin Routes ---
 @app.get("/api/admin/users")
-async def list_users(user=Depends(get_current_user)):
+async def list_users(user=Depends(get_required_user)):
     if not user.get("admin"):
         raise HTTPException(status_code=403, detail="Forbidden")
     tenants = get_tenants()
     return [{"email": email, "is_admin": data.get("is_admin", False)} for email, data in tenants.items()]
 
 @app.post("/api/admin/reset-password")
-async def reset_password(data: dict, user=Depends(get_current_user)):
+async def reset_password(data: dict, user=Depends(get_required_user)):
     if not user.get("admin"):
         raise HTTPException(status_code=403, detail="Forbidden")
     tenants = get_tenants()
@@ -152,12 +163,18 @@ async def reset_password(data: dict, user=Depends(get_current_user)):
 
 # --- AI API ---
 @app.post("/api/chat")
-async def chat_proxy(request: ChatRequest, user=Depends(get_current_user)):
+async def chat_proxy(request: ChatRequest, user=Depends(get_optional_user)):
     if not API_KEY:
         raise HTTPException(status_code=500, detail="API Key not configured")
 
+    # If not logged in, search in the default admin's KB
+    owner_email = user["sub"] if user else "ekirshin@gmail.com"
     tenants = get_tenants()
-    kb_file = tenants[user["sub"]]["kb_file"]
+    
+    if owner_email not in tenants:
+        return {"answer": "База знаний еще не настроена администратором."}
+
+    kb_file = tenants[owner_email]["kb_file"]
     kb_path = os.path.join(STORAGE_DIR, kb_file)
     context = ""
     if os.path.exists(kb_path):
