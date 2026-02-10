@@ -473,5 +473,13 @@ document.addEventListener('DOMContentLoaded', () => {
         element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     }
 
+    const creatorLink = document.getElementById('creatorLink');
+    if (creatorLink) {
+        creatorLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('kirshin.carrd.co');
+        });
+    }
+
     initSettings();
 });
