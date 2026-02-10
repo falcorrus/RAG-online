@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import httpx
 import os
@@ -175,6 +176,8 @@ async def chat_proxy(request: ChatRequest, user=Depends(get_current_user)):
             return {"answer": "AI error"}
         data = resp.json()
         return {"answer": data['candidates'][0]['content']['parts'][0]['text']}
+
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

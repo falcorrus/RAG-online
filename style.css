@@ -128,7 +128,7 @@ body.minimized .floating-btn {
     display: flex;
     align-items: center;
     gap: 12px;
-    z-index: 1100; /* Increased to be above floating-btn if they ever overlap, and definitely above container */
+    z-index: 1100;
 }
 
 body.minimized .header-tools {
@@ -161,55 +161,30 @@ body.minimized .header-tools {
 }
 
 .lang-btn.active {
-
     background: var(--brand-color);
-
     color: var(--text-on-brand);
-
 }
-
-
 
 .icon-btn {
-
     background: transparent;
-
     border: none;
-
     color: var(--text-secondary);
-
     padding: 8px;
-
     border-radius: 8px;
-
     cursor: pointer;
-
     transition: all 0.2s;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
 }
-
-
 
 .icon-btn svg {
-
     pointer-events: none;
-
 }
 
-
-
 .icon-btn:hover {
-
     background: var(--border-light);
-
     color: var(--text-primary);
-
 }
 
 /* Logo Area */

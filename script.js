@@ -61,6 +61,28 @@ document.addEventListener('DOMContentLoaded', () => {
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
             response_fallback: "Я поискал это в базе знаний, но не нашел точного совпадения. Попробуйте перефразировать вопрос."
+        },
+        en: {
+            title_main: "AI Knowledge Base",
+            minimize_btn_title: "Minimize",
+            admin_btn_title: "Settings",
+            input_placeholder: "Ask a question...",
+            suggestion_1: "How to apply for leave?",
+            suggestion_2: "Work schedule",
+            suggestion_3: "HR Contacts",
+            source_label: "Source: Internal Documentation",
+            send_btn_aria: "Send",
+            clear_btn_title: "Clear",
+            copy_btn_title: "Copy",
+            admin_title: "Admin Settings",
+            kb_upload_label: "Knowledge Base (.md)",
+            drop_zone_text: "Drag & drop .md file or click to browse",
+            initially_open_label: "Initially open",
+            default_lang_label: "Default Language",
+            save_btn: "Save Changes",
+            status_analyzing: "Analyzing knowledge base...",
+            status_ai_thinking: "AI is thinking...",
+            response_fallback: "I searched the knowledge base but couldn't find a match. Try rephrasing your question."
         }
     };
 
@@ -189,21 +211,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-    adminBtn.addEventListener('click', () => {
+    if (adminBtn) adminBtn.addEventListener('click', () => {
         const token = localStorage.getItem('token');
         if (!token) showAuth();
         else {
-            authPanel.classList.add('hidden');
-            settingsPanel.classList.remove('hidden');
+            if (authPanel) authPanel.classList.add('hidden');
+            if (settingsPanel) settingsPanel.classList.remove('hidden');
             adminOverlay.classList.remove('hidden');
         }
     });
 
-    closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
-    saveAdminBtn.addEventListener('click', saveSettings);
-    kbDropZone.addEventListener('click', () => kbFileInput.click());
-    kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
+    if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+    if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
+    if (kbDropZone) kbDropZone.addEventListener('click', () => kbFileInput.click());
+    if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
     
+    if (minimizeBtn) minimizeBtn.addEventListener('click', () => document.body.classList.add('minimized'));
+    if (floatingBtn) floatingBtn.addEventListener('click', () => { 
+        document.body.classList.remove('minimized'); 
+        setTimeout(() => queryInput && queryInput.focus(), 300); 
+    });
+
+    if (langBtns) langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
+
     if (sendBtn) sendBtn.addEventListener('click', () => { 
         const query = queryInput.value.trim(); 
         if (query) processSearch(query); 
@@ -234,8 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setLanguage(lang) {
-        currentLang = lang;
-        // Basic translation logic
+        currentLang = translations[lang] ? lang : 'ru';
+        document.documentElement.lang = currentLang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[currentLang][key]) el.textContent = translations[currentLang][key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
+        });
+        if (langBtns) langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
     }
 
     function typeWriterEffect(text, element) {
