@@ -110,6 +110,7 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
 
 async def generate_kb_suggestions(owner_email: str, content: str):
     """Automatically generate suggested questions and business name from KB content using AI."""
+    print(f"DEBUG: Starting generate_kb_suggestions for {owner_email}", flush=True)
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     all_suggestions = {}
     all_names = {}
@@ -119,19 +120,24 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
         prompt = f"Detect the primary language of the following text. Return ONLY the 2-letter ISO 639-1 code (e.g., 'en', 'ru', 'pt'). Text: {content[:1000]}"
+        print(f"DEBUG: Sending lang detection prompt for {owner_email}", flush=True)
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=5.0)
             if resp.status_code == 200:
                 code = resp.json()['candidates'][0]['content']['parts'][0]['text'].strip().lower()
                 if code in lang_map:
                     detected_lang_code = code
+                    print(f"DEBUG: Detected language for {owner_email}: {detected_lang_code}", flush=True)
+            else:
+                print(f"ERROR: Lang detection API call failed with status {resp.status_code}: {resp.text}", flush=True)
     except Exception as e:
-        print(f"Error detecting language: {e}", flush=True)
+        print(f"ERROR: Error detecting language for {owner_email}: {e}", flush=True)
 
     # Simple heuristic if AI fails
     found_q = re.findall(r'\*\*(.*?\?)\*\*', content)
     
     for code, lang_name in lang_map.items():
+        print(f"DEBUG: Generating suggestions for {owner_email} in language {code}", flush=True)
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
             
@@ -159,10 +165,12 @@ KB: {limited_content}"""
                         b_name = "AI Knowledge Base" # Fallback or retry
                     
                     all_names[code] = b_name
+                    print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
                 else:
+                    print(f"ERROR: Gemini API call for {code} failed with status {resp.status_code}: {resp.text}", flush=True)
                     all_suggestions[code] = found_q[:3]
         except Exception as e:
-            print(f"Error generating suggestions for {code}: {e}", flush=True)
+            print(f"ERROR: Error generating for {owner_email}, {code}: {e}", flush=True)
             all_suggestions[code] = found_q[:3]
     
     tenants = get_tenants()
@@ -171,6 +179,7 @@ KB: {limited_content}"""
         tenants[owner_email]["business_names_cache"] = all_names
         tenants[owner_email]["settings"]["defaultLang"] = detected_lang_code # Save detected language
         save_tenants(tenants)
+        print(f"DEBUG: Suggestions and names saved for {owner_email}", flush=True)
 
 # --- Routes ---
 @app.post("/api/auth/register")
@@ -240,12 +249,26 @@ async def login(auth: UserAuth):
 @app.post("/api/tenant/kb")
 async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
     tenants = get_tenants()
+    owner_email = user["sub"]
+    if owner_email not in tenants:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
     content = data.get("content", "")
-    kb_file = tenants[user["sub"]]["kb_file"]
-    with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
-        f.write(content)
+    kb_file = tenants[owner_email]["kb_file"]
+    kb_path = os.path.join(STORAGE_DIR, kb_file)
+
+    print(f"DEBUG: Attempting to save KB for {owner_email} to {kb_path}", flush=True)
+    try:
+        with open(kb_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"DEBUG: KB file saved successfully: {kb_path}", flush=True)
+    except Exception as e:
+        print(f"ERROR: Failed to write KB file {kb_path}: {e}", flush=True)
+        raise HTTPException(status_code=500, detail=f"Failed to save knowledge base file: {e}")
+
     # Generate new suggestions in background
-    background_tasks.add_task(generate_kb_suggestions, user["sub"], content)
+    background_tasks.add_task(generate_kb_suggestions, owner_email, content)
+    print(f"DEBUG: generate_kb_suggestions task added for {owner_email}", flush=True)
     return {"status": "ok"}
 
 @app.get("/api/suggestions")
@@ -364,9 +387,23 @@ async def get_settings(user=Depends(get_current_user)):
 @app.get("/api/tenant/kb")
 async def get_kb(user=Depends(get_current_user)):
     tenants = get_tenants()
-    path = os.path.join(STORAGE_DIR, tenants[user["sub"]]["kb_file"])
+    owner_email = user["sub"]
+    if owner_email not in tenants:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    kb_file = tenants[owner_email]["kb_file"]
+    path = os.path.join(STORAGE_DIR, kb_file)
+    print(f"DEBUG: Attempting to read KB file from {path} for {owner_email}", flush=True)
     if os.path.exists(path):
-        with open(path, 'r') as f: return {"content": f.read()}
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                print(f"DEBUG: KB file {path} read successfully (length: {len(content)})", flush=True)
+                return {"content": content}
+        except Exception as e:
+            print(f"ERROR: Failed to read KB file {path}: {e}", flush=True)
+            raise HTTPException(status_code=500, detail=f"Failed to read knowledge base file: {e}")
+    print(f"DEBUG: KB file {path} not found for {owner_email}", flush=True)
     return {"content": ""}
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
