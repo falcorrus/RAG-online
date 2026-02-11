@@ -216,6 +216,14 @@ body.minimized .header-tools {
 .sparkle-icon {
     font-size: 1.5rem;
     animation: float 3s ease-in-out infinite;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sparkle-icon.visible {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Search Wrapper */
@@ -805,6 +813,16 @@ input:checked + .slider:before {
     visibility: visible;
     transform: translateX(-50%) translateY(0);
     pointer-events: auto;
+}
+
+.creator-popup a {
+    color: var(--brand-color); /* Matches the hover color of Broz Studio link */
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.creator-popup a:hover {
+    color: var(--brand-color-hover); /* Slightly different hover for popup link */
 }
 
 /* Toast Notification */

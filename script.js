@@ -510,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Hide temporarily before changing text
         mainTitle.classList.remove('visible');
+        if (mainSparkle) mainSparkle.classList.remove('visible');
         
         setTimeout(() => {
             if (isKbLoaded && customName) {
@@ -518,7 +519,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (mainSparkle) mainSparkle.style.display = 'none';
             } else {
                 mainTitle.setAttribute('data-custom-title', 'false');
-                if (mainSparkle) mainSparkle.style.display = 'block';
+                if (mainSparkle) {
+                    mainSparkle.style.display = 'block';
+                    // Re-add visible class in next frame for animation to trigger
+                    requestAnimationFrame(() => mainSparkle.classList.add('visible'));
+                }
                 const key = mainTitle.getAttribute('data-i18n');
                 if (translations[currentLang] && translations[currentLang][key]) {
                     mainTitle.textContent = translations[currentLang][key];
