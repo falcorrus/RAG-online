@@ -200,9 +200,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
-                console.log("Public settings received:", settings);
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
-                setLanguage(settings.defaultLang);
+                
+                // Set language first, BUT updateTitle will follow and fix the header
+                await setLanguage(settings.defaultLang);
+                
                 if (businessNameInput) businessNameInput.value = settings.businessName || "";
                 updateTitle(settings.kb_exists, settings.businessName);
             }
@@ -473,6 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
         
         document.querySelectorAll('[data-i18n]').forEach(el => {
+            // NEVER overwrite the title here if we already have a custom one
             if (el.id === 'mainTitle' && el.getAttribute('data-custom-title') === 'true') return;
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
@@ -482,7 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
 
-        // Refetch public settings to ensure title and suggestions are correct for the new language
+        // Update suggestions immediately
+        await loadSuggestions();
+
+        // Then update title from settings
         try {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
@@ -492,12 +498,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.warn("Title update failed during language switch", err);
         }
-
-        loadSuggestions();
     }
 
     function updateTitle(isKbLoaded, overrideName = null) {
-        const customName = overrideName || (businessNameInput ? businessNameInput.value.trim() : "");
+        const customName = (overrideName && overrideName.length > 0) ? overrideName : (businessNameInput ? businessNameInput.value.trim() : "");
+        
         if (isKbLoaded && customName) {
             mainTitle.textContent = customName;
             mainTitle.setAttribute('data-custom-title', 'true');

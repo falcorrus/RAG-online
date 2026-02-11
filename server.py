@@ -65,13 +65,14 @@ def get_tenant_by_host(host: str):
     if not host:
         return "ekirshin@gmail.com"
     parts = host.split('.')
-    # Handle subdomain.rag.reloto.ru
+    # Handle subdomain.rag.reloto.ru (len 4+)
     if len(parts) >= 4 and parts[-3] == 'rag':
         subdomain = parts[0]
         tenants = get_tenants()
         for email, data in tenants.items():
             if data.get("subdomain") == subdomain:
                 return email
+    # Handle rag.reloto.ru (len 3)
     return "ekirshin@gmail.com"
 
 def create_token(email: str, is_admin: bool = False):
