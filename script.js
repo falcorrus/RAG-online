@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = fileInfo.querySelector('.file-name');
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
-    const defaultLangSelect = document.getElementById('defaultLangSelect');
     const mainTitle = document.getElementById('mainTitle');
     const mainSparkle = document.getElementById('mainSparkle');
     const logsPanel = document.getElementById('logsPanel');
@@ -58,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "База знаний (.md)",
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
-            default_lang_label: "Язык по умолчанию",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
@@ -80,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "Knowledge Base (.md)",
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
-            default_lang_label: "Default Language",
             save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
             status_ai_thinking: "AI is thinking..."
@@ -96,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "Base de Conhecimento (.md)",
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
-            default_lang_label: "Idioma padrão",
             save_btn: "Salvar alterações",
             status_analyzing: "Analisando base de conhecimento...",
             status_ai_thinking: "IA está pensando...",
@@ -240,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 const settings = await resp.json();
                 initiallyOpenToggle.checked = settings.initiallyOpen;
-                defaultLangSelect.value = settings.defaultLang;
                 if (businessNameInput) businessNameInput.value = settings.businessName || "";
             }
             
@@ -299,8 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveSettings() {
         console.log("Attempting to save settings...");
         const settings = {
-            initiallyOpen: initiallyOpenToggle.checked,
-            defaultLang: defaultLangSelect.value
+            initiallyOpen: initiallyOpenToggle.checked
         };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);

@@ -60,7 +60,6 @@ class UserAuth(BaseModel):
 
 class TenantSettings(BaseModel):
     initiallyOpen: bool
-    defaultLang: str
 
 class ChatRequest(BaseModel):
     query: str
@@ -114,7 +113,21 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     all_suggestions = {}
     all_names = {}
+    detected_lang_code = "ru" # Default to Russian if detection fails
     
+    # Heuristic for language detection of KB content
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+        prompt = f"Detect the primary language of the following text. Return ONLY the 2-letter ISO 639-1 code (e.g., 'en', 'ru', 'pt'). Text: {content[:1000]}"
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=5.0)
+            if resp.status_code == 200:
+                code = resp.json()['candidates'][0]['content']['parts'][0]['text'].strip().lower()
+                if code in lang_map:
+                    detected_lang_code = code
+    except Exception as e:
+        print(f"Error detecting language: {e}", flush=True)
+
     # Simple heuristic if AI fails
     found_q = re.findall(r'\*\*(.*?\?)\*\*', content)
     
@@ -126,7 +139,7 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             limited_content = limit_context_by_tokens(content, 2000) # Use 2000 tokens for suggestions/name extraction
             
             prompt = f"""Analyze this Knowledge Base. 
-1. Generate 3 typical short questions in {lang_name}.
+1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
 2. Extract or translate the Business/Company name into {lang_name}.
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
 KB: {limited_content}"""
@@ -156,6 +169,7 @@ KB: {limited_content}"""
     if owner_email in tenants:
         tenants[owner_email]["suggestions_cache"] = all_suggestions
         tenants[owner_email]["business_names_cache"] = all_names
+        tenants[owner_email]["settings"]["defaultLang"] = detected_lang_code # Save detected language
         save_tenants(tenants)
 
 # --- Routes ---
@@ -168,7 +182,7 @@ async def register(auth: UserAuth):
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
         "subdomain": sub,
-        "settings": {"initiallyOpen": True, "defaultLang": "ru"},
+        "settings": {"initiallyOpen": True},
         "kb_file": f"kb_{uuid.uuid4().hex}.md",
         "suggestions_cache": {}
     }
@@ -191,7 +205,7 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         kb_path = os.path.join(STORAGE_DIR, tenant["kb_file"])
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
-    return {"initiallyOpen": True, "defaultLang": "ru", "businessName": "AI Knowledge Base", "kb_exists": False}
+    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False}
 
 @app.post("/api/tenant/settings")
 async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):
