@@ -12,12 +12,32 @@ from dotenv import load_dotenv
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta
+import tiktoken # Import tiktoken
 
 load_dotenv(override=True)
 API_KEY = os.getenv("GEMINI_API_KEY")
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-change-me")
 STORAGE_DIR = "storage"
 TENANTS_FILE = os.path.join(STORAGE_DIR, "tenants.json")
+
+# Define token limits
+MAX_TOKENS = 10000
+ENCODING_NAME = "cl100k_base" # This encoding works for gpt models, Gemini might use different one
+
+def count_tokens(text: str) -> int:
+    """Counts tokens using a tiktoken encoder."""
+    encoding = tiktoken.get_encoding(ENCODING_NAME)
+    return len(encoding.encode(text))
+
+def limit_context_by_tokens(text: str, max_tokens: int) -> str:
+    """Limits text by tokens, trying to keep whole words."""
+    encoding = tiktoken.get_encoding(ENCODING_NAME)
+    encoded = encoding.encode(text)
+    
+    if len(encoded) <= max_tokens:
+        return text
+    
+    return encoding.decode(encoded[:max_tokens])
 
 if not os.path.exists(STORAGE_DIR):
     os.makedirs(STORAGE_DIR)
@@ -101,13 +121,15 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     for code, lang_name in lang_map.items():
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+            
+            # Apply token limit to content for prompt
+            limited_content = limit_context_by_tokens(content, 2000) # Use 2000 tokens for suggestions/name extraction
+            
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}.
-2. Extract the Business/Company name and MANDATORILY TRANSLATE it into {lang_name}.
-   - Even if the name is a proper noun, adapt it to {lang_name} if appropriate (e.g., "Фитнес-клуб" -> "Fitness Club").
-   - The businessName field MUST be entirely in {lang_name}.
+2. Extract or translate the Business/Company name into {lang_name}.
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
-KB: {content[:2000]}"""
+KB: {limited_content}"""
             
             async with httpx.AsyncClient() as client:
                 resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15.0)
@@ -121,8 +143,7 @@ KB: {content[:2000]}"""
                     b_name = data.get("businessName", "").strip()
                     # Final safety check for English translation
                     if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                        # If still Russian in English field, try a very simple translation
-                        b_name = "AI Knowledge Base" # or keep searching
+                        b_name = "AI Knowledge Base" # Fallback or retry
                     
                     all_names[code] = b_name
                 else:
@@ -261,7 +282,7 @@ MANDATORY LANGUAGE RULE:
 
 CONTEXT:
 ---
-{context}
+{limit_context_by_tokens(context, MAX_TOKENS)}
 ---"""
 
     payload = {
