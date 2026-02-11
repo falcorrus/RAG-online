@@ -126,6 +126,12 @@
 
                 <!-- Default Language -->
                 <div class="setting-group">
+                    <label class="setting-label" data-i18n="business_name_label">Название бизнеса</label>
+                    <input type="text" id="businessNameInput" class="admin-select" style="width: 100%; box-sizing: border-box;" placeholder="AI Knowledge Base">
+                </div>
+
+                <!-- Default Language -->
+                <div class="setting-group">
                     <label class="setting-label" data-i18n="default_lang_label">Язык по умолчанию</label>
                     <select class="admin-select" id="defaultLangSelect">
                         <option value="ru">Русский (RU)</option>
@@ -146,8 +152,8 @@
 
         <div class="search-wrapper" id="searchWrapper">
             <div class="logo-area">
-                <div class="sparkle-icon">✨</div>
-                <h1 data-i18n="title_main">AI Knowledge Base</h1>
+                <div class="sparkle-icon" id="mainSparkle">✨</div>
+                <h1 data-i18n="title_main" id="mainTitle">AI Knowledge Base</h1>
             </div>
 
             <div class="input-container" id="inputContainer">
@@ -204,6 +210,15 @@
     <footer class="creator-footer">
         made in <a href="#" id="creatorLink">Broz Studio</a>
     </footer>
+
+    <div class="creator-popup" id="creatorPopup">
+        🚀&nbsp;&nbsp;<a href="https://kirshin.carrd.co/" target="_blank">kirshin.carrd.co</a>
+    </div>
+
+    <div id="toast" class="toast">
+        <span class="toast-icon">✓</span>
+        <span id="toastMessage"></span>
+    </div>
 
     <script src="script.js"></script>
 </body>

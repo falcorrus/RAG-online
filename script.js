@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
     const defaultLangSelect = document.getElementById('defaultLangSelect');
+    const businessNameInput = document.getElementById('businessNameInput');
+    const mainTitle = document.getElementById('mainTitle');
+    const mainSparkle = document.getElementById('mainSparkle');
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -52,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
             default_lang_label: "Язык по умолчанию",
+            business_name_label: "Название бизнеса",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ..."
@@ -68,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
             default_lang_label: "Default Language",
+            business_name_label: "Business Name",
             save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
             status_ai_thinking: "AI is thinking..."
@@ -84,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
             default_lang_label: "Idioma padrão",
+            business_name_label: "Nome do negócio",
             save_btn: "Salvar alterações",
             status_analyzing: "Analisando base de conhecimento...",
             status_ai_thinking: "IA está pensando..."
@@ -92,6 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API Helpers ---
     async function apiRequest(path, method = 'GET', body = null) {
+        const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:8006' 
+            : '';
+        const url = path.startsWith('http') ? path : baseUrl + path;
+        
         const headers = { 'Content-Type': 'application/json' };
         const token = localStorage.getItem('token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -100,14 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (body) options.body = JSON.stringify(body);
 
         try {
-            const response = await fetch(path, options);
+            const response = await fetch(url, options);
             if (response.status === 401) {
                 localStorage.removeItem('token');
                 showAuth();
             }
             return response;
         } catch (err) {
-            console.error("API Request Failed:", err);
+            console.error("API Request Failed at " + url, err);
             throw err;
         }
     }
@@ -187,16 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 initiallyOpenToggle.checked = settings.initiallyOpen;
                 defaultLangSelect.value = settings.defaultLang;
+                if (businessNameInput) businessNameInput.value = settings.businessName || "";
                 setLanguage(settings.defaultLang);
             }
 
             const kbResp = await apiRequest('/api/tenant/kb');
+            let kbLoaded = false;
             if (kbResp.ok) {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
+                    kbLoaded = true;
                 }
             }
+            updateTitle(kbLoaded);
             await loadSuggestions();
         } catch (err) {
             console.error("Init settings failed", err);
@@ -229,21 +244,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = toast.querySelector('.toast-icon');
+        
+        toastMessage.textContent = message;
+        toastIcon.textContent = isError ? '✕' : '✓';
+        toastIcon.style.color = isError ? '#ff4d4d' : '#4ade80';
+        
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
     async function saveSettings() {
+        console.log("Attempting to save settings...");
         const settings = {
             initiallyOpen: initiallyOpenToggle.checked,
-            defaultLang: defaultLangSelect.value
+            defaultLang: defaultLangSelect.value,
+            businessName: businessNameInput.value
         };
-        const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
-        if (resp.ok) {
-            setLanguage(settings.defaultLang);
-            adminOverlay.classList.add('hidden');
+        try {
+            const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
+            if (resp.ok) {
+                console.log("Settings saved successfully!");
+                setLanguage(settings.defaultLang);
+                const kbResp = await apiRequest('/api/tenant/kb');
+                if (kbResp.ok) {
+                    const kbData = await kbResp.json();
+                    updateTitle(kbData.content && kbData.content.trim().length > 0);
+                }
+                adminOverlay.classList.add('hidden');
+                showToast(currentLang === 'ru' ? "Настройки сохранены" : "Settings saved");
+            } else {
+                const errorData = await resp.json();
+                showToast(errorData.detail || "Error", true);
+            }
+        } catch (err) {
+            showToast("Network error", true);
         }
     }
 
     async function handleFileSelect(file) {
         if (!file.name.toLowerCase().endsWith('.md')) {
-            alert("Пожалуйста, выберите файл в формате .md");
+            showToast("Only .md files allowed", true);
             return;
         }
         
@@ -255,13 +299,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
+                    updateTitle(true);
                     await loadSuggestions();
+                    showToast(currentLang === 'ru' ? "База знаний обновлена" : "Knowledge base updated");
                 } else {
                     const errorData = await resp.json();
-                    alert("Ошибка при загрузке: " + (errorData.detail || "Неизвестная ошибка"));
+                    showToast(errorData.detail || "Upload error", true);
                 }
             } catch (err) {
-                alert("Ошибка сети при загрузке файла.");
+                showToast("Network error", true);
             }
         };
         reader.readAsText(file);
@@ -352,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     fileInfo.classList.add('hidden');
                     kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+                    updateTitle(false);
                     await loadSuggestions();
                 }
             } catch (err) {
@@ -389,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
         
         document.querySelectorAll('[data-i18n]').forEach(el => {
+            if (el.id === 'mainTitle' && el.getAttribute('data-custom-title') === 'true') return;
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
         });
@@ -399,8 +447,47 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSuggestions();
     }
 
+    function updateTitle(isKbLoaded) {
+        const customName = businessNameInput ? businessNameInput.value.trim() : "";
+        if (isKbLoaded && customName) {
+            mainTitle.textContent = customName;
+            mainTitle.setAttribute('data-custom-title', 'true');
+            if (mainSparkle) mainSparkle.style.display = 'none';
+        } else {
+            mainTitle.setAttribute('data-custom-title', 'false');
+            if (mainSparkle) mainSparkle.style.display = 'block';
+            const key = mainTitle.getAttribute('data-i18n');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                mainTitle.textContent = translations[currentLang][key];
+            }
+        }
+    }
+
     function typeWriterEffect(text, element) {
         element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    }
+
+    const creatorLink = document.getElementById('creatorLink');
+    const creatorPopup = document.getElementById('creatorPopup');
+
+    if (creatorLink && creatorPopup) {
+        creatorLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            creatorPopup.classList.toggle('show');
+            
+            if (creatorPopup.classList.contains('show')) {
+                const closePopup = (e) => {
+                    if (!creatorPopup.contains(e.target)) {
+                        creatorPopup.classList.remove('show');
+                        document.removeEventListener('click', closePopup);
+                    }
+                };
+                document.addEventListener('click', closePopup);
+            }
+        });
+        
+        creatorPopup.addEventListener('click', (e) => e.stopPropagation());
     }
 
     initSettings();

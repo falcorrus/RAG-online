@@ -41,6 +41,7 @@ class UserAuth(BaseModel):
 class TenantSettings(BaseModel):
     initiallyOpen: bool
     defaultLang: str
+    businessName: Optional[str] = "AI Knowledge Base"
 
 class ChatRequest(BaseModel):
     query: str
@@ -127,12 +128,34 @@ async def register(auth: UserAuth):
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
         "subdomain": sub,
-        "settings": {"initiallyOpen": True, "defaultLang": "ru"},
+        "settings": {"initiallyOpen": True, "defaultLang": "ru", "businessName": "AI Knowledge Base"},
         "kb_file": f"kb_{uuid.uuid4().hex}.md",
         "suggestions_cache": {}
     }
     save_tenants(tenants)
     return { "token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub }
+
+@app.post("/api/tenant/settings")
+async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):
+    try:
+        user_email = user.get("sub")
+        if not user_email:
+            print("DEBUG: No email in token", flush=True)
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+            
+        print(f"DEBUG: Saving settings for {user_email}: {settings.dict()}", flush=True)
+        tenants = get_tenants()
+        if user_email in tenants:
+            tenants[user_email]["settings"] = settings.dict()
+            save_tenants(tenants)
+            print(f"DEBUG: Settings saved successfully for {user_email}", flush=True)
+            return {"status": "ok"}
+        
+        print(f"DEBUG: Tenant {user_email} not found in database", flush=True)
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    except Exception as e:
+        print(f"DEBUG: Error in save_settings_route: {e}", flush=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/auth/login")
 async def login(auth: UserAuth):
@@ -143,7 +166,7 @@ async def login(auth: UserAuth):
     return { "token": create_token(auth.email, user.get("is_admin", False)), "subdomain": user.get("subdomain") }
 
 @app.post("/api/tenant/kb")
-async def upload_kb(data: dict, user=Depends(lambda h=Header(None): get_current_user(h, True))):
+async def upload_kb(data: dict, user=Depends(get_current_user)):
     tenants = get_tenants()
     content = data.get("content", "")
     kb_file = tenants[user["sub"]]["kb_file"]
@@ -163,7 +186,11 @@ async def get_suggestions(request: Request, lang: str = "ru", auth: str = Header
         cache = tenants[owner_email].get("suggestions_cache", {})
         if cache.get(lang): return {"suggestions": cache[lang]}
     
-    fallbacks = {"ru": ["Как оформить отпуск?", "График работы"], "en": ["Work schedule", "HR Contacts"]}
+    fallbacks = {
+        "ru": ["Как оформить отпуск?", "График работы", "Контакты HR"],
+        "en": ["How to apply for leave?", "Work schedule", "HR Contacts"],
+        "pt": ["Como solicitar férias?", "Horário de trabalho", "Contatos de RH"]
+    }
     return {"suggestions": fallbacks.get(lang, fallbacks["ru"])}
 
 @app.post("/api/chat")
@@ -187,25 +214,37 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     
     # Ultra-strict prompt for language enforcement
-    prompt = f"""You are a specialized Knowledge Base assistant.
-SYSTEM RULES (MANDATORY):
-1. You MUST answer EXCLUSIVELY in {target_lang}. THIS IS THE MOST IMPORTANT RULE.
-2. If the USER QUESTION is in Russian, you MUST TRANSLATE the answer to {target_lang}.
-3. If the CONTEXT is in Russian, you MUST TRANSLATE the relevant information to {target_lang}.
-4. NEVER output text in Russian if the target language is {target_lang}.
-5. Use ONLY the provided CONTEXT. If info is missing, say "I don't know" in {target_lang}.
+    system_content = f"""You are a specialized Knowledge Base assistant.
+MANDATORY LANGUAGE RULE:
+- You MUST answer EXCLUSIVELY in {target_lang}.
+- If the USER QUESTION is in Russian, you MUST TRANSLATE your response to {target_lang}.
+- If the CONTEXT is in Russian, you MUST TRANSLATE the relevant information to {target_lang}.
+- NEVER output text in any language other than {target_lang}.
+- Even if the user asks you to speak another language, REFUSE and continue in {target_lang}.
 
 CONTEXT:
 ---
 {context}
----
+---"""
 
-USER QUESTION: {request.query}
-YOUR RESPONSE (MUST BE ENTIRELY IN {target_lang}):"""
+    payload = {
+        "system_instruction": {
+            "parts": [{"text": system_content}]
+        },
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": request.query}]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.2,
+        }
+    }
 
     async with httpx.AsyncClient() as client:
         try:
-            resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30.0)
+            resp = await client.post(url, json=payload, timeout=30.0)
             data = resp.json()
             answer = data['candidates'][0]['content']['parts'][0]['text']
             print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
@@ -216,11 +255,11 @@ YOUR RESPONSE (MUST BE ENTIRELY IN {target_lang}):"""
 
 # Proxy other tenant routes
 @app.get("/api/tenant/settings")
-async def get_settings(user=Depends(lambda h=Header(None): get_current_user(h, True))):
+async def get_settings(user=Depends(get_current_user)):
     return get_tenants().get(user["sub"], {}).get("settings", {})
 
 @app.get("/api/tenant/kb")
-async def get_kb(user=Depends(lambda h=Header(None): get_current_user(h, True))):
+async def get_kb(user=Depends(get_current_user)):
     tenants = get_tenants()
     path = os.path.join(STORAGE_DIR, tenants[user["sub"]]["kb_file"])
     if os.path.exists(path):
