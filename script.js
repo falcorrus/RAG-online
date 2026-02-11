@@ -508,18 +508,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTitle(isKbLoaded, overrideName = null) {
         const customName = (overrideName && overrideName.length > 0) ? overrideName : (businessNameInput ? businessNameInput.value.trim() : "");
         
-        if (isKbLoaded && customName) {
-            mainTitle.textContent = customName;
-            mainTitle.setAttribute('data-custom-title', 'true');
-            if (mainSparkle) mainSparkle.style.display = 'none';
-        } else {
-            mainTitle.setAttribute('data-custom-title', 'false');
-            if (mainSparkle) mainSparkle.style.display = 'block';
-            const key = mainTitle.getAttribute('data-i18n');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                mainTitle.textContent = translations[currentLang][key];
+        // Hide temporarily before changing text
+        mainTitle.classList.remove('visible');
+        
+        setTimeout(() => {
+            if (isKbLoaded && customName) {
+                mainTitle.textContent = customName;
+                mainTitle.setAttribute('data-custom-title', 'true');
+                if (mainSparkle) mainSparkle.style.display = 'none';
+            } else {
+                mainTitle.setAttribute('data-custom-title', 'false');
+                if (mainSparkle) mainSparkle.style.display = 'block';
+                const key = mainTitle.getAttribute('data-i18n');
+                if (translations[currentLang] && translations[currentLang][key]) {
+                    mainTitle.textContent = translations[currentLang][key];
+                }
             }
-        }
+            // Show with animation
+            mainTitle.classList.add('visible');
+        }, 100);
     }
 
     function typeWriterEffect(text, element) {
