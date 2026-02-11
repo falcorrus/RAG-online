@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 const settings = await resp.json();
                 initiallyOpenToggle.checked = settings.initiallyOpen;
-                if (businessNameInput) businessNameInput.value = settings.businessName || "";
             }
             
             const kbResp = await apiRequest('/api/tenant/kb');
@@ -300,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
             if (resp.ok) {
                 console.log("Settings saved successfully!");
-                setLanguage(settings.defaultLang);
+                // No need to set language here, it's already set or will be set by public settings fetch
                 
                 // Refetch public settings to get updated extracted business name
                 const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
