@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header, Request
+from fastapi import FastAPI, HTTPException, Depends, Header, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -61,22 +61,6 @@ def save_tenants(tenants):
     with open(TENANTS_FILE, 'w') as f:
         json.dump(tenants, f, indent=4)
 
-def extract_business_name(kb_content: str):
-    """Try to find business name in KB content."""
-    # Match "Название: Имя" or "Бизнес: Имя" or "Company: Name"
-    patterns = [
-        r"(?i)(?:Название|Бизнес|Company|Business|Name):\s*(.+)",
-        r"^#\s+(.+)" # Also try first H1 header
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, kb_content, re.MULTILINE)
-        if match:
-            name = match.group(1).strip()
-            # Clean up markdown if any
-            name = re.sub(r'[*_`#]', '', name)
-            return name
-    return None
-
 def get_tenant_by_host(host: str):
     if not host:
         return "ekirshin@gmail.com"
@@ -106,32 +90,51 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
         return None
 
 async def generate_kb_suggestions(owner_email: str, content: str):
-    """Automatically generate suggested questions from KB content using AI."""
+    """Automatically generate suggested questions and business name from KB content using AI."""
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     all_suggestions = {}
+    all_names = {}
     
-    # Simple heuristic if AI fails: find text in quotes
-    found = re.findall(r'**«(.*?)»**', content)
-    if not found:
-        found = re.findall(r'\*\*(.*?\?)\*\*', content)
+    # Simple heuristic if AI fails
+    found_q = re.findall(r'\*\*(.*?\?)\*\*', content)
     
-    for code, name in lang_map.items():
+    for code, lang_name in lang_map.items():
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-            prompt = f"Based on this KB, generate 3 typical short questions in {name}. Return ONLY JSON list of strings. KB: {content[:3000]}"
+            prompt = f"""Analyze this Knowledge Base. 
+1. Generate 3 typical short questions in {lang_name}.
+2. Extract the Business/Company name and MANDATORILY TRANSLATE it into {lang_name}.
+   - Even if the name is a proper noun, adapt it to {lang_name} if appropriate (e.g., "Фитнес-клуб" -> "Fitness Club").
+   - The businessName field MUST be entirely in {lang_name}.
+Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
+KB: {content[:2000]}"""
+            
             async with httpx.AsyncClient() as client:
-                resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=10.0)
+                resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15.0)
                 if resp.status_code == 200:
                     text = resp.json()['candidates'][0]['content']['parts'][0]['text']
-                    all_suggestions[code] = json.loads(text.replace('```json', '').replace('```', '').strip())
+                    # Remove markdown blocks if present
+                    clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
+                    data = json.loads(clean_text)
+                    all_suggestions[code] = data.get("suggestions", [])
+                    
+                    b_name = data.get("businessName", "").strip()
+                    # Final safety check for English translation
+                    if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
+                        # If still Russian in English field, try a very simple translation
+                        b_name = "AI Knowledge Base" # or keep searching
+                    
+                    all_names[code] = b_name
                 else:
-                    all_suggestions[code] = found[:3] if found else []
-        except:
-            all_suggestions[code] = found[:3] if found else []
+                    all_suggestions[code] = found_q[:3]
+        except Exception as e:
+            print(f"Error generating suggestions for {code}: {e}", flush=True)
+            all_suggestions[code] = found_q[:3]
     
     tenants = get_tenants()
     if owner_email in tenants:
         tenants[owner_email]["suggestions_cache"] = all_suggestions
+        tenants[owner_email]["business_names_cache"] = all_names
         save_tenants(tenants)
 
 # --- Routes ---
@@ -152,23 +155,20 @@ async def register(auth: UserAuth):
     return { "token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub }
 
 @app.get("/api/settings")
-async def get_public_settings(request: Request):
+async def get_public_settings(request: Request, lang: str = "ru"):
     owner_email = get_tenant_by_host(request.headers.get("host"))
     tenants = get_tenants()
     if owner_email in tenants:
-        settings = tenants[owner_email].get("settings", {}).copy()
-        kb_path = os.path.join(STORAGE_DIR, tenants[owner_email]["kb_file"])
+        tenant = tenants[owner_email]
+        settings = tenant.get("settings", {}).copy()
         
-        kb_exists = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
-        settings["kb_exists"] = kb_exists
-        
-        if kb_exists:
-            with open(kb_path, 'r') as f:
-                kb_content = f.read()
-                extracted_name = extract_business_name(kb_content)
-                if extracted_name:
-                    settings["businessName"] = extracted_name
-        
+        # Priority 1: Use cached translated business name from KB
+        kb_name = tenant.get("business_names_cache", {}).get(lang)
+        if kb_name:
+            settings["businessName"] = kb_name
+            
+        kb_path = os.path.join(STORAGE_DIR, tenant["kb_file"])
+        settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
     return {"initiallyOpen": True, "defaultLang": "ru", "businessName": "AI Knowledge Base", "kb_exists": False}
 
@@ -203,14 +203,14 @@ async def login(auth: UserAuth):
     return { "token": create_token(auth.email, user.get("is_admin", False)), "subdomain": user.get("subdomain") }
 
 @app.post("/api/tenant/kb")
-async def upload_kb(data: dict, user=Depends(get_current_user)):
+async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
     tenants = get_tenants()
     content = data.get("content", "")
     kb_file = tenants[user["sub"]]["kb_file"]
     with open(os.path.join(STORAGE_DIR, kb_file), 'w') as f:
         f.write(content)
-    # Generate new suggestions in background-like fashion
-    await generate_kb_suggestions(user["sub"], content)
+    # Generate new suggestions in background
+    background_tasks.add_task(generate_kb_suggestions, user["sub"], content)
     return {"status": "ok"}
 
 @app.get("/api/suggestions")

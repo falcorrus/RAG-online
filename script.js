@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const translations = {
         ru: {
             title_main: "AI Knowledge Base",
-            input_placeholder: "Задайте вопрос по базе знаний...",
+            input_placeholder: "Спрашивайте в свободной форме",
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
@@ -134,6 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = authEmail.value;
         const password = authPass.value;
         const path = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        
+        const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:8006' 
+            : '';
+        const url = baseUrl + path;
 
         if (!email || !password) {
             authError.textContent = 'Введите email и пароль';
@@ -141,8 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        console.log(`Attempting ${isRegisterMode ? 'registration' : 'login'} at ${url}`);
+
         try {
-            const resp = await fetch(path, {
+            const resp = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -150,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await resp.json();
             if (resp.ok) {
+                console.log("Auth successful, token received");
                 localStorage.setItem('token', data.token);
                 authError.classList.add('hidden');
                 
@@ -163,10 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 authPanel.classList.add('hidden');
                 settingsPanel.classList.remove('hidden');
             } else {
+                console.error("Auth failed:", data.detail);
                 authError.textContent = data.detail || 'Ошибка входа';
                 authError.classList.remove('hidden');
             }
         } catch (err) {
+            console.error("Auth network error:", err);
             authError.textContent = 'Ошибка сети. Проверьте сервер.';
             authError.classList.remove('hidden');
         }
@@ -187,13 +197,14 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initSettings() {
         // 1. Fetch public settings (available for everyone)
         try {
-            const publicResp = await apiRequest('/api/settings');
+            const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
+                console.log("Public settings received:", settings);
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 setLanguage(settings.defaultLang);
                 if (businessNameInput) businessNameInput.value = settings.businessName || "";
-                updateTitle(settings.kb_exists);
+                updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -279,11 +290,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 console.log("Settings saved successfully!");
                 setLanguage(settings.defaultLang);
-                const kbResp = await apiRequest('/api/tenant/kb');
-                if (kbResp.ok) {
-                    const kbData = await kbResp.json();
-                    updateTitle(kbData.content && kbData.content.trim().length > 0);
+                
+                // Refetch public settings to get updated extracted business name
+                const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+                if (publicResp.ok) {
+                    const pubData = await publicResp.json();
+                    updateTitle(pubData.kb_exists, pubData.businessName);
                 }
+                
                 adminOverlay.classList.add('hidden');
                 showToast(currentLang === 'ru' ? "Настройки сохранены" : "Settings saved");
             } else {
@@ -309,7 +323,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
-                    updateTitle(true);
+                    
+                    // Refetch public settings to get updated extracted business name from new KB
+                    const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+                    if (publicResp.ok) {
+                        const pubData = await publicResp.json();
+                        updateTitle(pubData.kb_exists, pubData.businessName);
+                    }
+                    
                     await loadSuggestions();
                     showToast(currentLang === 'ru' ? "База знаний обновлена" : "Knowledge base updated");
                 } else {
@@ -408,7 +429,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     fileInfo.classList.add('hidden');
                     kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-                    updateTitle(false);
+                    
+                    const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+                    if (publicResp.ok) {
+                        const pubData = await publicResp.json();
+                        updateTitle(pubData.kb_exists, pubData.businessName);
+                    }
+                    
                     await loadSuggestions();
                 }
             } catch (err) {
@@ -440,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (content) content.classList.add('hidden');
     }
 
-    function setLanguage(lang) {
+    async function setLanguage(lang) {
         currentLang = lang;
         document.documentElement.lang = currentLang;
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
@@ -454,12 +481,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = el.getAttribute('data-i18n-placeholder');
             if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
+
+        // Refetch public settings to ensure title and suggestions are correct for the new language
+        try {
+            const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+            if (publicResp.ok) {
+                const settings = await publicResp.json();
+                updateTitle(settings.kb_exists, settings.businessName);
+            }
+        } catch (err) {
+            console.warn("Title update failed during language switch", err);
+        }
+
         loadSuggestions();
     }
 
-    function updateTitle(isKbLoaded) {
-        const customName = businessNameInput ? businessNameInput.value.trim() : "";
-        if (isKbLoaded && customName) {
+    function updateTitle(isKbLoaded, overrideName = null) {
+        const customName = overrideName || (businessNameInput ? businessNameInput.value.trim() : "");
+        if (isKbLoaded && customName && customName !== "AI Knowledge Base") {
             mainTitle.textContent = customName;
             mainTitle.setAttribute('data-custom-title', 'true');
             if (mainSparkle) mainSparkle.style.display = 'none';
