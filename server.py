@@ -154,18 +154,19 @@ KB: {limited_content}"""
                 resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15.0)
                 if resp.status_code == 200:
                     text = resp.json()['candidates'][0]['content']['parts'][0]['text']
-                    # Remove markdown blocks if present
                     clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
-                    data = json.loads(clean_text)
-                    all_suggestions[code] = data.get("suggestions", [])
-                    
-                    b_name = data.get("businessName", "").strip()
-                    # Final safety check for English translation
-                    if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                        b_name = "AI Knowledge Base" # Fallback or retry
-                    
-                    all_names[code] = b_name
-                    print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
+                    try:
+                        data = json.loads(clean_text)
+                        all_suggestions[code] = data.get("suggestions", [])
+                        b_name = data.get("businessName", "").strip()
+                        if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
+                            b_name = "AI Knowledge Base" 
+                        all_names[code] = b_name
+                        print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
+                    except json.JSONDecodeError as json_err:
+                        print(f"ERROR: JSONDecodeError for {code}: {json_err}. Raw text: {clean_text[:200]}...", flush=True)
+                        all_suggestions[code] = found_q[:3]
+                        all_names[code] = "" # Fallback to empty name
                 else:
                     print(f"ERROR: Gemini API call for {code} failed with status {resp.status_code}: {resp.text}", flush=True)
                     all_suggestions[code] = found_q[:3]
@@ -227,7 +228,8 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
         print(f"DEBUG: Saving settings for {user_email}: {settings.dict()}", flush=True)
         tenants = get_tenants()
         if user_email in tenants:
-            tenants[user_email]["settings"] = settings.dict()
+            # Only update initiallyOpen, defaultLang and businessName are handled by KB logic
+            tenants[user_email]["settings"]["initiallyOpen"] = settings.initiallyOpen
             save_tenants(tenants)
             print(f"DEBUG: Settings saved successfully for {user_email}", flush=True)
             return {"status": "ok"}
