@@ -305,11 +305,42 @@ CONTEXT:
             resp = await client.post(url, json=payload, timeout=30.0)
             data = resp.json()
             answer = data['candidates'][0]['content']['parts'][0]['text']
+            
+            # Save to conversation log
+            if owner_email in tenants:
+                if "conversation_log" not in tenants[owner_email]:
+                    tenants[owner_email]["conversation_log"] = []
+                tenants[owner_email]["conversation_log"].append({
+                    "timestamp": datetime.now().isoformat(),
+                    "lang": request.lang,
+                    "query": request.query,
+                    "answer": answer
+                })
+                save_tenants(tenants)
+
             print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
             return {"answer": answer}
         except Exception as e:
             print(f"Chat error: {e}", flush=True)
             return {"answer": "AI connection error"}
+
+@app.get("/api/tenant/logs")
+async def get_conversation_logs(user=Depends(get_current_user)):
+    tenants = get_tenants()
+    if user["sub"] in tenants:
+        return {"logs": tenants[user["sub"]].get("conversation_log", [])}
+    raise HTTPException(status_code=404, detail="Tenant not found")
+
+@app.delete("/api/tenant/logs")
+async def clear_conversation_logs(user=Depends(get_current_user)):
+    tenants = get_tenants()
+    if user["sub"] in tenants:
+        tenants[user["sub"]]["conversation_log"] = []
+        save_tenants(tenants)
+        return {"status": "ok"}
+    raise HTTPException(status_code=404, detail="Tenant not found")
+
+@app.post("/api/auth/login")
 
 # Proxy other tenant routes
 @app.get("/api/tenant/settings")

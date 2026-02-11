@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const defaultLangSelect = document.getElementById('defaultLangSelect');
     const mainTitle = document.getElementById('mainTitle');
     const mainSparkle = document.getElementById('mainSparkle');
+    const logsPanel = document.getElementById('logsPanel');
+    const logsContent = document.getElementById('logsContent');
+    const viewLogsBtn = document.getElementById('viewLogsBtn');
+    const clearLogsBtn = document.getElementById('clearLogsBtn');
+    const closeLogsBtn = document.getElementById('closeLogsBtn');
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -56,7 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
             default_lang_label: "Язык по умолчанию",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
-            status_ai_thinking: "ИИ формирует ответ..."
+            status_ai_thinking: "ИИ формирует ответ...",
+            view_logs_btn: "Просмотреть логи",
+            logs_title: "Логи чата",
+            no_logs_msg: "Логи пока пусты.",
+            clear_logs_btn: "Очистить логи",
+            download_logs_btn: "Скачать",
+            log_item_label: "Запрос"
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -88,7 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
             default_lang_label: "Idioma padrão",
             save_btn: "Salvar alterações",
             status_analyzing: "Analisando base de conhecimento...",
-            status_ai_thinking: "IA está pensando..."
+            status_ai_thinking: "IA está pensando...",
+            view_logs_btn: "Ver Registros",
+            logs_title: "Registros de Chat",
+            no_logs_msg: "Nenhum registro ainda.",
+            clear_logs_btn: "Limpar Registros",
+            download_logs_btn: "Baixar",
+            log_item_label: "Consulta"
         }
     };
 
@@ -534,6 +551,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const creatorLink = document.getElementById('creatorLink');
     const creatorPopup = document.getElementById('creatorPopup');
+
+    const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+
+    if (viewLogsBtn) viewLogsBtn.addEventListener('click', async () => {
+        settingsPanel.classList.add('hidden');
+        logsPanel.classList.remove('hidden');
+        await loadLogs();
+    });
+
+    if (closeLogsBtn) closeLogsBtn.addEventListener('click', () => {
+        logsPanel.classList.add('hidden');
+        settingsPanel.classList.remove('hidden');
+    });
+
+    if (clearLogsBtn) clearLogsBtn.addEventListener('click', async () => {
+        if (!confirm(currentLang === 'ru' ? "Вы уверены, что хотите очистить все логи?" : "Are you sure you want to clear all logs?")) return;
+        try {
+            const resp = await apiRequest('/api/tenant/logs', 'DELETE');
+            if (resp.ok) {
+                showToast(currentLang === 'ru' ? "Логи очищены" : "Logs cleared");
+                renderLogs([]);
+            } else {
+                showToast(currentLang === 'ru' ? "Ошибка очистки логов" : "Error clearing logs", true);
+            }
+        } catch (err) {
+            showToast(currentLang === 'ru' ? "Ошибка сети при очистке логов" : "Network error clearing logs", true);
+        }
+    });
+
+    function renderLogs(logs) {
+        logsContent.innerHTML = '';
+        if (logs.length === 0) {
+            logsContent.innerHTML = `<p data-i18n="no_logs_msg">${translations[currentLang]?.no_logs_msg || "No logs yet."}</p>`;
+            return;
+        }
+
+        logs.slice().reverse().forEach(log => {
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            const timestamp = new Date(log.timestamp).toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
+            logItem.innerHTML = `
+                <div class="log-header">
+                    <span class="log-timestamp">${timestamp}</span>
+                    <span class="log-lang">[${log.lang.toUpperCase()}]</span>
+                </div>
+                <div class="log-query">${translations[currentLang]?.log_item_label || "Query"}: ${log.query}</div>
+                <div class="log-answer">Answer: ${log.answer}</div>
+            `;
+            logsContent.appendChild(logItem);
+        });
+    }
+
+    async function downloadLogs() {
+        try {
+            const resp = await apiRequest('/api/tenant/logs');
+            if (resp.ok) {
+                const data = await resp.json();
+                const logsJson = JSON.stringify(data.logs, null, 2);
+                const blob = new Blob([logsJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat_logs_${new Date().toISOString()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast(currentLang === 'ru' ? "Логи скачаны" : "Logs downloaded");
+            } else {
+                showToast(currentLang === 'ru' ? "Ошибка скачивания логов" : "Error downloading logs", true);
+            }
+        } catch (err) {
+            showToast(currentLang === 'ru' ? "Ошибка сети при скачивании логов" : "Network error downloading logs", true);
+        }
+    }
+
+    async function loadLogs() {
+        try {
+            const resp = await apiRequest('/api/tenant/logs');
+            if (resp.ok) {
+                const data = await resp.json();
+                renderLogs(data.logs);
+            } else {
+                showToast(currentLang === 'ru' ? "Ошибка загрузки логов" : "Error loading logs", true);
+            }
+        } catch (err) {
+            showToast(currentLang === 'ru' ? "Ошибка сети при загрузке логов" : "Network error loading logs", true);
+        }
+    }
+
+    if (downloadLogsBtn) downloadLogsBtn.addEventListener('click', downloadLogs);
 
     if (creatorLink && creatorPopup) {
         creatorLink.addEventListener('click', (e) => {

@@ -581,6 +581,49 @@ body.has-results .results-area {
     gap: 24px;
 }
 
+/* Log Item */
+.log-item {
+    background: var(--bg-alt);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.4;
+    position: relative;
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
+
+.log-item:last-child {
+    margin-bottom: 0;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.log-query {
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.log-answer {
+    color: var(--text-secondary);
+}
+
+.admin-content#logsContent {
+    overflow-y: auto;
+    max-height: 300px; /* Adjust as needed */
+    padding-right: 10px; /* For scrollbar */
+}
+
 .setting-group {
     display: flex;
     flex-direction: column;
@@ -736,9 +779,35 @@ input:checked + .slider:before {
 
 /* Admin Footer */
 .admin-footer {
-    padding: 24px;
+    display: flex;
+    justify-content: space-between; /* To push logs button to left and save to right */
+    align-items: center;
+    padding: 20px;
     border-top: 1px solid var(--border-light);
 }
+
+.admin-footer .action-btn {
+    background: var(--bg-alt);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-footer .action-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-active);
+}
+
+#viewLogsBtn {
+    position: relative;
+    top: -5px; /* Adjust as needed */
+}
+
 
 .save-btn {
     width: 100%;
