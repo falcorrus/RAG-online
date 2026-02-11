@@ -41,7 +41,6 @@ class UserAuth(BaseModel):
 class TenantSettings(BaseModel):
     initiallyOpen: bool
     defaultLang: str
-    businessName: Optional[str] = "AI Knowledge Base"
 
 class ChatRequest(BaseModel):
     query: str
@@ -148,7 +147,7 @@ async def register(auth: UserAuth):
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
         "subdomain": sub,
-        "settings": {"initiallyOpen": True, "defaultLang": "ru", "businessName": "AI Knowledge Base"},
+        "settings": {"initiallyOpen": True, "defaultLang": "ru"},
         "kb_file": f"kb_{uuid.uuid4().hex}.md",
         "suggestions_cache": {}
     }

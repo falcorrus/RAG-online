@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
     const defaultLangSelect = document.getElementById('defaultLangSelect');
-    const businessNameInput = document.getElementById('businessNameInput');
     const mainTitle = document.getElementById('mainTitle');
     const mainSparkle = document.getElementById('mainSparkle');
 
@@ -55,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
             default_lang_label: "Язык по умолчанию",
-            business_name_label: "Название бизнеса",
             save_btn: "Сохранить изменения",
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ..."
@@ -72,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
             default_lang_label: "Default Language",
-            business_name_label: "Business Name",
             save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
             status_ai_thinking: "AI is thinking..."
@@ -89,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
             default_lang_label: "Idioma padrão",
-            business_name_label: "Nome do negócio",
             save_btn: "Salvar alterações",
             status_analyzing: "Analisando base de conhecimento...",
             status_ai_thinking: "IA está pensando..."
@@ -209,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await setLanguage(settings.defaultLang);
                 
                 // Final title update (ensures it's correct after setLanguage)
-                if (businessNameInput) businessNameInput.value = settings.businessName || "";
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
@@ -288,8 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Attempting to save settings...");
         const settings = {
             initiallyOpen: initiallyOpenToggle.checked,
-            defaultLang: defaultLangSelect.value,
-            businessName: businessNameInput.value
+            defaultLang: defaultLangSelect.value
         };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
@@ -506,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateTitle(isKbLoaded, overrideName = null) {
-        const customName = (overrideName && overrideName.length > 0) ? overrideName : (businessNameInput ? businessNameInput.value.trim() : "");
+        const customName = (overrideName && overrideName.length > 0) ? overrideName : "";
         
         // Hide temporarily before changing text
         mainTitle.classList.remove('visible');
