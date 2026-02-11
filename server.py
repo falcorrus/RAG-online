@@ -259,7 +259,7 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
     kb_file = tenants[owner_email]["kb_file"]
     kb_path = os.path.join(STORAGE_DIR, kb_file)
 
-    print(f"DEBUG: Attempting to save KB for {owner_email} to {kb_path}", flush=True)
+    print(f"DEBUG: Attempting to save KB for {owner_email} to {kb_path} (content length: {len(content)})", flush=True)
     try:
         with open(kb_path, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -379,8 +379,6 @@ async def clear_conversation_logs(user=Depends(get_current_user)):
         return {"status": "ok"}
     raise HTTPException(status_code=404, detail="Tenant not found")
 
-@app.post("/api/auth/login")
-
 # Proxy other tenant routes
 @app.get("/api/tenant/settings")
 async def get_settings(user=Depends(get_current_user)):
@@ -407,6 +405,35 @@ async def get_kb(user=Depends(get_current_user)):
             raise HTTPException(status_code=500, detail=f"Failed to read knowledge base file: {e}")
     print(f"DEBUG: KB file {path} not found for {owner_email}", flush=True)
     return {"content": ""}
+
+@app.get("/api/test-file")
+async def test_file_operations():
+    test_path = os.path.join(STORAGE_DIR, "test_file.txt")
+    test_content = "This is a test content for the file operation.\nТестовое содержимое."
+    
+    try:
+        # Write test content
+        with open(test_path, 'w', encoding='utf-8') as f:
+            f.write(test_content)
+        print(f"DEBUG: Test file written successfully to {test_path} (length: {len(test_content)})", flush=True)
+        
+        # Read test content
+        with open(test_path, 'r', encoding='utf-8') as f:
+            read_content = f.read()
+        print(f"DEBUG: Test file read successfully from {test_path} (length: {len(read_content)})", flush=True)
+        
+        # Clean up
+        os.remove(test_path)
+        print(f"DEBUG: Test file {test_path} removed.", flush=True)
+        
+        if test_content == read_content:
+            return {"status": "success", "message": "File write/read successful", "read_content_length": len(read_content)}
+        else:
+            return {"status": "error", "message": "Content mismatch", "read_content_length": len(read_content)}
+            
+    except Exception as e:
+        print(f"ERROR: Test file operation failed: {e}", flush=True)
+        raise HTTPException(status_code=500, detail=f"Test file operation failed: {e}")
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
