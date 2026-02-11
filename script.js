@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewLogsBtn = document.getElementById('viewLogsBtn');
     const clearLogsBtn = document.getElementById('clearLogsBtn');
     const closeLogsBtn = document.getElementById('closeLogsBtn');
-    const testFileBtn = document.getElementById('testFileBtn');
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -66,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
             no_logs_msg: "Логи пока пусты.",
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
-            test_file_btn: "Тест файла",
             log_item_label: "Запрос"
         },
         en: {
@@ -103,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
             no_logs_msg: "Nenhum registro ainda.",
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
-            test_file_btn: "Testar Arquivo",
             log_item_label: "Consulta"
         }
     };
@@ -331,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const content = e.target.result;
+            console.log("DEBUG: KB content length before sending:", content.length);
             try {
                 const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
                 if (resp.ok) {
@@ -404,15 +402,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event Listeners ---
-    if (adminBtn) adminBtn.addEventListener('click', () => {
-        const token = localStorage.getItem('token');
-        if (!token) showAuth();
-        else {
-            authPanel.classList.add('hidden');
-            settingsPanel.classList.remove('hidden');
-            adminOverlay.classList.remove('hidden');
-        }
-    });
+    if (adminBtn) {
+        let longPressTimer;
+        const longPressDuration = 800; // ms
+
+        const startPress = (e) => {
+            longPressTimer = setTimeout(() => {
+                localStorage.removeItem('token');
+                showToast(currentLang === 'ru' ? "Выход из системы" : "Logged out");
+                showAuth();
+                longPressTimer = null;
+            }, longPressDuration);
+        };
+
+        const cancelPress = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        };
+
+        adminBtn.addEventListener('mousedown', startPress);
+        adminBtn.addEventListener('touchstart', startPress, { passive: true });
+        
+        adminBtn.addEventListener('mouseup', cancelPress);
+        adminBtn.addEventListener('mouseleave', cancelPress);
+        adminBtn.addEventListener('touchend', cancelPress);
+
+        adminBtn.addEventListener('click', () => {
+            const token = localStorage.getItem('token');
+            if (!token) showAuth();
+            else {
+                authPanel.classList.add('hidden');
+                settingsPanel.classList.remove('hidden');
+                adminOverlay.classList.remove('hidden');
+            }
+        });
+    }
 
     if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
     if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
@@ -638,20 +664,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (downloadLogsBtn) downloadLogsBtn.addEventListener('click', downloadLogs);
-
-    if (testFileBtn) testFileBtn.addEventListener('click', async () => {
-        try {
-            const resp = await apiRequest('/api/test-file');
-            if (resp.ok) {
-                const data = await resp.json();
-                showToast(currentLang === 'ru' ? `Тест файла: ${data.status}. Длина: ${data.read_content_length}` : `File test: ${data.status}. Length: ${data.read_content_length}`);
-            } else {
-                showToast(currentLang === 'ru' ? "Ошибка теста файла" : "File test error", true);
-            }
-        } catch (err) {
-            showToast(currentLang === 'ru' ? "Ошибка сети при тесте файла" : "Network error during file test", true);
-        }
-    });
 
     if (creatorLink && creatorPopup) {
         creatorLink.addEventListener('click', (e) => {

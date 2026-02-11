@@ -406,35 +406,6 @@ async def get_kb(user=Depends(get_current_user)):
     print(f"DEBUG: KB file {path} not found for {owner_email}", flush=True)
     return {"content": ""}
 
-@app.get("/api/test-file")
-async def test_file_operations():
-    test_path = os.path.join(STORAGE_DIR, "test_file.txt")
-    test_content = "This is a test content for the file operation.\nТестовое содержимое."
-    
-    try:
-        # Write test content
-        with open(test_path, 'w', encoding='utf-8') as f:
-            f.write(test_content)
-        print(f"DEBUG: Test file written successfully to {test_path} (length: {len(test_content)})", flush=True)
-        
-        # Read test content
-        with open(test_path, 'r', encoding='utf-8') as f:
-            read_content = f.read()
-        print(f"DEBUG: Test file read successfully from {test_path} (length: {len(read_content)})", flush=True)
-        
-        # Clean up
-        os.remove(test_path)
-        print(f"DEBUG: Test file {test_path} removed.", flush=True)
-        
-        if test_content == read_content:
-            return {"status": "success", "message": "File write/read successful", "read_content_length": len(read_content)}
-        else:
-            return {"status": "error", "message": "Content mismatch", "read_content_length": len(read_content)}
-            
-    except Exception as e:
-        print(f"ERROR: Test file operation failed: {e}", flush=True)
-        raise HTTPException(status_code=500, detail=f"Test file operation failed: {e}")
-
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
 if __name__ == "__main__":
