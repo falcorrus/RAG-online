@@ -197,14 +197,18 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initSettings() {
         // 1. Fetch public settings (available for everyone)
         try {
+            // Force use RU for initial load to get base settings
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
+                console.log("Initial settings load:", settings);
+                
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 
-                // Set language first, BUT updateTitle will follow and fix the header
+                // Set language based on defaultLang from server
                 await setLanguage(settings.defaultLang);
                 
+                // Final title update (ensures it's correct after setLanguage)
                 if (businessNameInput) businessNameInput.value = settings.businessName || "";
                 updateTitle(settings.kb_exists, settings.businessName);
             }
@@ -493,6 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
+                console.log("Language switch title update:", settings.businessName);
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
