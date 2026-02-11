@@ -61,6 +61,22 @@ def save_tenants(tenants):
     with open(TENANTS_FILE, 'w') as f:
         json.dump(tenants, f, indent=4)
 
+def extract_business_name(kb_content: str):
+    """Try to find business name in KB content."""
+    # Match "Название: Имя" or "Бизнес: Имя" or "Company: Name"
+    patterns = [
+        r"(?i)(?:Название|Бизнес|Company|Business|Name):\s*(.+)",
+        r"^#\s+(.+)" # Also try first H1 header
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, kb_content, re.MULTILINE)
+        if match:
+            name = match.group(1).strip()
+            # Clean up markdown if any
+            name = re.sub(r'[*_`#]', '', name)
+            return name
+    return None
+
 def get_tenant_by_host(host: str):
     if not host:
         return "ekirshin@gmail.com"
@@ -134,6 +150,27 @@ async def register(auth: UserAuth):
     }
     save_tenants(tenants)
     return { "token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub }
+
+@app.get("/api/settings")
+async def get_public_settings(request: Request):
+    owner_email = get_tenant_by_host(request.headers.get("host"))
+    tenants = get_tenants()
+    if owner_email in tenants:
+        settings = tenants[owner_email].get("settings", {}).copy()
+        kb_path = os.path.join(STORAGE_DIR, tenants[owner_email]["kb_file"])
+        
+        kb_exists = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
+        settings["kb_exists"] = kb_exists
+        
+        if kb_exists:
+            with open(kb_path, 'r') as f:
+                kb_content = f.read()
+                extracted_name = extract_business_name(kb_content)
+                if extracted_name:
+                    settings["businessName"] = extracted_name
+        
+        return settings
+    return {"initiallyOpen": True, "defaultLang": "ru", "businessName": "AI Knowledge Base", "kb_exists": False}
 
 @app.post("/api/tenant/settings")
 async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):

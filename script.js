@@ -185,6 +185,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings & UI ---
     async function initSettings() {
+        // 1. Fetch public settings (available for everyone)
+        try {
+            const publicResp = await apiRequest('/api/settings');
+            if (publicResp.ok) {
+                const settings = await publicResp.json();
+                if (!settings.initiallyOpen) document.body.classList.add('minimized');
+                setLanguage(settings.defaultLang);
+                if (businessNameInput) businessNameInput.value = settings.businessName || "";
+                updateTitle(settings.kb_exists);
+            }
+        } catch (err) {
+            console.error("Public settings fetch failed", err);
+        }
+
+        // 2. Auth-specific status (if logged in)
         const token = localStorage.getItem('token');
         if (!token) {
             await loadSuggestions();
@@ -195,26 +210,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const resp = await apiRequest('/api/tenant/settings');
             if (resp.ok) {
                 const settings = await resp.json();
-                if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 initiallyOpenToggle.checked = settings.initiallyOpen;
                 defaultLangSelect.value = settings.defaultLang;
                 if (businessNameInput) businessNameInput.value = settings.businessName || "";
-                setLanguage(settings.defaultLang);
             }
-
+            
             const kbResp = await apiRequest('/api/tenant/kb');
-            let kbLoaded = false;
             if (kbResp.ok) {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
-                    kbLoaded = true;
                 }
             }
-            updateTitle(kbLoaded);
             await loadSuggestions();
         } catch (err) {
-            console.error("Init settings failed", err);
+            console.error("Admin data fetch failed", err);
         }
     }
 
