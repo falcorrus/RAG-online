@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const translations = {
         ru: {
-            title_main: "AI Knowledge Base",
+            title_main: "База знаний",
             input_placeholder: "Спрашивайте в свободной форме",
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateTitle(isKbLoaded, overrideName = null) {
         const customName = overrideName || (businessNameInput ? businessNameInput.value.trim() : "");
-        if (isKbLoaded && customName && customName !== "AI Knowledge Base") {
+        if (isKbLoaded && customName) {
             mainTitle.textContent = customName;
             mainTitle.setAttribute('data-custom-title', 'true');
             if (mainSparkle) mainSparkle.style.display = 'none';
