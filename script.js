@@ -296,6 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     welcomeBanner.classList.add('hidden');
                 }
                 
+                // Set automated under-answer text if exists
+                underAnswerText = settings.underAnswerText || "";
+                updateSourceDisplay();
+
                 // If user has manual choice, keep it. 
                 // Otherwise, use server's defaultLang IF it's different from our current detected lang
                 const savedLang = localStorage.getItem('user_lang');
@@ -619,6 +623,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             // NEVER overwrite the title here if we already have a custom one
             if (el.id === 'mainTitle' && el.getAttribute('data-custom-title') === 'true') return;
+            // NEVER overwrite source badge if we have automated signature
+            if (el.id === 'sourceBadge' && underAnswerText) return;
+
             const key = el.getAttribute('data-i18n');
             if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
         });

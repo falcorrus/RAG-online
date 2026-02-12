@@ -238,6 +238,9 @@ async def get_public_settings(request: Request, lang: str = "ru"):
             
         # Use automated under-answer text from KB
         settings["underAnswerText"] = tenant.get("underAnswer_cache", {}).get(lang)
+        if not settings["underAnswerText"]:
+             # Fallback if cache is empty but field exists
+             settings["underAnswerText"] = ""
             
         kb_path = os.path.join(STORAGE_DIR, tenant["kb_file"])
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
