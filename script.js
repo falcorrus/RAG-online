@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText = document.getElementById('statusText');
     const suggestionsContainer = document.getElementById('suggestions');
     const langBtns = document.querySelectorAll('.lang-btn');
+    const sourceBadge = document.getElementById('sourceBadge');
 
     // Auth Elements
     const authPanel = document.getElementById('authPanel');
@@ -616,11 +617,22 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTitle.classList.remove('visible');
         if (mainSparkle) mainSparkle.classList.remove('visible');
         
+        const sourcePrefix = {
+            "ru": "Источник: ",
+            "en": "Source: ",
+            "pt": "Fonte: "
+        };
+
         setTimeout(() => {
             if (isKbLoaded && customName) {
                 mainTitle.textContent = customName;
                 mainTitle.setAttribute('data-custom-title', 'true');
                 if (mainSparkle) mainSparkle.style.display = 'none';
+                
+                // Update Source Badge
+                if (sourceBadge) {
+                    sourceBadge.textContent = (sourcePrefix[currentLang] || sourcePrefix["ru"]) + customName;
+                }
             } else {
                 mainTitle.setAttribute('data-custom-title', 'false');
                 if (mainSparkle) {
@@ -631,6 +643,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const key = mainTitle.getAttribute('data-i18n');
                 if (translations[currentLang] && translations[currentLang][key]) {
                     mainTitle.textContent = translations[currentLang][key];
+                }
+
+                // Restore default Source Badge
+                if (sourceBadge) {
+                    const sKey = sourceBadge.getAttribute('data-i18n');
+                    if (translations[currentLang] && translations[currentLang][sKey]) {
+                        sourceBadge.textContent = translations[currentLang][sKey];
+                    }
                 }
             }
             // Show with animation
