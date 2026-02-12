@@ -42,7 +42,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const authError = document.getElementById('authError');
 
     // State
-    let currentLang = 'ru';
+    function getInitialLang() {
+        const saved = localStorage.getItem('user_lang');
+        const supported = ['ru', 'en', 'pt'];
+        if (saved && supported.includes(saved)) return saved;
+        
+        const browserLang = navigator.language.split('-')[0];
+        return supported.includes(browserLang) ? browserLang : 'ru';
+    }
+
+    let currentLang = getInitialLang();
     let isRegisterMode = false;
 
     const translations = {
@@ -80,7 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
             initially_open_label: "Initially open",
             save_btn: "Save Changes",
             status_analyzing: "Analyzing knowledge base...",
-            status_ai_thinking: "AI is thinking..."
+            status_ai_thinking: "AI is thinking...",
+            view_logs_btn: "View Logs",
+            logs_title: "Chat Logs",
+            no_logs_msg: "No logs yet.",
+            clear_logs_btn: "Clear Logs",
+            download_logs_btn: "Download",
+            log_item_label: "Query"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -206,7 +221,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function initSettings() {
         // 1. Fetch public settings (available for everyone)
         try {
-            // Force use RU for initial load to get base settings
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
@@ -214,8 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 
-                // Set language based on defaultLang from server
-                await setLanguage(settings.defaultLang);
+                // If user has manual choice, keep it. 
+                // Otherwise, use server's defaultLang IF it's different from our current detected lang
+                const savedLang = localStorage.getItem('user_lang');
+                if (!savedLang && settings.defaultLang && settings.defaultLang !== currentLang) {
+                    await setLanguage(settings.defaultLang);
+                } else {
+                    // Just refresh labels for currentLang
+                    await setLanguage(currentLang);
+                }
                 
                 // Final title update (ensures it's correct after setLanguage)
                 updateTitle(settings.kb_exists, settings.businessName);
@@ -508,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function setLanguage(lang) {
         currentLang = lang;
+        localStorage.setItem('user_lang', lang);
         document.documentElement.lang = currentLang;
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
         
