@@ -32,7 +32,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const langBtns = document.querySelectorAll('.lang-btn');
     const sourceBadge = document.getElementById('sourceBadge');
 
-    // Auth Elements
+    let underAnswerText = "";
+
+    function updateSourceDisplay() {
+        if (!sourceBadge) return;
+        
+        const sourcePrefix = {
+            "ru": "Для вопросов: ",
+            "en": "Questions: ",
+            "pt": "Questões: "
+        };
+
+        if (underAnswerText && underAnswerText.trim().length > 0) {
+            sourceBadge.textContent = (sourcePrefix[currentLang] || sourcePrefix["ru"]) + underAnswerText;
+        } else {
+            const key = sourceBadge.getAttribute('data-i18n');
+            if (translations[currentLang] && translations[currentLang][key]) {
+                sourceBadge.textContent = translations[currentLang][key];
+            }
+        }
+    }
     const authPanel = document.getElementById('authPanel');
     const settingsPanel = document.getElementById('settingsPanel');
     const authEmail = document.getElementById('authEmail');
@@ -62,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
-            source_label: "Источник: Внутренняя документация",
+            source_label: "Для вопросов: @argodon",
             admin_title: "Настройки администратора",
             kb_upload_label: "База знаний (.md)",
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
@@ -90,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "How to apply for leave?",
             suggestion_2: "Work schedule",
             suggestion_3: "HR Contacts",
-            source_label: "Source: Internal Documentation",
+            source_label: "Questions: @argodon",
             admin_title: "Admin Settings",
             kb_upload_label: "Knowledge Base (.md)",
             drop_zone_text: "Drag & drop .md file or click to browse",
@@ -118,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "Como solicitar férias?",
             suggestion_2: "Horário de trabalho",
             suggestion_3: "Contatos de RH",
-            source_label: "Fonte: Documentação Interna",
+            source_label: "Questões: @argodon",
             admin_title: "Configurações do Administrador",
             kb_upload_label: "Base de Conhecimento (.md)",
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
@@ -296,10 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     welcomeBanner.classList.add('hidden');
                 }
                 
-                // Set automated under-answer text if exists
+                // CRITICAL FIX: Assign the value from server to local variable
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
-
+                
                 // If user has manual choice, keep it. 
                 // Otherwise, use server's defaultLang IF it's different from our current detected lang
                 const savedLang = localStorage.getItem('user_lang');
