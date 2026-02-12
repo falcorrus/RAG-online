@@ -336,7 +336,12 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     kb_path = os.path.join(STORAGE_DIR, tenants[owner_email]["kb_file"])
     context = ""
     if os.path.exists(kb_path):
-        with open(kb_path, 'r') as f: context = f.read()
+        with open(kb_path, 'r', encoding='utf-8') as f: 
+            context = f.read()
+            
+    # CRITICAL: Remove General Settings section from AI context to prevent duplication
+    # It looks for headers like # Общие настройки, # General Settings, # Configurações
+    context = re.sub(r'(?i)#\s*(Общие настройки|General Settings|Configurações).*?(?=#|\Z)', '', context, flags=re.DOTALL)
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     
