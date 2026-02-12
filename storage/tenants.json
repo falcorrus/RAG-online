@@ -9,25 +9,25 @@
         "kb_file": "kb_d279662200a84f9b9da577b65f440968.md",
         "suggestions_cache": {
             "ru": [
-                "\u041a\u0430\u043a\u043e\u0432\u0430 \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u0440\u0430\u0437\u043e\u0432\u043e\u0433\u043e \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u044f?",
-                "\u0415\u0441\u0442\u044c \u043b\u0438 \u0441\u0430\u0443\u043d\u0430 \u0432 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0430\u0445?",
-                "\u0413\u0434\u0435 \u0432\u044b \u043d\u0430\u0445\u043e\u0434\u0438\u0442\u0435\u0441\u044c \u0438 \u0435\u0441\u0442\u044c \u043b\u0438 \u043f\u0430\u0440\u043a\u043e\u0432\u043a\u0430?"
+                "\u041a\u0430\u043a\u0430\u044f \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u0440\u0430\u0437\u043e\u0432\u043e\u0433\u043e \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u044f?",
+                "\u0412\u043e \u0441\u043a\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0447\u0438\u043d\u0430\u044e\u0442\u0441\u044f \u0433\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435 \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438 \u043f\u043e \u0439\u043e\u0433\u0435?",
+                "\u041a\u043e\u0433\u0434\u0430 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431 \u0432 \u043f\u0440\u0430\u0437\u0434\u043d\u0438\u0447\u043d\u044b\u0435 \u0434\u043d\u0438?"
             ],
             "en": [
-                "What are your membership prices?",
-                "How do I get to you? Is there parking?",
-                "Who teaches group yoga classes?"
+                "What are your prices for subscriptions?",
+                "How to get to you? Is there parking?",
+                "Do you work on holidays?"
             ],
             "pt": [
                 "Quais s\u00e3o os pre\u00e7os das mensalidades?",
-                "Como posso chegar at\u00e9 voc\u00eas? Tem estacionamento?",
-                "Quem ministra as aulas de ioga em grupo?"
+                "Como chego a\u00ed? Tem estacionamento?",
+                "Voc\u00ea trabalha nos feriados?"
             ]
         },
         "business_names_cache": {
             "ru": "\u0414\u0435\u043c\u043e \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
             "en": "\u0414\u0435\u043c\u043e \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
-            "pt": "Demo fitness-club"
+            "pt": "Demo \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431"
         },
         "conversation_log": [
             {
@@ -281,6 +281,48 @@
                 "lang": "en",
                 "query": "How do I get to you? Is there parking?",
                 "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for customers (just tell the reception desk your car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:02:31.274732",
+                "lang": "en",
+                "query": "How do I get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the yard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:03:49.348427",
+                "lang": "en",
+                "query": "How do I get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the yard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:04:11.044356",
+                "lang": "en",
+                "query": "How do I get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the yard, 2nd floor. Parking is free for customers (just tell the receptionist your car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:09:09.035647",
+                "lang": "en",
+                "query": "How do I get there? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:10:22.146295",
+                "lang": "en",
+                "query": "Does your gym have a sauna, and are towels included?",
+                "answer": "There is a sauna in each locker room, and it's free for all visitors. You can rent a towel for $1 or bring your own.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:10:37.606419",
+                "lang": "ru",
+                "query": "prices",
+                "answer": "\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u2013 \u0441 \u044f\u043d\u0432\u0430\u0440\u044f \u043f\u043e \u0438\u044e\u043b\u044c 2026 \u0433\u043e\u0434\u0430\n\u0415\u0436\u0435\u043c\u0435\u0441\u044f\u0447\u043d\u0430\u044f \u043f\u043b\u0430\u0442\u0430:\n370,00 \u0440\u0435\u0430\u043b\u043e\u0432 \u2013 4 \u0437\u0430\u043d\u044f\u0442\u0438\u044f \u0432 \u043c\u0435\u0441\u044f\u0446\n\n\u041f\u043b\u0430\u043d \u0441\u043e \u0441\u043a\u0438\u0434\u043a\u043e\u0439 \u0434\u043e \u0438\u044e\u043b\u044f:\n310,00 \u0440\u0435\u0430\u043b\u043e\u0432 \u2013 4 \u0437\u0430\u043d\u044f\u0442\u0438\u044f \u0432 \u043c\u0435\u0441\u044f\u0446 (\u043a\u0440\u043e\u043c\u0435 \u0438\u044e\u043b\u044f). \u0412 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u043e\u043f\u043b\u0430\u0442\u044b \u0441\u043e \u0441\u043a\u0438\u0434\u043a\u043e\u0439 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u044b \u0437\u0430\u043d\u044f\u0442\u0438\u044f \u0434\u043e 15.07.2026\n\n\u0422\u0430\u043a\u0438\u043c \u043e\u0431\u0440\u0430\u0437\u043e\u043c, \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u0432 \u0438\u044e\u043b\u0435 \u043e\u0441\u0442\u0430\u0435\u0442\u0441\u044f \u0442\u0430\u043a\u043e\u0439 \u0436\u0435, \u043a\u0430\u043a \u0438 \u0432 \u043f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0438\u0435 \u043c\u0435\u0441\u044f\u0446\u044b.\n\n\u041f\u0440\u043e\u0431\u043d\u043e\u0435 \u0437\u0430\u043d\u044f\u0442\u0438\u0435:\n100,00 R$\n\n\u0421\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u044f\u0435\u0442\u0441\u044f \u0441 \u0443\u0447\u0435\u0442\u043e\u043c \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0430 \u0438 \u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u043e\u0441\u0442\u0438 \u0437\u0430\u043d\u044f\u0442\u0438\u0439. \u0420\u0430\u0431\u043e\u0442\u0430 \u0432\u043a\u043b\u044e\u0447\u0430\u0435\u0442 \u0432 \u0441\u0435\u0431\u044f \u0438\u043d\u0434\u0438\u0432\u0438\u0434\u0443\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u0435\u0434\u0430\u0433\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u043f\u043b\u0430\u043d, \u0438\u0433\u0440\u043e\u0432\u044b\u0435 \u043c\u0430\u0442\u0435\u0440\u0438\u0430\u043b\u044b, \u043e\u0442\u0441\u043b\u0435\u0436\u0438\u0432\u0430\u043d\u0438\u0435 \u043f\u0440\u043e\u0433\u0440\u0435\u0441\u0441\u0430 \u0440\u0435\u0431\u0435\u043d\u043a\u0430, \u043d\u0435\u0431\u043e\u043b\u044c\u0448\u0438\u0435 \u0433\u0440\u0443\u043f\u043f\u044b \u0434\u043b\u044f \u043b\u0443\u0447\u0448\u0435\u0433\u043e \u0432\u043d\u0438\u043c\u0430\u043d\u0438\u044f, \u0430 \u0442\u0430\u043a\u0436\u0435 \u0440\u0430\u0441\u0445\u043e\u0434\u044b \u043d\u0430 \u0430\u0440\u0435\u043d\u0434\u0443 \u043f\u043e\u043c\u0435\u0449\u0435\u043d\u0438\u044f \u0438 \u043e\u0431\u0441\u043b\u0443\u0436\u0438\u0432\u0430\u043d\u0438\u0435 \u0431\u0430\u0441\u0441\u0435\u0439\u043d\u0430.\n\n\u0421\u043a\u0438\u043d\u0443\u0442\u044c \u0441\u0441\u044b\u043b\u043a\u0443 \u043d\u0430 \u043e\u043f\u043b\u0430\u0442\u0443?\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:10:51.122781",
+                "lang": "ru",
+                "query": "\u0412\u0445\u043e\u0434\u044f\u0442 \u043b\u0438 \u043f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0430 \u0432 \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c?",
+                "answer": "\u0421\u0430\u0443\u043d\u0430 \u0435\u0441\u0442\u044c \u0432 \u043a\u0430\u0436\u0434\u043e\u0439 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0435, \u043e\u043d\u0430 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u0439. \u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0435 \u043c\u043e\u0436\u043d\u043e \u0432\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 $1 \u0438\u043b\u0438 \u043f\u0440\u0438\u043d\u0435\u0441\u0442\u0438 \u0441\u0432\u043e\u0435.\n"
             }
         ],
         "underAnswer_cache": {
