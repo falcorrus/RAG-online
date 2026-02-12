@@ -17,6 +17,10 @@
 *   **Backend:** Python (FastAPI) — работает как прокси для скрытия API-ключа.
 *   **AI:** Google Gemini 2.0 Flash.
 
+## 🛠 Как выглядит
+<img width="718" height="335" alt="2026-02-12_AI Knowledge Base" src="https://github.com/user-attachments/assets/1a0f8430-6a95-4bae-a036-a4638b91f284" />
+
+
 ## 🛠 Установка и Запуск
 
 ### 1. Локальная разработка (Frontend + Backend)
