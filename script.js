@@ -373,8 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicResp.ok) {
                     const pubData = await publicResp.json();
-                    underAnswerText = pubData.underAnswerText || "";
-                    updateSourceDisplay();
                     updateTitle(pubData.kb_exists, pubData.businessName);
                 }
                 
@@ -444,12 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
                 
-                let finalAnswer = data.answer;
-                if (customSourceText && customSourceText.trim().length > 0) {
-                    finalAnswer += "\n\n" + customSourceText;
-                }
-                
-                typeWriterEffect(finalAnswer, answerContent);
+                typeWriterEffect(data.answer, answerContent);
                 answerCard.classList.remove('hidden');
             } else {
                 typeWriterEffect(data.answer || "Ошибка сервера.", answerContent);
@@ -583,19 +576,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (content) content.classList.add('hidden');
     }
 
-    function updateSourceDisplay() {
-        if (!sourceBadge) return;
-        if (customSourceText && customSourceText.trim().length > 0) {
-            sourceBadge.classList.add('hidden');
-        } else {
-            sourceBadge.classList.remove('hidden');
-            const key = sourceBadge.getAttribute('data-i18n');
-            if (translations[currentLang] && translations[currentLang][key]) {
-                sourceBadge.textContent = translations[currentLang][key];
-            }
-        }
-    }
-
     async function setLanguage(lang) {
         currentLang = lang;
         localStorage.setItem('user_lang', lang);
@@ -613,7 +593,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
 
-        updateSourceDisplay();
         // Update suggestions immediately
         await loadSuggestions();
 
@@ -668,10 +647,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const promoLink = document.getElementById('promoLink');
-    const sourceTextInput = document.getElementById('sourceTextInput');
-    const sourceBadge = document.getElementById('sourceBadge');
-
-    let customSourceText = "";
 
     if (promoLink) {
         promoLink.addEventListener('click', (e) => {
