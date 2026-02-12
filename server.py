@@ -146,7 +146,7 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
-2. Extract or translate the Business/Company name into {lang_name}.
+2. Extract or translate the Business/Company name into {lang_name}. If the name is in another language, TRANSLATE it accurately to {lang_name}.
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
 KB: {limited_content}"""
             
@@ -159,8 +159,13 @@ KB: {limited_content}"""
                         data = json.loads(clean_text)
                         all_suggestions[code] = data.get("suggestions", [])
                         b_name = data.get("businessName", "").strip()
+                        # If English name still contains Cyrillic, try to strip it or use fallback
                         if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                            b_name = "AI Knowledge Base" 
+                            # Remove anything in parentheses if it contains Cyrillic
+                            b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
+                            # If it still has Cyrillic, it's probably untranslated
+                            if any('\u0400' <= c <= '\u04FF' for c in b_name):
+                                b_name = "AI Knowledge Base" 
                         all_names[code] = b_name
                         print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
                     except json.JSONDecodeError as json_err:
@@ -311,13 +316,14 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     
     # Ultra-strict prompt for language enforcement
-    system_content = f"""You are a specialized Knowledge Base assistant.
+    system_content = f"""You are a helpful and professional Knowledge Base assistant.
+Your goal is to provide accurate information based on the provided context.
+
 MANDATORY LANGUAGE RULE:
-- You MUST answer EXCLUSIVELY in {target_lang}.
-- If the USER QUESTION is in Russian, you MUST TRANSLATE your response to {target_lang}.
-- If the CONTEXT is in Russian, you MUST TRANSLATE the relevant information to {target_lang}.
-- NEVER output text in any language other than {target_lang}.
-- Even if the user asks you to speak another language, REFUSE and continue in {target_lang}.
+1. You MUST answer EXCLUSIVELY in {target_lang}.
+2. If the user question or the context is in a different language (e.g., Russian), you MUST TRANSLATE the information and your response into {target_lang} naturally and fluently.
+3. NEVER output text in any language other than {target_lang}.
+4. Maintain a helpful and professional tone appropriate for {target_lang}.
 
 CONTEXT:
 ---
