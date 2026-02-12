@@ -17,6 +17,8 @@ import tiktoken # Import tiktoken
 load_dotenv(override=True)
 API_KEY = os.getenv("GEMINI_API_KEY")
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-change-me")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 STORAGE_DIR = "storage"
 TENANTS_FILE = os.path.join(STORAGE_DIR, "tenants.json")
 
@@ -187,12 +189,29 @@ KB: {limited_content}"""
         save_tenants(tenants)
         print(f"DEBUG: Suggestions and names saved for {owner_email}", flush=True)
 
+async def send_telegram_notification(message: str):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("DEBUG: Telegram notification skipped (missing config)", flush=True)
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
+    async with httpx.AsyncClient() as client:
+        try:
+            await client.post(url, json=payload, timeout=5.0)
+        except Exception as e:
+            print(f"ERROR: Failed to send Telegram notification: {e}", flush=True)
+
 # --- Routes ---
 @app.post("/api/auth/register")
-async def register(auth: UserAuth):
+async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     tenants = get_tenants()
     if auth.email in tenants: raise HTTPException(status_code=400, detail="User already exists")
+    
+    # Generate subdomain if not provided
     sub = auth.subdomain or auth.email.split('@')[0]
+    # Simple cleanup for subdomain (alphanumeric only)
+    sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
+    
     tenants[auth.email] = {
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
@@ -202,6 +221,12 @@ async def register(auth: UserAuth):
         "suggestions_cache": {}
     }
     save_tenants(tenants)
+    
+    # Send notification
+    now = datetime.now().strftime("%d.%m.%Y %H:%M")
+    notif_msg = f"🚀 *Новая регистрация в RAG-online!*\n\n📧 *Email:* `{auth.email}`\n🌐 *Поддомен:* `{sub}`\n⏰ *Время:* {now}"
+    background_tasks.add_task(send_telegram_notification, notif_msg)
+    
     return { "token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub }
 
 @app.get("/api/settings")
