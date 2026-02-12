@@ -149,8 +149,8 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
-2. Extract the Business/Company name and TRANSLATE it into {lang_name} accurately.
-3. Look for a "General Settings" (Общие настройки) section. Extract the contact line or signature (e.g., "telegram @argodon") EXACTLY as it appears, but translated to {lang_name} if it contains descriptive words. DO NOT add any extra text or rephrase it.
+2. Extract the Business Name from the "## Название" section under "Общие настройки" and TRANSLATE it into {lang_name}.
+3. Extract the Under-Answer Text (signature) from the "## Подпись" section under "Общие настройки". Keep it EXACTLY as it appears, but translated to {lang_name} ONLY if it contains descriptive labels (e.g., "Contact:"). 
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name", "underAnswerText": "Contact info"}}.
 KB: {limited_content}"""
             
