@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
             log_item_label: "Запрос",
-            promo_text: "Создано с помощью RAG-online",
             promo_link: "Создайте свой RAG в 2 клика"
         },
         en: {
@@ -98,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Clear Logs",
             download_logs_btn: "Download",
             log_item_label: "Query",
-            promo_text: "Powered by RAG-online",
             promo_link: "Create your RAG in 2 clicks"
         },
         pt: {
@@ -121,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
             log_item_label: "Consulta",
-            promo_text: "Criado com RAG-online",
             promo_link: "Crie seu RAG em 2 cliques"
         }
     };
