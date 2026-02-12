@@ -62,6 +62,7 @@ class UserAuth(BaseModel):
 
 class TenantSettings(BaseModel):
     initiallyOpen: bool
+    sourceText: Optional[str] = None
 
 class ChatRequest(BaseModel):
     query: str
@@ -148,8 +149,9 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
-2. Extract or translate the Business/Company name into {lang_name}. If the name is in another language, TRANSLATE it accurately to {lang_name}.
-Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
+2. Extract or translate the Business/Company name into {lang_name}.
+3. Look for a "General Settings" section or similar signature at the end/beginning. Extract a short contact line or signature (e.g., "telegram @argodon" or "Site: link") in {lang_name} to be used as under-answer text.
+Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name", "underAnswerText": "Contact info"}}.
 KB: {limited_content}"""
             
             async with httpx.AsyncClient() as client:
@@ -160,34 +162,24 @@ KB: {limited_content}"""
                     try:
                         data = json.loads(clean_text)
                         all_suggestions[code] = data.get("suggestions", [])
-                        b_name = data.get("businessName", "").strip()
-                        # If English name still contains Cyrillic, try to strip it or use fallback
-                        if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                            # Remove anything in parentheses if it contains Cyrillic
-                            b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
-                            # If it still has Cyrillic, it's probably untranslated
-                            if any('\u0400' <= c <= '\u04FF' for c in b_name):
-                                b_name = "AI Knowledge Base" 
-                        all_names[code] = b_name
-                        print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
+                        all_names[code] = data.get("businessName", "").strip()
+                        
+                        if "under_answers" not in locals(): under_answers = {}
+                        under_answers[code] = data.get("underAnswerText", "").strip()
+                        
+                        print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={all_names[code]}, underAnswer={under_answers[code]}", flush=True)
                     except json.JSONDecodeError as json_err:
-                        print(f"ERROR: JSONDecodeError for {code}: {json_err}. Raw text: {clean_text[:200]}...", flush=True)
+                        print(f"ERROR: JSONDecodeError for {code}: {json_err}")
                         all_suggestions[code] = found_q[:3]
-                        all_names[code] = "" # Fallback to empty name
-                else:
-                    print(f"ERROR: Gemini API call for {code} failed with status {resp.status_code}: {resp.text}", flush=True)
-                    all_suggestions[code] = found_q[:3]
-        except Exception as e:
-            print(f"ERROR: Error generating for {owner_email}, {code}: {e}", flush=True)
-            all_suggestions[code] = found_q[:3]
     
     tenants = get_tenants()
     if owner_email in tenants:
         tenants[owner_email]["suggestions_cache"] = all_suggestions
         tenants[owner_email]["business_names_cache"] = all_names
-        tenants[owner_email]["settings"]["defaultLang"] = detected_lang_code # Save detected language
+        if "under_answers" in locals():
+            tenants[owner_email]["underAnswer_cache"] = under_answers
+        tenants[owner_email]["settings"]["defaultLang"] = detected_lang_code 
         save_tenants(tenants)
-        print(f"DEBUG: Suggestions and names saved for {owner_email}", flush=True)
 
 async def send_telegram_notification(message: str):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
@@ -241,6 +233,9 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         kb_name = tenant.get("business_names_cache", {}).get(lang)
         if kb_name:
             settings["businessName"] = kb_name
+            
+        # Use automated under-answer text from KB
+        settings["underAnswerText"] = tenant.get("underAnswer_cache", {}).get(lang)
             
         kb_path = os.path.join(STORAGE_DIR, tenant["kb_file"])
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
