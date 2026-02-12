@@ -74,7 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
             no_logs_msg: "Логи пока пусты.",
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
-            log_item_label: "Запрос"
+            log_item_label: "Запрос",
+            promo_prefix: "Создано с помощью",
+            promo_suffix: ". Создайте свой RAG в 2 клика."
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -95,7 +97,9 @@ document.addEventListener('DOMContentLoaded', () => {
             no_logs_msg: "No logs yet.",
             clear_logs_btn: "Clear Logs",
             download_logs_btn: "Download",
-            log_item_label: "Query"
+            log_item_label: "Query",
+            promo_prefix: "Powered by",
+            promo_suffix: ". Create your RAG in 2 clicks."
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -116,7 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
             no_logs_msg: "Nenhum registro ainda.",
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
-            log_item_label: "Consulta"
+            log_item_label: "Consulta",
+            promo_prefix: "Criado com",
+            promo_suffix: ". Crie seu RAG em 2 cliques."
         }
     };
 
