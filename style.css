@@ -581,6 +581,11 @@ body.has-results .results-area {
     gap: 24px;
 }
 
+.admin-header .action-btn:hover {
+    color: var(--brand-color);
+    background: transparent;
+}
+
 /* Log Item */
 .log-item {
     background: var(--bg-alt);
@@ -833,12 +838,11 @@ input:checked + .slider:before {
 }
 
 .powered-by {
-    margin-top: auto;
-    padding-top: 60px;
     font-size: 0.85rem;
     color: var(--text-muted);
     text-align: center;
     width: 100%;
+    margin-top: 2rem; /* Give some space from results if they appear */
 }
 
 .powered-by a {
@@ -854,7 +858,7 @@ input:checked + .slider:before {
 
 /* Footer */
 .creator-footer {
-    margin-top: 12px;
+    margin-top: 8px;
     padding-bottom: 2rem;
     font-size: 0.85rem;
     color: var(--text-muted);
@@ -944,6 +948,66 @@ input:checked + .slider:before {
     transform: translateX(-50%) translateY(0);
 }
 
-.toast-icon {
-    color: #4ade80;
+/* Welcome Banner */
+.welcome-banner {
+    width: 100%;
+    max-width: 700px;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeInDown 0.6s var(--ease-out);
+    backdrop-filter: blur(10px);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-text {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.welcome-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.welcome-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.welcome-btn.primary {
+    background: var(--brand-color);
+    color: white;
+}
+
+.welcome-btn.primary:hover {
+    background: var(--brand-color-hover);
+    transform: translateY(-2px);
+}
+
+.welcome-btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.welcome-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
 }

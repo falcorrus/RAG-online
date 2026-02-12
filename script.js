@@ -123,6 +123,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const welcomeBanner = document.getElementById('welcomeBanner');
+    const downloadDemoBtn = document.getElementById('downloadDemoBtn');
+    const goToSettingsBtn = document.getElementById('goToSettingsBtn');
+
     // --- API Helpers ---
     async function apiRequest(path, method = 'GET', body = null) {
         const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -147,6 +151,26 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error("API Request Failed at " + url, err);
             throw err;
+        }
+    }
+
+    async function downloadDemoFile() {
+        try {
+            const response = await fetch('/demo.md');
+            if (!response.ok) throw new Error('Demo file not found');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'demo.md';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            showToast(currentLang === 'ru' ? "Файл demo.md скачан" : "demo.md downloaded");
+        } catch (err) {
+            console.error('Download error:', err);
+            showToast("Error downloading demo file", true);
         }
     }
 
@@ -230,6 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log("Initial settings load:", settings);
                 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
+
+                // Show welcome banner if KB doesn't exist (likely a new user)
+                if (settings.kb_exists === false) {
+                    welcomeBanner.classList.remove('hidden');
+                } else {
+                    welcomeBanner.classList.add('hidden');
+                }
                 
                 // If user has manual choice, keep it. 
                 // Otherwise, use server's defaultLang IF it's different from our current detected lang
@@ -267,12 +298,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
+                    welcomeBanner.classList.add('hidden');
                 }
             }
             await loadSuggestions();
         } catch (err) {
             console.error("Admin data fetch failed", err);
         }
+    }
+
+    if (downloadDemoBtn) downloadDemoBtn.addEventListener('click', downloadDemoFile);
+    if (goToSettingsBtn) {
+        goToSettingsBtn.addEventListener('click', () => {
+            const token = localStorage.getItem('token');
+            if (!token) showAuth();
+            else {
+                authPanel.classList.add('hidden');
+                settingsPanel.classList.remove('hidden');
+                adminOverlay.classList.remove('hidden');
+            }
+        });
     }
 
     async function loadSuggestions() {
@@ -358,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
+                    welcomeBanner.classList.add('hidden');
                     
                     // Refetch public settings to get updated extracted business name from new KB
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
