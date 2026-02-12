@@ -149,8 +149,8 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
-2. Extract or translate the Business/Company name into {lang_name}.
-3. Look for a "General Settings" section or similar signature at the end/beginning. Extract a short contact line or signature (e.g., "telegram @argodon" or "Site: link") in {lang_name} to be used as under-answer text.
+2. Extract the Business/Company name into {lang_name}.
+3. Look for a "General Settings" (Общие настройки) section. Extract the contact line or signature (e.g., "telegram @argodon") EXACTLY as it appears, but translated to {lang_name} if it contains descriptive words. DO NOT add any extra text or rephrase it.
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name", "underAnswerText": "Contact info"}}.
 KB: {limited_content}"""
             
@@ -341,11 +341,12 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     system_content = f"""You are a helpful and professional Knowledge Base assistant.
 Your goal is to provide accurate information based on the provided context.
 
-MANDATORY LANGUAGE RULE:
+MANDATORY RULES:
 1. You MUST answer EXCLUSIVELY in {target_lang}.
-2. If the user question or the context is in a different language (e.g., Russian), you MUST TRANSLATE the information and your response into {target_lang} naturally and fluently.
+2. If the user question or the context is in a different language, you MUST TRANSLATE the information and your response into {target_lang} naturally.
 3. NEVER output text in any language other than {target_lang}.
-4. Maintain a helpful and professional tone appropriate for {target_lang}.
+4. EXCLUDE SIGNATURES: Do NOT include contact info, telegram handles, or "General Settings" data from the context in your answer. This info is already displayed in the UI.
+5. Maintain a helpful and professional tone.
 
 CONTEXT:
 ---

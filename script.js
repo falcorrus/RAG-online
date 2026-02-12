@@ -76,7 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
             log_item_label: "Запрос",
-            promo_link: "Создайте свой RAG в 2 клика"
+            promo_link: "Создайте свой RAG в 2 клика",
+            auth_btn_login: "Войти",
+            auth_btn_register: "Создать аккаунт",
+            auth_toggle_login: "Уже есть аккаунт? Войти",
+            auth_toggle_register: "Хотите такой же? Регистрация",
+            welcome_download_demo: "Скачать пример",
+            welcome_go_to_settings: "В настройки"
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -98,7 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Clear Logs",
             download_logs_btn: "Download",
             log_item_label: "Query",
-            promo_link: "Create your RAG in 2 clicks"
+            promo_link: "Create your RAG in 2 clicks",
+            auth_btn_login: "Login",
+            auth_btn_register: "Create Account",
+            auth_toggle_login: "Already have an account? Login",
+            auth_toggle_register: "Want the same? Register",
+            welcome_download_demo: "Download Demo",
+            welcome_go_to_settings: "Go to Settings"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -120,7 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
             log_item_label: "Consulta",
-            promo_link: "Crie seu RAG em 2 cliques"
+            promo_link: "Crie seu RAG em 2 cliques",
+            auth_btn_login: "Entrar",
+            auth_btn_register: "Criar Conta",
+            auth_toggle_login: "Já tem uma conta? Entrar",
+            auth_toggle_register: "Quer um igual? Registre-se",
+            welcome_download_demo: "Baixar Demonstração",
+            welcome_go_to_settings: "Configurações"
         }
     };
 
@@ -237,10 +255,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener('click', () => {
             isRegisterMode = !isRegisterMode;
-            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
-            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Хотите такой же? Регистрация';
+            updateAuthLabels();
         });
+    }
+
+    function updateAuthLabels() {
+        const mode = isRegisterMode ? 'register' : 'login';
+        authTitle.textContent = currentLang === 'ru' ? (isRegisterMode ? 'Регистрация' : 'Вход в систему') : (isRegisterMode ? 'Registration' : 'Login');
+        
+        const btnKey = isRegisterMode ? 'auth_btn_register' : 'auth_btn_login';
+        const toggleKey = isRegisterMode ? 'auth_toggle_login' : 'auth_toggle_register';
+        
+        if (authBtn && translations[currentLang][btnKey]) {
+            authBtn.textContent = translations[currentLang][btnKey];
+            authBtn.setAttribute('data-i18n', btnKey);
+        }
+        if (toggleAuthMode && translations[currentLang][toggleKey]) {
+            toggleAuthMode.textContent = translations[currentLang][toggleKey];
+            toggleAuthMode.setAttribute('data-i18n', toggleKey);
+        }
     }
 
     if (authBtn) authBtn.addEventListener('click', handleAuth);
