@@ -139,13 +139,16 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     # Simple heuristic if AI fails
     found_q = re.findall(r'\*\*(.*?\?)\*\*', content)
     
+    # Clean content from HTML comments before sending to AI
+    clean_content_for_ai = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+    
     for code, lang_name in lang_map.items():
         print(f"DEBUG: Generating suggestions for {owner_email} in language {code}", flush=True)
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
             
             # Apply token limit to content for prompt
-            limited_content = limit_context_by_tokens(content, 2000) # Use 2000 tokens for suggestions/name extraction
+            limited_content = limit_context_by_tokens(clean_content_for_ai, 2000) # Use 2000 tokens for suggestions/name extraction
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
@@ -340,8 +343,11 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
             context = f.read()
             
     # CRITICAL: Remove General Settings section from AI context to prevent duplication
-    # It looks for headers like # Общие настройки, # General Settings, # Configurações
-    context = re.sub(r'(?i)#\s*(Общие настройки|General Settings|Configurações).*?(?=#|\Z)', '', context, flags=re.DOTALL)
+    # It looks for headers like # Общие настройки, # General Settings, # Configurações, # Служебная информация
+    context = re.sub(r'(?i)#\s*(Общие настройки|General Settings|Configurações|Служебная информация).*?(?=#|\Z)', '', context, flags=re.DOTALL)
+    
+    # Remove HTML comments to keep them hidden from AI
+    context = re.sub(r'<!--.*?-->', '', context, flags=re.DOTALL)
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     
