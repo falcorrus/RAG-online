@@ -597,6 +597,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const creatorPopup = document.getElementById('creatorPopup');
 
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+    const promoLink = document.getElementById('promoLink');
+
+    if (promoLink) {
+        promoLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRegisterMode = true;
+            authTitle.textContent = 'Регистрация';
+            authBtn.textContent = 'Создать аккаунт';
+            toggleAuthMode.textContent = 'Уже есть аккаунт? Войти';
+            showAuth();
+        });
+    }
 
     if (viewLogsBtn) viewLogsBtn.addEventListener('click', async () => {
         settingsPanel.classList.add('hidden');
