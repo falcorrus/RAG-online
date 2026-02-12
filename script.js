@@ -194,18 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function downloadDemoFile() {
         try {
-            const response = await fetch('/demo.md');
+            const response = await fetch('/RAG-demo.md');
             if (!response.ok) throw new Error('Demo file not found');
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'demo.md';
+            a.download = 'RAG-demo.md';
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            showToast(currentLang === 'ru' ? "Файл demo.md скачан" : "demo.md downloaded");
+            showToast(currentLang === 'ru' ? "Файл RAG-demo.md скачан" : "RAG-demo.md downloaded");
         } catch (err) {
             console.error('Download error:', err);
             showToast("Error downloading demo file", true);
