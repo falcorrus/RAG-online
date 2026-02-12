@@ -171,6 +171,8 @@ KB: {limited_content}"""
                     except json.JSONDecodeError as json_err:
                         print(f"ERROR: JSONDecodeError for {code}: {json_err}")
                         all_suggestions[code] = found_q[:3]
+        except Exception as e:
+            print(f"ERROR: Error generating suggestions for {code}: {e}")
     
     tenants = get_tenants()
     if owner_email in tenants:
