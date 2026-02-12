@@ -417,15 +417,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveSettings() {
-        console.log("Attempting to save settings...");
+        const isChecked = initiallyOpenToggle.checked;
+        console.log("Saving settings: initiallyOpen =", isChecked);
+        
         const settings = {
-            initiallyOpen: initiallyOpenToggle.checked
+            initiallyOpen: isChecked
         };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
             if (resp.ok) {
-                console.log("Settings saved successfully!");
+                console.log("Settings saved successfully on server");
                 
+                // Update local visual state immediately
+                if (!isChecked) document.body.classList.add('minimized');
+                else document.body.classList.remove('minimized');
+
                 // Refetch public settings to get updated extracted business name
                 const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicResp.ok) {
