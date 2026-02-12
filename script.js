@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isRegisterMode = !isRegisterMode;
             authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
             authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Хотите такой же? Регистрация';
         });
     }
 
