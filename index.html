@@ -125,6 +125,13 @@
                     </div>
                 </div>
 
+                <!-- Footer Text Setting -->
+                <div class="setting-group">
+                    <label class="setting-label">Общие настройки заметок</label>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">Вставлять вниз ответов:</div>
+                    <input type="text" id="sourceTextInput" class="admin-select" style="width: 100%; box-sizing: border-box; background-image: none;" placeholder="например: telegram @argodon">
+                </div>
+
                 <!-- Default Language -->
             </div>
 
@@ -207,7 +214,7 @@
             <div class="answer-card hidden" id="answerCard">
                 <div class="answer-content" id="answerContent"></div>
                 <div class="answer-footer">
-                    <span class="source-badge" data-i18n="source_label">Источник: Внутренняя документация</span>
+                    <span class="source-badge" id="sourceBadge" data-i18n="source_label">Источник: Внутренняя документация</span>
                     <div class="actions">
                         <button class="action-btn" title="Copy" data-i18n-title="copy_btn_title">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"

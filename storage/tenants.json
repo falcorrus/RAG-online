@@ -9,25 +9,25 @@
         "kb_file": "kb_d279662200a84f9b9da577b65f440968.md",
         "suggestions_cache": {
             "ru": [
-                "\u0421\u043a\u043e\u043b\u044c\u043a\u043e \u0441\u0442\u043e\u0438\u0442 \u0440\u0430\u0437\u043e\u0432\u043e\u0435 \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u0435?",
-                "\u0413\u0434\u0435 \u0432\u044b \u043d\u0430\u0445\u043e\u0434\u0438\u0442\u0435\u0441\u044c \u0438 \u0435\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u043f\u0430\u0440\u043a\u043e\u0432\u043a\u0430?",
-                "\u041a\u0442\u043e \u0432\u0435\u0434\u0435\u0442 \u0437\u0430\u043d\u044f\u0442\u0438\u044f \u043f\u043e \u0439\u043e\u0433\u0435?"
+                "\u0421\u043a\u043e\u043b\u044c\u043a\u043e \u0441\u0442\u043e\u0438\u0442 \u043f\u0440\u043e\u0431\u043d\u043e\u0435 \u0437\u0430\u043d\u044f\u0442\u0438\u0435?",
+                "\u0415\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u0441\u0430\u0443\u043d\u0430?",
+                "\u0414\u043e \u043a\u0430\u043a\u043e\u0433\u043e \u0447\u0438\u0441\u043b\u0430 \u0434\u0435\u0439\u0441\u0442\u0432\u0443\u0435\u0442 \u043f\u043b\u0430\u043d \u0441\u043e \u0441\u043a\u0438\u0434\u043a\u043e\u0439?"
             ],
             "en": [
-                "What are the prices for your membership plans?",
-                "How can I get to your location, and is there parking?",
-                "Does your facility have a sauna, and are towels included?"
+                "What are your membership prices?",
+                "How can I get to your location and is there parking?",
+                "Who teaches group yoga classes?"
             ],
             "pt": [
-                "Qual o pre\u00e7o para uma aula avulsa?",
-                "Voc\u00eas t\u00eam sauna e a toalha est\u00e1 inclusa no pre\u00e7o?",
-                "Qual o hor\u00e1rio de funcionamento nos feriados?"
+                "Quais s\u00e3o os pre\u00e7os dos seus passes?",
+                "Onde voc\u00eas est\u00e3o localizados? Tem estacionamento?",
+                "Voc\u00eas t\u00eam sauna e as toalhas est\u00e3o inclu\u00eddas no pre\u00e7o?"
             ]
         },
         "business_names_cache": {
-            "ru": "\u0424\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
-            "en": "Fitness Club",
-            "pt": "Clube de Fitness"
+            "ru": "\u0414\u0435\u043c\u043e \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
+            "en": "Demo fitness club",
+            "pt": "Clube de Fitness de Demonstra\u00e7\u00e3o"
         },
         "conversation_log": [
             {
@@ -83,6 +83,18 @@
                 "lang": "en",
                 "query": "\u0446\u0435\u043d\u044b",
                 "answer": "Okay, here's the information about our membership prices:\n\n**Membership Costs \u2013 Valid from January to July 2026**\n\n*   **Monthly Fee:**\n    *   R$370.00 \u2013 4 classes per month\n\n*   **Discounted Plan (Valid until July):**\n    *   R$310.00 \u2013 4 classes per month (excluding July). The discounted payment option includes classes until July 15, 2026.\n\n    *Note: The cost in July remains the same as in the previous months.*\n\n*   **Trial Class:**\n    *   R$100.00\n\nThe cost is determined considering the quality and safety of the classes. The work includes an individual educational plan, play materials, tracking the child's progress, small groups for better attention, as well as the costs of renting the premises and maintaining the pool.\n\nWould you like me to send you a payment link?"
+            },
+            {
+                "timestamp": "2026-02-12T14:45:41.470672",
+                "lang": "en",
+                "query": "What are the prices for your membership plans?",
+                "answer": "From January to July 2026, the prices are as follows:\n\nMonthly fee:\nR$370.00 \u2013 4 classes per month\n\nDiscounted plan until July:\nR$310.00 \u2013 4 classes per month (except July). The discounted payment option includes classes until 15.07.2026.\n\nThus, the cost in July remains the same as in previous months.\n\nTrial class:\nR$100.00\n\nThe cost is determined considering the quality and safety of the classes. The work includes an individual educational plan, play materials, tracking the child's progress, small groups for better attention, as well as the costs of renting the premises and maintaining the pool.\n\nWould you like me to send you a payment link?\n"
+            },
+            {
+                "timestamp": "2026-02-12T14:46:52.407531",
+                "lang": "en",
+                "query": "What are the prices for your membership plans?",
+                "answer": "From January to July 2026, the prices are as follows:\n\nMonthly fee:\nR$370.00 \u2013 4 classes per month\n\nDiscounted plan until July:\nR$310.00 \u2013 4 classes per month (except July). The discounted payment option includes classes until 07/15/2026.\n\nThus, the cost in July remains the same as in previous months.\n\nTrial lesson:\nR$100.00\n\nThe cost is determined taking into account the quality and safety of the classes. The work includes an individual educational plan, game materials, tracking the child's progress, small groups for better attention, as well as the costs of renting the premises and maintaining the pool.\n\nWould you like me to send you a payment link?\n"
             }
         ]
     }
