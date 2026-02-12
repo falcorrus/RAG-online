@@ -662,6 +662,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (publicResp.ok) {
                 const settings = await publicResp.json();
                 console.log("Language switch title update:", settings.businessName);
+                
+                // Update underAnswerText for the new language
+                underAnswerText = settings.underAnswerText || "";
+                updateSourceDisplay();
+                
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
@@ -707,6 +712,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const promoLink = document.getElementById('promoLink');
+    const copyBtn = document.getElementById('copyBtn');
+
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            let textToCopy = answerContent.innerText;
+            if (underAnswerText && underAnswerText.trim().length > 0) {
+                textToCopy += "\n\n" + underAnswerText;
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast(currentLang === 'ru' ? "Ответ скопирован" : "Answer copied");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        });
+    }
 
     if (promoLink) {
         promoLink.addEventListener('click', (e) => {

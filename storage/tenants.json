@@ -9,25 +9,25 @@
         "kb_file": "kb_d279662200a84f9b9da577b65f440968.md",
         "suggestions_cache": {
             "ru": [
-                "\u041a\u0430\u043a\u0430\u044f \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c \u0440\u0430\u0437\u043e\u0432\u043e\u0433\u043e \u043f\u043e\u0441\u0435\u0449\u0435\u043d\u0438\u044f?",
-                "\u0412\u043e \u0441\u043a\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0447\u0438\u043d\u0430\u044e\u0442\u0441\u044f \u0433\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435 \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438 \u043f\u043e \u0439\u043e\u0433\u0435?",
-                "\u041a\u043e\u0433\u0434\u0430 \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431 \u0432 \u043f\u0440\u0430\u0437\u0434\u043d\u0438\u0447\u043d\u044b\u0435 \u0434\u043d\u0438?"
+                "\u0421\u043a\u043e\u043b\u044c\u043a\u043e \u0441\u0442\u043e\u0438\u0442 \u043f\u0440\u043e\u0431\u043d\u043e\u0435 \u0437\u0430\u043d\u044f\u0442\u0438\u0435?",
+                "\u0415\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u0441\u0430\u0443\u043d\u0430?",
+                "\u041c\u043e\u0436\u043d\u043e \u043b\u0438 \u0437\u0430\u043c\u043e\u0440\u043e\u0437\u0438\u0442\u044c \u0430\u0431\u043e\u043d\u0435\u043c\u0435\u043d\u0442?"
             ],
             "en": [
-                "What are your prices for subscriptions?",
-                "How to get to you? Is there parking?",
-                "Do you work on holidays?"
+                "What is the price of a trial session?",
+                "What time is yoga today?",
+                "Do you have parking?"
             ],
             "pt": [
-                "Quais s\u00e3o os pre\u00e7os das mensalidades?",
-                "Como chego a\u00ed? Tem estacionamento?",
-                "Voc\u00ea trabalha nos feriados?"
+                "Quais s\u00e3o os pre\u00e7os das assinaturas?",
+                "Como posso chegar at\u00e9 voc\u00ea? Tem estacionamento?",
+                "Quem lidera as aulas de ioga em grupo?"
             ]
         },
         "business_names_cache": {
             "ru": "\u0414\u0435\u043c\u043e \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
-            "en": "\u0414\u0435\u043c\u043e \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431",
-            "pt": "Demo \u0444\u0438\u0442\u043d\u0435\u0441-\u043a\u043b\u0443\u0431"
+            "en": "Demo Fitness Club",
+            "pt": "Clube de fitness Demo"
         },
         "conversation_log": [
             {
@@ -323,12 +323,72 @@
                 "lang": "ru",
                 "query": "\u0412\u0445\u043e\u0434\u044f\u0442 \u043b\u0438 \u043f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0430 \u0432 \u0441\u0442\u043e\u0438\u043c\u043e\u0441\u0442\u044c?",
                 "answer": "\u0421\u0430\u0443\u043d\u0430 \u0435\u0441\u0442\u044c \u0432 \u043a\u0430\u0436\u0434\u043e\u0439 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0435, \u043e\u043d\u0430 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u0439. \u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0435 \u043c\u043e\u0436\u043d\u043e \u0432\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 $1 \u0438\u043b\u0438 \u043f\u0440\u0438\u043d\u0435\u0441\u0442\u0438 \u0441\u0432\u043e\u0435.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:14:31.487979",
+                "lang": "ru",
+                "query": "\u0412\u043e \u0441\u043a\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0447\u0438\u043d\u0430\u044e\u0442\u0441\u044f \u0433\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435 \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438 \u043f\u043e \u0439\u043e\u0433\u0435?",
+                "answer": "\u0419\u043e\u0433\u0443 \u0432\u0435\u0434\u0435\u0442 \u0421\u0432\u0435\u0442\u043b\u0430\u043d\u0430, \u0441\u0435\u0440\u0442\u0438\u0444\u0438\u0446\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u043c\u0430\u0441\u0442\u0435\u0440 (\u0441\u0442\u0430\u0436 8 \u043b\u0435\u0442). \u0417\u0430\u043d\u044f\u0442\u0438\u044f \u043c\u044f\u0433\u043a\u0438\u0435, \u043f\u043e\u0434\u0445\u043e\u0434\u044f\u0442 \u0434\u043b\u044f \u043b\u044e\u0431\u043e\u0433\u043e \u0443\u0440\u043e\u0432\u043d\u044f. \u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0432 19:00. \u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u0442\u0435\u0431\u044f?\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:14:43.267279",
+                "lang": "en",
+                "query": "How to get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for clients (just tell the receptionist your car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:16:38.663176",
+                "lang": "en",
+                "query": "How to get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:17:09.770207",
+                "lang": "en",
+                "query": "How to get to you? Is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00."
+            },
+            {
+                "timestamp": "2026-02-12T16:17:14.123815",
+                "lang": "ru",
+                "query": "\u0412\u043e \u0441\u043a\u043e\u043b\u044c\u043a\u043e \u043d\u0430\u0447\u0438\u043d\u0430\u044e\u0442\u0441\u044f \u0433\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435 \u0442\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438 \u043f\u043e \u0439\u043e\u0433\u0435?",
+                "answer": "\u0419\u043e\u0433\u0443 \u0432\u0435\u0434\u0435\u0442 \u0421\u0432\u0435\u0442\u043b\u0430\u043d\u0430, \u0441\u0435\u0440\u0442\u0438\u0444\u0438\u0446\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u043c\u0430\u0441\u0442\u0435\u0440 (\u0441\u0442\u0430\u0436 8 \u043b\u0435\u0442). \u0417\u0430\u043d\u044f\u0442\u0438\u044f \u043c\u044f\u0433\u043a\u0438\u0435, \u043f\u043e\u0434\u0445\u043e\u0434\u044f\u0442 \u0434\u043b\u044f \u043b\u044e\u0431\u043e\u0433\u043e \u0443\u0440\u043e\u0432\u043d\u044f. \u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0435\u0435 \u0441\u0435\u0433\u043e\u0434\u043d\u044f \u0432 19:00. \u0417\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u0442\u0435\u0431\u044f?\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:18:16.288183",
+                "lang": "en",
+                "query": "How do I get there and is there parking?",
+                "answer": "We are located at 10 Sportivnaya Street. Entrance from the courtyard, 2nd floor. Parking is free for customers (just tell the reception the car number). Here is the point on the map: [link].\n\n**Available schedule for children 6 years old:**\nFriday, from 18:15 to 19:00.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:21:12.488512",
+                "lang": "ru",
+                "query": "\u0415\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u0441\u0430\u0443\u043d\u0430?",
+                "answer": "\u0421\u0430\u0443\u043d\u0430 \u0435\u0441\u0442\u044c \u0432 \u043a\u0430\u0436\u0434\u043e\u0439 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0435, \u043e\u043d\u0430 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u0439. \u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0435 \u043c\u043e\u0436\u043d\u043e \u0432\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 $1 \u0438\u043b\u0438 \u043f\u0440\u0438\u043d\u0435\u0441\u0442\u0438 \u0441\u0432\u043e\u0435.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:21:39.119629",
+                "lang": "en",
+                "query": "Who leads the group yoga trainings?",
+                "answer": "Svetlana, a certified master with 8 years of experience, leads the yoga trainings. The classes are gentle and suitable for all levels. The next one is today at 7:00 PM. Would you like to sign up?\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:23:43.734224",
+                "lang": "ru",
+                "query": "\u0415\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u0441\u0430\u0443\u043d\u0430?",
+                "answer": "\u0421\u0430\u0443\u043d\u0430 \u0435\u0441\u0442\u044c \u0432 \u043a\u0430\u0436\u0434\u043e\u0439 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0435, \u043e\u043d\u0430 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u0439. \u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0435 \u043c\u043e\u0436\u043d\u043e \u0432\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 $1 \u0438\u043b\u0438 \u043f\u0440\u0438\u043d\u0435\u0441\u0442\u0438 \u0441\u0432\u043e\u0435.\n"
+            },
+            {
+                "timestamp": "2026-02-12T16:25:16.334708",
+                "lang": "ru",
+                "query": "\u0415\u0441\u0442\u044c \u043b\u0438 \u0443 \u0432\u0430\u0441 \u0441\u0430\u0443\u043d\u0430?",
+                "answer": "\u0421\u0430\u0443\u043d\u0430 \u0435\u0441\u0442\u044c \u0432 \u043a\u0430\u0436\u0434\u043e\u0439 \u0440\u0430\u0437\u0434\u0435\u0432\u0430\u043b\u043a\u0435, \u043e\u043d\u0430 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u0430\u044f \u0434\u043b\u044f \u0432\u0441\u0435\u0445 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u0439. \u041f\u043e\u043b\u043e\u0442\u0435\u043d\u0446\u0435 \u043c\u043e\u0436\u043d\u043e \u0432\u0437\u044f\u0442\u044c \u0432 \u0430\u0440\u0435\u043d\u0434\u0443 \u0437\u0430 $1 \u0438\u043b\u0438 \u043f\u0440\u0438\u043d\u0435\u0441\u0442\u0438 \u0441\u0432\u043e\u0435.\n"
             }
         ],
         "underAnswer_cache": {
-            "ru": "telegram @argodon",
-            "en": "telegram @argodon",
-            "pt": "telegram @argodon"
+            "ru": "telegram @argodon, +5548992012727",
+            "en": "telegram @argodon, +5548992012727",
+            "pt": "telegram @argodon, +5548992012727"
         }
     }
 }
