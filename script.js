@@ -135,8 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // INITIAL STATE: Show only banner while waiting for API
-    toggleUIByKnowledgeBase(false);
+    // INITIAL STATE: Everything is hidden via CSS/HTML classes by default.
+    // We only show the correct layer after API responds in initSettings().
 
     // State
     function getInitialLang() {
