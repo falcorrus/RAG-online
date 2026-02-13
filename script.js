@@ -1092,7 +1092,8 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsPanel.classList.add('hidden');
             onboardingPanel.classList.remove('hidden');
             adminOverlay.classList.remove('hidden');
-            isRegisterMode = false; // Reset to ensure clean start if user goes back and clicks again
+            isRegisterMode = true; // Fix: Should be true for registration flow
+            updateAuthLabels();
         });
     }
 

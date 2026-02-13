@@ -363,23 +363,21 @@ textarea {
 }
 
 .text-close-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-light);
+    background: transparent;
+    border: none;
     color: var(--text-secondary);
-    padding: 6px 14px;
+    padding: 6px 10px;
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 7px;
     transition: all 0.2s;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .text-close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border-color: var(--brand-color);
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .user-badge {
@@ -408,9 +406,9 @@ textarea {
 .onboarding-step:not(:last-child)::before {
     content: "";
     position: absolute;
-    left: 20px;
-    top: 52px;
-    bottom: -12px;
+    left: 21px;
+    top: 58px;
+    bottom: -16px;
     width: 2px;
     background: rgba(99, 102, 241, 0.2);
     z-index: 1;
