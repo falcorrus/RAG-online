@@ -809,8 +809,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateInputState() {
         if (!queryInput) return;
         const val = queryInput.value.trim();
+        
+        // Dynamic height adjustment
         queryInput.style.height = 'auto';
-        queryInput.style.height = (queryInput.scrollHeight) + 'px';
+        if (queryInput.value.length > 0) {
+            queryInput.style.height = (queryInput.scrollHeight) + 'px';
+        }
         
         if (val.length > 0) { 
             if (clearBtn) clearBtn.classList.remove('hidden'); 
