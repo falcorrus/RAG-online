@@ -387,6 +387,7 @@ async def login(auth: UserAuth, request: Request):
     # Special case: allow admin/default tenant on localhost or raw IP for debugging
     is_local = "localhost" in host or "127.0.0.1" in host or re.match(r"^\d+\.\d+\.\d+\.\d+", host)
     
+    # Each user can only login to their own subdomain
     if not is_local and email != expected_owner:
         print(f"DEBUG: Login blocked - User '{email}' cannot login on host '{host}' (belongs to '{expected_owner}')", flush=True)
         raise HTTPException(status_code=403, detail="Access denied for this domain")
