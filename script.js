@@ -44,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sourceBadge = document.getElementById('sourceBadge');
     const headerTools = document.querySelector('.header-tools');
     const searchWrapper = document.getElementById('searchWrapper');
-    const poweredBy = document.querySelector('.powered-by');
-    const creatorFooter = document.querySelector('.creator-footer');
+    const mainFooter = document.querySelector('.main-footer');
 
     // Confirmation Modal Elements
     const confirmationModal = document.getElementById('confirmationModal');
@@ -141,8 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Hide everything else
                 if (searchWrapper) searchWrapper.classList.add('force-hidden');
                 if (headerTools) headerTools.classList.add('force-hidden');
-                if (poweredBy) poweredBy.classList.add('force-hidden');
-                if (creatorFooter) creatorFooter.classList.add('force-hidden');
+                if (mainFooter) mainFooter.classList.add('force-hidden');
                 
                 document.body.classList.remove('has-results');
                 if (mainTitle) mainTitle.classList.remove('visible');
@@ -157,8 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Show everything else
                 if (searchWrapper) searchWrapper.classList.remove('force-hidden');
                 if (headerTools) headerTools.classList.remove('force-hidden');
-                if (poweredBy) poweredBy.classList.remove('force-hidden');
-                if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+                if (mainFooter) mainFooter.classList.remove('force-hidden');
 
                 if (mainSparkle) {
                     mainSparkle.classList.remove('force-hidden');
@@ -262,6 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_subdomain_label: "Желаемый поддомен",
             processing_kb_title: "База обрабатывается",
             processing_kb_msg: "Подождите несколько секунд, страница перезагрузится автоматически...",
+            setup_secure_title: "Настраиваем домен",
+            setup_secure_msg: "Настраиваем безопасное соединение для вашего домена... Подождите пару секунд.",
+            deleting_kb_title: "Удаление базы",
+            deleting_kb_msg: "Очищаем данные... Подождите несколько секунд.",
             confirm_title: "Подтверждение",
             cancel_btn: "Отмена",
             delete_btn: "Удалить"
@@ -301,6 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_subdomain_label: "Desired subdomain",
             processing_kb_title: "Knowledge base is being processed",
             processing_kb_msg: "Please wait a few seconds, the page will reload automatically...",
+            setup_secure_title: "Setting up domain",
+            setup_secure_msg: "Setting up secure connection for your domain... Please wait a few seconds.",
+            deleting_kb_title: "Deleting knowledge base",
+            deleting_kb_msg: "Clearing data... Please wait a few seconds.",
             confirm_title: "Confirmation",
             cancel_btn: "Cancel",
             delete_btn: "Delete"
@@ -340,6 +345,10 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_subdomain_label: "Subdomínio desejado",
             processing_kb_title: "Base sendo processada",
             processing_kb_msg: "Aguarde alguns segundos, a página será recarregada automaticamente...",
+            setup_secure_title: "Configurando domínio",
+            setup_secure_msg: "Configurando uma conexão segura para o seu domínio... Aguarde alguns segundos.",
+            deleting_kb_title: "Excluindo base de conhecimento",
+            deleting_kb_msg: "Limpando dados... Aguarde alguns segundos.",
             confirm_title: "Confirmação",
             cancel_btn: "Cancelar",
             delete_btn: "Excluir"
@@ -447,10 +456,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 await initSettings();
 
                 if (isRegisterMode && data.subdomain) {
-                    const message = currentLang === 'ru' ? 
-                        "Настраиваем безопасное соединение для вашего домена... Подождите пару секунд." : 
-                        "Setting up secure connection for your domain... Please wait a few seconds.";
-                    showToast(message, false);
+                    if (processingModal) {
+                        const procTitle = document.getElementById('processingTitle');
+                        const procMsg = document.getElementById('processingMessage');
+                        if (procTitle && procMsg && translations[currentLang]) {
+                            procTitle.textContent = translations[currentLang].setup_secure_title;
+                            procMsg.textContent = translations[currentLang].setup_secure_msg;
+                        }
+                        processingModal.classList.remove('hidden');
+                    }
                     
                     setTimeout(() => {
                         const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
@@ -825,22 +839,23 @@ document.addEventListener('DOMContentLoaded', () => {
         removeFileBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             showConfirmationModal("Удалить базу знаний?", async () => {
+                if (processingModal) {
+                    const procTitle = document.getElementById('processingTitle');
+                    const procMsg = document.getElementById('processingMessage');
+                    if (procTitle && procMsg && translations[currentLang]) {
+                        procTitle.textContent = translations[currentLang].deleting_kb_title;
+                        procMsg.textContent = translations[currentLang].deleting_kb_msg;
+                    }
+                    processingModal.classList.remove('hidden');
+                }
+                
                 try {
                     const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
                     if (resp.ok) {
-                        fileInfo.classList.add('hidden');
-                        kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-                        
-                        toggleUIByKnowledgeBase(false);
-
-                        const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
-                        if (publicResp.ok) {
-                            const pubData = await publicResp.json();
-                            updateTitle(pubData.kb_exists, pubData.businessName);
-                        }
-                        await loadSuggestions();
+                        setTimeout(() => window.location.reload(), 1500);
                     }
                 } catch (err) {
+                    if (processingModal) processingModal.classList.add('hidden');
                     showToast("Ошибка при удалении.", true);
                 }
             });
@@ -857,11 +872,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendBtn) sendBtn.addEventListener('click', () => { const query = queryInput.value.trim(); if (query) processSearch(query); });
 
     if (queryInput) {
-        queryInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const query = queryInput.value.trim(); if (query) processSearch(query); } });
+        queryInput.addEventListener('keydown', (e) => { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                const query = queryInput.value.trim(); 
+                if (query) processSearch(query); 
+            } else if (e.key === 'Escape') {
+                if (queryInput.value.length > 0) {
+                    queryInput.value = '';
+                    updateInputState();
+                } else {
+                    queryInput.blur();
+                }
+            }
+        });
         queryInput.addEventListener('input', updateInputState);
     }
 
     langBtns.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.getAttribute('data-lang'))));
+
+    // Global keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            // Priority 1: Close admin overlay if visible
+            if (adminOverlay && !adminOverlay.classList.contains('hidden')) {
+                // If confirmation modal is open, it handles its own logic, 
+                // but let's just close everything for simplicity or follow existing logic.
+                if (confirmationModal && !confirmationModal.classList.contains('hidden')) {
+                    hideConfirmationModal();
+                } else {
+                    adminOverlay.classList.add('hidden');
+                }
+                return;
+            }
+
+            // Priority 2: Clear query if not already empty (even if not focused)
+            if (queryInput && queryInput.value.length > 0) {
+                queryInput.value = '';
+                updateInputState();
+            }
+        }
+    });
 
     function showFileInfo(name) {
         fileNameDisplay.textContent = name;
@@ -933,15 +984,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hide) {
             if (headerTools) headerTools.classList.add('hidden');
             // if (searchWrapper) searchWrapper.classList.add('hidden'); // Оставляем searchWrapper видимым
-            if (poweredBy) poweredBy.classList.add('hidden');
-            if (creatorFooter) creatorFooter.classList.add('hidden');
+            if (mainFooter) mainFooter.classList.add('hidden');
             if (mainTitle) mainTitle.classList.add('hidden'); // Ensure title is hidden
             if (mainSparkle) mainSparkle.classList.add('hidden'); // Ensure sparkle is hidden
         } else {
             if (headerTools) headerTools.classList.remove('hidden');
             // if (searchWrapper) searchWrapper.classList.remove('hidden'); // Оставляем searchWrapper видимым
-            if (poweredBy) poweredBy.classList.remove('hidden');
-            if (creatorFooter) creatorFooter.classList.remove('hidden');
+            if (mainFooter) mainFooter.classList.remove('hidden');
             if (mainTitle) mainTitle.classList.remove('hidden'); // Ensure title is shown
             if (mainSparkle) mainSparkle.classList.remove('hidden'); // Ensure sparkle is shown
         }

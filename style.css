@@ -239,6 +239,7 @@ body.minimized .header-tools {
 body.has-results .container {
     justify-content: flex-start;
     padding-top: 4rem;
+    padding-bottom: 120px;
 }
 
 body.has-results .search-wrapper {
@@ -964,12 +965,29 @@ input:checked + .slider:before {
     to { transform: rotate(360deg); }
 }
 
+.main-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 100;
+    pointer-events: none;
+    background: linear-gradient(to top, var(--bg-main) 20%, transparent 100%);
+}
+
+.main-footer > * {
+    pointer-events: auto;
+}
+
 .powered-by {
     font-size: 0.85rem;
     color: var(--text-muted);
     text-align: center;
-    width: 100%;
-    margin-top: 2rem; /* Give some space from results if they appear */
 }
 
 .powered-by a {
@@ -983,14 +1001,10 @@ input:checked + .slider:before {
     color: var(--brand-color);
 }
 
-/* Footer */
 .creator-footer {
-    margin-top: 8px;
-    padding-bottom: 2rem;
     font-size: 0.85rem;
     color: var(--text-muted);
     text-align: center;
-    width: 100%;
 }
 
 .creator-footer a {
