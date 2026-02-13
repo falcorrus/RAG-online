@@ -251,11 +251,11 @@ textarea {
     color: var(--text-primary);
     font-family: inherit;
     font-size: 1.1rem;
-    line-height: 1.2; /* Tighten line height for single line centering */
+    line-height: 1.2;
     resize: none;
     outline: none;
     max-height: 150px;
-    padding: 0; /* Remove padding to let flexbox center it */
+    padding: 0;
     margin: 0;
     text-align: center;
     display: flex;
@@ -315,7 +315,7 @@ textarea {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 8px 18px;
     border-radius: 100px;
     font-size: 0.9rem;
@@ -354,7 +354,6 @@ textarea {
     top: 0; left: 0; right: 0; bottom: 0;
     background: var(--overlay-bg);
     backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
     z-index: 2000;
     display: flex;
     align-items: center;
@@ -363,10 +362,10 @@ textarea {
 }
 
 .admin-panel {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(50px);
-    -webkit-backdrop-filter: blur(50px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 36px;
     width: 100%;
     max-width: 500px;
@@ -436,7 +435,7 @@ textarea {
 
 .segmented-control {
     display: flex;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(15, 23, 42, 0.5);
     padding: 4px;
     border-radius: 14px;
     border: 1px solid var(--border-color);
@@ -512,17 +511,17 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: rgba(34, 197, 94, 0.1);
-    padding: 8px 16px;
+    background: rgba(16, 185, 129, 0.06); /* Emerald muted */
+    padding: 10px 20px;
     border-radius: 12px;
-    border: 1px solid rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.15);
     margin-top: 10px;
 }
 
 .file-name {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #4ade80;
+    color: #6ee7b7; /* Emerald soft */
 }
 
 .icon-close-btn.small {
@@ -537,7 +536,7 @@ textarea {
     flex-direction: column;
     gap: 0;
     position: relative;
-    padding: 8px 0;
+    padding: 8px 32px; /* Added padding to unstick from edges */
 }
 
 .onboarding-step {
