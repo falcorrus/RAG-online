@@ -110,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // INITIAL STATE: Show only banner while waiting for API
-    toggleUIByKnowledgeBase(false);
+    // INITIAL STATE: Everything is hidden via CSS/HTML classes by default.
+    // We only show the correct layer after API responds in initSettings().
 
     if (downloadDemoBtn) {
         downloadDemoBtn.addEventListener('click', (e) => {
@@ -448,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
+            toggleUIByKnowledgeBase(false); // Fallback to banner on error
         }
 
         const token = localStorage.getItem('token');
