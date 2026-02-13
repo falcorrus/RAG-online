@@ -27,7 +27,7 @@
         ✨
     </div>
 
-    <div class="header-tools">
+    <div class="header-tools force-hidden">
         <div class="language-switcher">
             <button class="lang-btn active" data-lang="ru">RU</button>
             <button class="lang-btn" data-lang="en">EN</button>
@@ -207,7 +207,7 @@
 
     <main class="container" id="mainContainer">
         <!-- Welcome Banner for new users -->
-        <div class="welcome-banner" id="welcomeBanner">
+        <div class="welcome-banner force-hidden" id="welcomeBanner">
             <p class="welcome-text">Вы зарегистрировали свой RAG. Осталось загрузить в настройках свой файл с заметками в формате Markdown (.md)</p>
             <div class="welcome-actions">
                 <button class="welcome-btn secondary" id="downloadDemoBtn" data-i18n="welcome_download_demo">Скачать пример</button>
@@ -217,8 +217,8 @@
 
         <div class="search-wrapper" id="searchWrapper">
             <div class="title-area">
-                <div class="sparkle-icon" id="mainSparkle">✨</div>
-                <h1 data-i18n="title_main" id="mainTitle">AI Knowledge Base</h1>
+                <div class="sparkle-icon force-hidden" id="mainSparkle">✨</div>
+                <h1 data-i18n="title_main" id="mainTitle" class="force-hidden">AI Knowledge Base</h1>
             </div>
 
             <div class="input-container" id="inputContainer">
@@ -272,11 +272,11 @@
         </div>
     </main>
 
-    <div class="powered-by">
+    <div class="powered-by force-hidden">
         <a href="#" id="promoLink" data-i18n="promo_link">Создайте свой RAG в 2 клика</a>
     </div>
 
-    <footer class="creator-footer">
+    <footer class="creator-footer force-hidden">
         made in <a href="#" id="creatorLink">Broz Studio</a>
     </footer>
 

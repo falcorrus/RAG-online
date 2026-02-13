@@ -398,23 +398,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (settings.kb_exists === false) {
                     console.log('initSettings: kb_exists is FALSE, attempting to show welcomeBanner');
-                    welcomeBanner.classList.remove('force-hidden'); // Показываем баннер
-                    // if (headerTools) headerTools.classList.add('force-hidden'); // Закомментировано для отладки
-                    // if (mainSparkle) mainSparkle.classList.add('force-hidden'); // Закомментировано для отладки
-                    // if (mainTitle) mainTitle.classList.add('force-hidden'); // Закомментировано для отладки
-                    // if (poweredBy) poweredBy.classList.add('force-hidden'); // Закомментировано для отладки
-                    // if (creatorFooter) creatorFooter.classList.add('force-hidden'); // Закомментировано для отладки
-                    document.body.classList.remove('has-results'); // Показываем suggestions
-                    console.log('initSettings: welcomeBanner class list after remove:', welcomeBanner.classList);
+                    welcomeBanner.classList.remove('force-hidden'); 
+                    if (headerTools) headerTools.classList.add('force-hidden');
+                    if (mainSparkle) mainSparkle.classList.add('force-hidden');
+                    if (mainTitle) mainTitle.classList.add('force-hidden');
+                    if (poweredBy) poweredBy.classList.add('force-hidden');
+                    if (creatorFooter) creatorFooter.classList.add('force-hidden');
+                    document.body.classList.remove('has-results'); 
                 } else {
                     console.log('initSettings: kb_exists is TRUE, attempting to hide welcomeBanner');
-                    welcomeBanner.classList.add('force-hidden'); // Скрываем баннер
-                    // if (headerTools) headerTools.classList.remove('force-hidden'); // Закомментировано для отладки
-                    // if (mainSparkle) mainSparkle.classList.remove('force-hidden'); // Закомментировано для отладки
-                    // if (mainTitle) mainTitle.classList.remove('force-hidden'); // Закомментировано для отладки
-                    // if (poweredBy) poweredBy.classList.remove('force-hidden'); // Закомментировано для отладки
-                    // if (creatorFooter) creatorFooter.classList.remove('force-hidden'); // Закомментировано для отладки
-                    console.log('initSettings: welcomeBanner class list after add:', welcomeBanner.classList);
+                    welcomeBanner.classList.add('force-hidden'); 
+                    if (headerTools) headerTools.classList.remove('force-hidden');
+                    if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+                    if (mainTitle) mainTitle.classList.remove('force-hidden');
+                    if (poweredBy) poweredBy.classList.remove('force-hidden');
+                    if (creatorFooter) creatorFooter.classList.remove('force-hidden');
                 }
                 
                 underAnswerText = settings.underAnswerText || "";
