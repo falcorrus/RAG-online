@@ -372,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
                         window.location.href = `${newUrl}?token=${data.token}`;
-                    }, 6000); // 6 seconds delay
+                    }, 10000); // 10 seconds delay
                     return;
                 }
 
