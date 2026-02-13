@@ -385,7 +385,9 @@ async def login(auth: UserAuth):
 async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
     owner_email = user["sub"]
     tenants = get_tenants()
+    print(f"DEBUG: upload_kb attempt for {owner_email}. Tenants keys: {list(tenants.keys())}", flush=True)
     if owner_email not in tenants:
+        print(f"ERROR: Tenant {owner_email} not found in tenants list!", flush=True)
         raise HTTPException(status_code=404, detail="Tenant not found")
 
     content = data.get("content", "")
