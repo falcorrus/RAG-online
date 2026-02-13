@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const suggestionsContainer = document.getElementById('suggestions');
     const langBtns = document.querySelectorAll('.lang-btn');
     const sourceBadge = document.getElementById('sourceBadge');
+    const headerTools = document.querySelector('.header-tools');
+    const searchWrapper = document.getElementById('searchWrapper');
+    const poweredBy = document.querySelector('.powered-by');
+    const creatorFooter = document.querySelector('.creator-footer');
 
     let underAnswerText = "";
 
@@ -279,25 +283,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 await initSettings();
 
-                // After registration, if KB is empty, keep admin overlay open and show settings panel
-                // instead of immediately closing it.
                 const publicRespAfterInit = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicRespAfterInit.ok) {
                     const settingsAfterInit = await publicRespAfterInit.json();
-                    if (isRegisterMode && settingsAfterInit.kb_exists === false) {
+                    if (settingsAfterInit.kb_exists === false) { // Если KB пуста
                         adminOverlay.classList.remove('hidden');
                         authPanel.classList.add('hidden');
                         onboardingPanel.classList.add('hidden');
                         settingsPanel.classList.remove('hidden');
                         showToast(currentLang === 'ru' ? "Аккаунт успешно создан! Загрузите базу знаний." : "Account created! Upload your knowledge base.", false);
-                        return; // Exit early to prevent closing adminOverlay
+                        return; // Выходим, чтобы не закрывать adminOverlay
                     }
                 }
 
+                // Если KB существует или это просто вход, закрываем все панели и показываем основной UI
                 adminOverlay.classList.add('hidden');
                 authPanel.classList.add('hidden');
                 onboardingPanel.classList.add('hidden');
-                settingsPanel.classList.remove('hidden');
+                settingsPanel.classList.add('hidden'); // Убедимся, что settingsPanel тоже скрыта при обычном логине
 
                 if (isRegisterMode) {
                     showToast(currentLang === 'ru' ? "Аккаунт успешно создан!" : "Account created successfully!");
@@ -372,8 +375,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (settings.kb_exists === false) {
                     welcomeBanner.classList.remove('hidden');
+                    if (headerTools) headerTools.classList.add('hidden');
+                    if (mainSparkle) mainSparkle.classList.add('hidden');
+                    if (mainTitle) mainTitle.classList.add('hidden');
+                    if (poweredBy) poweredBy.classList.add('hidden');
+                    if (creatorFooter) creatorFooter.classList.add('hidden');
+                    document.body.classList.remove('has-results'); // Показываем suggestions
                 } else {
                     welcomeBanner.classList.add('hidden');
+                    if (headerTools) headerTools.classList.remove('hidden');
+                    if (mainSparkle) mainSparkle.classList.remove('hidden');
+                    if (mainTitle) mainTitle.classList.remove('hidden');
+                    if (poweredBy) poweredBy.classList.remove('hidden');
+                    if (creatorFooter) creatorFooter.classList.remove('hidden');
                 }
                 
                 underAnswerText = settings.underAnswerText || "";
@@ -386,7 +400,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     await setLanguage(currentLang);
                 }
                 
-                updateTitle(settings.kb_exists, settings.businessName, !settings.kb_exists);
+                updateTitle(settings.kb_exists, settings.businessName); // remove hideHeader parameter
+            }
+        } catch (err) {
+            console.error("Public settings fetch failed", err);
+        }
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -713,19 +731,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateTitle(isKbLoaded, overrideName = null, hideHeader = false) {
+    function updateTitle(isKbLoaded, overrideName = null) {
         const customName = (overrideName && overrideName.length > 0) ? overrideName : "";
         mainTitle.classList.remove('visible');
         if (mainSparkle) mainSparkle.classList.remove('visible');
-
-        if (hideHeader) {
-            mainTitle.classList.add('hidden');
-            if (mainSparkle) mainSparkle.classList.add('hidden');
-            return;
-        } else {
-            mainTitle.classList.remove('hidden');
-            if (mainSparkle) mainSparkle.classList.remove('hidden');
-        }
         
         setTimeout(() => {
             if (isKbLoaded && customName) {
@@ -745,6 +754,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             mainTitle.classList.add('visible');
         }, 100);
+    }
+
+    // New function to control visibility of main UI elements
+    function toggleMainUIElements(hide) {
+        if (hide) {
+            if (headerTools) headerTools.classList.add('hidden');
+            // if (searchWrapper) searchWrapper.classList.add('hidden'); // Оставляем searchWrapper видимым
+            if (poweredBy) poweredBy.classList.add('hidden');
+            if (creatorFooter) creatorFooter.classList.add('hidden');
+            if (mainTitle) mainTitle.classList.add('hidden'); // Ensure title is hidden
+            if (mainSparkle) mainSparkle.classList.add('hidden'); // Ensure sparkle is hidden
+        } else {
+            if (headerTools) headerTools.classList.remove('hidden');
+            // if (searchWrapper) searchWrapper.classList.remove('hidden'); // Оставляем searchWrapper видимым
+            if (poweredBy) poweredBy.classList.remove('hidden');
+            if (creatorFooter) creatorFooter.classList.remove('hidden');
+            if (mainTitle) mainTitle.classList.remove('hidden'); // Ensure title is shown
+            if (mainSparkle) mainSparkle.classList.remove('hidden'); // Ensure sparkle is shown
+        }
     }
 
     function typeWriterEffect(text, element) {
