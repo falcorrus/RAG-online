@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.3">
+    <link rel="stylesheet" href="style.css?v=1.4">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2FKP6S6QN"></script>
@@ -68,7 +68,7 @@
                 <div class="onboarding-steps">
                     <div class="onboarding-step">
                         <div class="step-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                             </svg>
                         </div>
@@ -78,7 +78,7 @@
                     </div>
                     <div class="onboarding-step">
                         <div class="step-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload-cloud">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
                             </svg>
                         </div>
@@ -94,7 +94,7 @@
         </div>
 
         <!-- Auth View -->
-        <div class="admin-panel" id="authPanel">
+        <div class="admin-panel hidden" id="authPanel">
             <div class="admin-header-compact">
                 <div class="header-top">
                     <h2 id="authTitle">Вход в систему</h2>
@@ -130,6 +130,7 @@
             </div>
         </div>
 
+        <!-- Admin View -->
         <div class="admin-panel hidden" id="settingsPanel" style="max-width: 600px;">
             <div class="admin-header-compact">
                 <div class="header-top">
@@ -208,13 +209,10 @@
                 <button class="save-btn" id="saveAdminBtn" data-i18n="close_btn">Закрыть</button>
             </div>
         </div>
-
-        <!-- Remove old logsPanel as it's now integrated -->
-        <div class="admin-panel hidden" id="logsPanel"></div>
     </div>
 
     <main class="container" id="mainContainer">
-        <!-- Welcome Banner for new users -->
+        <!-- Welcome Banner -->
         <div class="welcome-banner force-hidden" id="welcomeBanner">
             <h2 class="welcome-title">Запускаем свой RAG <span id="welcomeTenantName"></span></h2>
             <ul class="todo-list">
@@ -271,9 +269,7 @@
                 </button>
             </div>
 
-            <div class="suggestions" id="suggestions">
-                <!-- Suggestions will be loaded dynamically -->
-            </div>
+            <div class="suggestions" id="suggestions"></div>
         </div>
 
         <div class="results-area hidden" id="resultsArea">
@@ -316,7 +312,7 @@
     </div>
 
     <div id="toast" class="toast">
-        <span class="toast-icon">✓</span>
+        <span class="toast-icon"></span>
         <span id="toastMessage"></span>
     </div>
 
@@ -354,7 +350,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=2"></script>
+    <script src="script.js?v=3"></script>
 </body>
 
 </html>
