@@ -413,6 +413,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleAuth() {
         console.log('handleAuth: Function called');
+        
+        // Clear old session before starting new auth attempt
+        localStorage.removeItem('token');
+        
         const email = authEmail.value.trim().toLowerCase();
         const password = authPass.value;
         const subdomain = authSubdomain.value.trim();
