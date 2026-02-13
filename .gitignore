@@ -4,3 +4,5 @@
 /Users/eugene/.gemini/tmp/
 *.log
 node_modules/
+storage/
+__pycache__/

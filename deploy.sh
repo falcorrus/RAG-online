@@ -4,6 +4,10 @@
 MSG="${1:-Update $(date +'%Y-%m-%d %H:%M:%S')}"
 
 echo "🚀 Starting deployment..."
+
+# 0. Pull storage from server first
+./pull_storage.sh
+
 echo "📝 Commit message: '$MSG'"
 
 # 1. Add all changes

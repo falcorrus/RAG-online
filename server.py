@@ -82,6 +82,32 @@ def save_tenants(tenants):
     with open(TENANTS_FILE, 'w') as f:
         json.dump(tenants, f, indent=4)
 
+def get_tenant_dir(email: str):
+    """Returns the path to the tenant's private directory, creating it if needed."""
+    folder_name = re.sub(r'[^a-zA-Z0-9]', '_', email.lower())
+    path = os.path.join(STORAGE_DIR, folder_name)
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+    return path
+
+def get_tenant_log_path(email: str):
+    return os.path.join(get_tenant_dir(email), "logs.json")
+
+def load_tenant_logs(email: str) -> List[dict]:
+    path = get_tenant_log_path(email)
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def save_tenant_logs(email: str, logs: List[dict]):
+    path = get_tenant_log_path(email)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(logs, f, indent=4, ensure_ascii=False)
+
 def get_tenant_by_host(host: str):
     if not host:
         return "ekirshin@gmail.com"
@@ -206,15 +232,16 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     
     # Generate subdomain if not provided
     sub = auth.subdomain or auth.email.split('@')[0]
-    # Simple cleanup for subdomain (alphanumeric only)
     sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
+    
+    # Create directory immediately
+    get_tenant_dir(auth.email)
     
     tenants[auth.email] = {
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
         "subdomain": sub,
         "settings": {"initiallyOpen": True},
-        "kb_file": f"kb_{uuid.uuid4().hex}.md",
         "suggestions_cache": {}
     }
     save_tenants(tenants)
@@ -242,10 +269,9 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         # Use automated under-answer text from KB
         settings["underAnswerText"] = tenant.get("underAnswer_cache", {}).get(lang)
         if not settings["underAnswerText"]:
-             # Fallback if cache is empty but field exists
              settings["underAnswerText"] = ""
             
-        kb_path = os.path.join(STORAGE_DIR, tenant["kb_file"])
+        kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
     return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False}
@@ -283,14 +309,13 @@ async def login(auth: UserAuth):
 
 @app.post("/api/tenant/kb")
 async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
-    tenants = get_tenants()
     owner_email = user["sub"]
+    tenants = get_tenants()
     if owner_email not in tenants:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
     content = data.get("content", "")
-    kb_file = tenants[owner_email]["kb_file"]
-    kb_path = os.path.join(STORAGE_DIR, kb_file)
+    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
 
     print(f"DEBUG: Attempting to save KB for {owner_email} to {kb_path} (content length: {len(content)})", flush=True)
     try:
@@ -303,7 +328,6 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
 
     # Generate new suggestions in background
     background_tasks.add_task(generate_kb_suggestions, owner_email, content)
-    print(f"DEBUG: generate_kb_suggestions task added for {owner_email}", flush=True)
     return {"status": "ok"}
 
 @app.get("/api/suggestions")
@@ -336,7 +360,7 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     tenants = get_tenants()
     if owner_email not in tenants: return {"answer": "Knowledge base not configured."}
     
-    kb_path = os.path.join(STORAGE_DIR, tenants[owner_email]["kb_file"])
+    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
     context = ""
     if os.path.exists(kb_path):
         with open(kb_path, 'r', encoding='utf-8') as f: 
@@ -388,17 +412,15 @@ CONTEXT:
             data = resp.json()
             answer = data['candidates'][0]['content']['parts'][0]['text']
             
-            # Save to conversation log
-            if owner_email in tenants:
-                if "conversation_log" not in tenants[owner_email]:
-                    tenants[owner_email]["conversation_log"] = []
-                tenants[owner_email]["conversation_log"].append({
-                    "timestamp": datetime.now().isoformat(),
-                    "lang": request.lang,
-                    "query": request.query,
-                    "answer": answer
-                })
-                save_tenants(tenants)
+            # Save to individual conversation log
+            logs = load_tenant_logs(owner_email)
+            logs.append({
+                "timestamp": datetime.now().isoformat(),
+                "lang": request.lang,
+                "query": request.query,
+                "answer": answer
+            })
+            save_tenant_logs(owner_email, logs)
 
             print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
             return {"answer": answer}
@@ -408,19 +430,14 @@ CONTEXT:
 
 @app.get("/api/tenant/logs")
 async def get_conversation_logs(user=Depends(get_current_user)):
-    tenants = get_tenants()
-    if user["sub"] in tenants:
-        return {"logs": tenants[user["sub"]].get("conversation_log", [])}
-    raise HTTPException(status_code=404, detail="Tenant not found")
+    owner_email = user["sub"]
+    return {"logs": load_tenant_logs(owner_email)}
 
 @app.delete("/api/tenant/logs")
 async def clear_conversation_logs(user=Depends(get_current_user)):
-    tenants = get_tenants()
-    if user["sub"] in tenants:
-        tenants[user["sub"]]["conversation_log"] = []
-        save_tenants(tenants)
-        return {"status": "ok"}
-    raise HTTPException(status_code=404, detail="Tenant not found")
+    owner_email = user["sub"]
+    save_tenant_logs(owner_email, [])
+    return {"status": "ok"}
 
 # Proxy other tenant routes
 @app.get("/api/tenant/settings")
@@ -429,24 +446,14 @@ async def get_settings(user=Depends(get_current_user)):
 
 @app.get("/api/tenant/kb")
 async def get_kb(user=Depends(get_current_user)):
-    tenants = get_tenants()
     owner_email = user["sub"]
-    if owner_email not in tenants:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-
-    kb_file = tenants[owner_email]["kb_file"]
-    path = os.path.join(STORAGE_DIR, kb_file)
-    print(f"DEBUG: Attempting to read KB file from {path} for {owner_email}", flush=True)
-    if os.path.exists(path):
+    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
+    if os.path.exists(kb_path):
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                print(f"DEBUG: KB file {path} read successfully (length: {len(content)})", flush=True)
-                return {"content": content}
+            with open(kb_path, 'r', encoding='utf-8') as f:
+                return {"content": f.read()}
         except Exception as e:
-            print(f"ERROR: Failed to read KB file {path}: {e}", flush=True)
-            raise HTTPException(status_code=500, detail=f"Failed to read knowledge base file: {e}")
-    print(f"DEBUG: KB file {path} not found for {owner_email}", flush=True)
+            raise HTTPException(status_code=500, detail=f"Failed to read KB: {e}")
     return {"content": ""}
 
 app.mount("/", StaticFiles(directory=".", html=True), name="static")
