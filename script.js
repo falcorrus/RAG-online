@@ -54,12 +54,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const authPanel = document.getElementById('authPanel');
     const settingsPanel = document.getElementById('settingsPanel');
+    const onboardingPanel = document.getElementById('onboardingPanel');
+    const onboardingNextBtn = document.getElementById('onboardingNextBtn');
+    const subdomainGroup = document.getElementById('subdomainGroup');
+    const authSubdomain = document.getElementById('authSubdomain');
+
     const authEmail = document.getElementById('authEmail');
     const authPass = document.getElementById('authPass');
     const authBtn = document.getElementById('authBtn');
     const authTitle = document.getElementById('authTitle');
     const toggleAuthMode = document.getElementById('toggleAuthMode');
     const authError = document.getElementById('authError');
+    const authBackBtn = document.getElementById('authBackBtn');
 
     // State
     function getInitialLang() {
@@ -97,11 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
             log_item_label: "Запрос",
             promo_link: "Создайте свой RAG в 2 клика",
             auth_btn_login: "Войти",
-            auth_btn_register: "Создать аккаунт",
+            auth_btn_register: "Создать мой RAG",
             auth_toggle_login: "Уже есть аккаунт? Войти",
             auth_toggle_register: "Хотите такой же? Регистрация",
             welcome_download_demo: "Скачать пример",
-            welcome_go_to_settings: "В настройки"
+            welcome_go_to_settings: "В настройки",
+            onboarding_title: "Как это работает",
+            onboarding_step_1: "Загрузите базу знаний (Markdown или текст).",
+            onboarding_step_2: "Получите ссылку вида yourname.rag.reloto.ru.",
+            onboarding_step_3: "Ваш ИИ-ассистент онлайн.",
+            onboarding_next: "Далее",
+            auth_subdomain_label: "Желаемый поддомен"
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -125,11 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
             log_item_label: "Query",
             promo_link: "Create your RAG in 2 clicks",
             auth_btn_login: "Login",
-            auth_btn_register: "Create Account",
+            auth_btn_register: "Create my RAG",
             auth_toggle_login: "Already have an account? Login",
             auth_toggle_register: "Want the same? Register",
             welcome_download_demo: "Download Demo",
-            welcome_go_to_settings: "Go to Settings"
+            welcome_go_to_settings: "Go to Settings",
+            onboarding_title: "How it works",
+            onboarding_step_1: "Upload knowledge base (Markdown or text).",
+            onboarding_step_2: "Get a link like yourname.rag.reloto.ru.",
+            onboarding_step_3: "Your AI assistant is online.",
+            onboarding_next: "Next",
+            auth_subdomain_label: "Desired subdomain"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -153,11 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
             log_item_label: "Consulta",
             promo_link: "Crie seu RAG em 2 cliques",
             auth_btn_login: "Entrar",
-            auth_btn_register: "Criar Conta",
+            auth_btn_register: "Criar meu RAG",
             auth_toggle_login: "Já tem uma conta? Entrar",
-            auth_toggle_register: "Quer un igual? Registre-se",
+            auth_toggle_register: "Quer un igual? Registre-се",
             welcome_download_demo: "Baixar Demonstração",
-            welcome_go_to_settings: "Configurações"
+            welcome_go_to_settings: "Configurações",
+            onboarding_title: "Como funciona",
+            onboarding_step_1: "Carregue a base de conhecimento (Markdown ou texto).",
+            onboarding_step_2: "Obtenha um link como yourname.rag.reloto.ru.",
+            onboarding_step_3: "Seu assistente de IA está online.",
+            onboarding_next: "Próximo",
+            auth_subdomain_label: "Subdomínio desejado"
         }
     };
 
@@ -222,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAuth() {
         const email = authEmail.value;
         const password = authPass.value;
+        const subdomain = authSubdomain.value;
         const path = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
         
         const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -235,11 +260,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const body = { email, password };
+        if (isRegisterMode && subdomain) body.subdomain = subdomain;
+
         try {
             const resp = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify(body)
             });
 
             const data = await resp.json();
@@ -255,7 +283,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 await initSettings();
                 adminOverlay.classList.add('hidden');
                 authPanel.classList.add('hidden');
+                onboardingPanel.classList.add('hidden');
                 settingsPanel.classList.remove('hidden');
+
+                if (isRegisterMode) {
+                    showToast(currentLang === 'ru' ? "Аккаунт успешно создан!" : "Account created successfully!");
+                }
             } else {
                 authError.textContent = data.detail || 'Ошибка входа';
                 authError.classList.remove('hidden');
@@ -276,6 +309,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAuthLabels() {
         authTitle.textContent = currentLang === 'ru' ? (isRegisterMode ? 'Регистрация' : 'Вход в систему') : (isRegisterMode ? 'Registration' : 'Login');
         
+        if (isRegisterMode) {
+            subdomainGroup.classList.remove('hidden');
+            if (authBackBtn) authBackBtn.classList.remove('hidden');
+        } else {
+            subdomainGroup.classList.add('hidden');
+            if (authBackBtn) authBackBtn.classList.add('hidden');
+        }
+
         const btnKey = isRegisterMode ? 'auth_btn_register' : 'auth_btn_login';
         const toggleKey = isRegisterMode ? 'auth_toggle_login' : 'auth_toggle_register';
         
@@ -287,6 +328,22 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleAuthMode.textContent = translations[currentLang][toggleKey];
             toggleAuthMode.setAttribute('data-i18n', toggleKey);
         }
+    }
+
+    if (onboardingNextBtn) {
+        onboardingNextBtn.addEventListener('click', () => {
+            onboardingPanel.classList.add('hidden');
+            authPanel.classList.remove('hidden');
+            isRegisterMode = true;
+            updateAuthLabels();
+        });
+    }
+
+    if (authBackBtn) {
+        authBackBtn.addEventListener('click', () => {
+            authPanel.classList.add('hidden');
+            onboardingPanel.classList.remove('hidden');
+        });
     }
 
     if (authBtn) authBtn.addEventListener('click', handleAuth);
@@ -693,9 +750,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (promoLink) {
         promoLink.addEventListener('click', (e) => {
             e.preventDefault();
-            isRegisterMode = true;
-            updateAuthLabels();
-            showAuth();
+            authPanel.classList.add('hidden');
+            settingsPanel.classList.add('hidden');
+            onboardingPanel.classList.remove('hidden');
+            adminOverlay.classList.remove('hidden');
+            isRegisterMode = false; // Reset to ensure clean start if user goes back and clicks again
         });
     }
 

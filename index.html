@@ -51,6 +51,56 @@
 
     <!-- Admin Panel Overlay -->
     <div class="admin-overlay hidden" id="adminOverlay">
+        <!-- Onboarding View -->
+        <div class="admin-panel hidden" id="onboardingPanel">
+            <div class="admin-header">
+                <h2 data-i18n="onboarding_title">Как это работает</h2>
+                <button class="close-btn" onclick="document.getElementById('adminOverlay').classList.add('hidden')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="admin-content">
+                <div class="onboarding-steps">
+                    <div class="onboarding-step shimmer-step">
+                        <div class="step-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-upload-cloud">
+                                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
+                            </svg>
+                        </div>
+                        <div class="step-info">
+                            <div class="step-text" data-i18n="onboarding_step_1">Загрузите базу знаний (Markdown или текст).</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-step shimmer-step">
+                        <div class="step-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                        </div>
+                        <div class="step-info">
+                            <div class="step-text" data-i18n="onboarding_step_2">Получите ссылку вида yourname.rag.reloto.ru.</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-step shimmer-step">
+                        <div class="step-icon-wrapper">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <div class="step-info">
+                            <div class="step-text" data-i18n="onboarding_step_3">Ваш ИИ-ассистент онлайн.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-footer">
+                <button class="save-btn" id="onboardingNextBtn" data-i18n="onboarding_next">Далее</button>
+            </div>
+        </div>
+
         <!-- Auth View -->
         <div class="admin-panel" id="authPanel">
             <div class="admin-header">
@@ -71,11 +121,21 @@
                     <label class="setting-label">Пароль</label>
                     <input type="password" id="authPass" class="admin-select" style="width: 100%; box-sizing: border-box;">
                 </div>
+                <div class="setting-group hidden" id="subdomainGroup">
+                    <label class="setting-label" data-i18n="auth_subdomain_label">Желаемый поддомен</label>
+                    <div class="subdomain-input-wrapper">
+                        <input type="text" id="authSubdomain" class="admin-select" placeholder="my-project" style="width: 100%; box-sizing: border-box;">
+                        <span class="subdomain-suffix">.rag.reloto.ru</span>
+                    </div>
+                </div>
                 <p id="authError" style="color: #ff4d4d; font-size: 0.8rem; margin-top: 10px;" class="hidden"></p>
             </div>
             <div class="admin-footer" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
                 <button class="save-btn" id="authBtn" data-i18n="auth_btn_login">Войти</button>
-                <button class="action-btn" id="toggleAuthMode" data-i18n="auth_toggle_register" style="font-size: 0.85rem; color: var(--text-secondary);">Хотите такой же? Регистрация</button>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <button class="action-btn hidden" id="authBackBtn" style="font-size: 0.85rem; color: var(--text-secondary);">← Назад</button>
+                    <button class="action-btn" id="toggleAuthMode" data-i18n="auth_toggle_register" style="font-size: 0.85rem; color: var(--text-secondary);">Хотите такой же? Регистрация</button>
+                </div>
             </div>
         </div>
 

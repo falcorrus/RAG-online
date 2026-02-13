@@ -808,6 +808,106 @@ input:checked + .slider:before {
     border-color: var(--border-active);
 }
 
+/* Onboarding Steps */
+.onboarding-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.onboarding-step {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.onboarding-step:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--brand-color);
+    transform: translateY(-2px);
+}
+
+.step-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--brand-color);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.onboarding-step:hover .step-icon-wrapper {
+    background: var(--brand-color);
+    color: white;
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-text {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* Shimmer Effect */
+.shimmer-step::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.03) 20%,
+        rgba(255, 255, 255, 0.06) 60%,
+        rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Subdomain Input */
+.subdomain-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.subdomain-suffix {
+    position: absolute;
+    right: 14px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.subdomain-input-wrapper input {
+    padding-right: 120px; /* Make room for suffix */
+}
+
 #viewLogsBtn {
     position: relative;
     top: -5px; /* Adjust as needed */
