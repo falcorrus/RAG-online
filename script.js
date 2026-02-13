@@ -424,10 +424,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error("Public settings fetch failed", err);
         }
-            }
-        } catch (err) {
-            console.error("Public settings fetch failed", err);
-        }
 
         const token = localStorage.getItem('token');
         if (!token) {
