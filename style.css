@@ -7,9 +7,9 @@
     /* Backgrounds - deep and subtle like the screenshot */
     --bg-main: #020617; 
     --bg-gradient-top: #0f172a; 
-    --bg-card: rgba(255, 255, 255, 0.03); /* Extremely transparent */
-    --bg-input: rgba(255, 255, 255, 0.05);
-    --bg-input-focus: rgba(255, 255, 255, 0.08);
+    --bg-card: rgba(255, 255, 255, 0.08); /* Increased visibility */
+    --bg-input: rgba(255, 255, 255, 0.1);
+    --bg-input-focus: rgba(255, 255, 255, 0.15);
     
     /* Text */
     --text-primary: #f8fafc;
