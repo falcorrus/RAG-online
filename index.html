@@ -209,7 +209,17 @@
     <main class="container" id="mainContainer">
         <!-- Welcome Banner for new users -->
         <div class="welcome-banner force-hidden" id="welcomeBanner">
-            <p class="welcome-text">Вы зарегистрировали свой RAG. Осталось загрузить в настройках свой файл с заметками в формате Markdown (.md)</p>
+            <h2 class="welcome-title">Запускаем свой RAG <span id="welcomeTenantName"></span>:</h2>
+            <ul class="todo-list">
+                <li class="todo-item done">
+                    <span class="todo-icon">✅</span>
+                    <span class="todo-text">Аккаунт зарегистрирован</span>
+                </li>
+                <li class="todo-item">
+                    <span class="todo-icon">⬜</span>
+                    <span class="todo-text">Загрузите в настройках файл с заметками в формате Markdown (.md)</span>
+                </li>
+            </ul>
             <div class="welcome-actions">
                 <button class="welcome-btn secondary" id="downloadDemoBtn" data-i18n="welcome_download_demo">Скачать пример</button>
                 <button class="welcome-btn primary" id="goToSettingsBtn" data-i18n="welcome_go_to_settings">В настройки</button>

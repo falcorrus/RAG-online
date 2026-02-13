@@ -442,6 +442,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (publicResp.ok) {
                 const settings = await publicResp.json();
                 
+                // Update welcome banner with subdomain
+                const welcomeTenantName = document.getElementById('welcomeTenantName');
+                if (welcomeTenantName && settings.subdomain) {
+                    welcomeTenantName.textContent = settings.subdomain;
+                }
+
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 toggleUIByKnowledgeBase(settings.kb_exists);
                 updateTitle(settings.kb_exists, settings.businessName);

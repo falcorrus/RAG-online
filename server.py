@@ -308,10 +308,11 @@ async def get_public_settings(request: Request, lang: str = "ru"):
              settings["underAnswerText"] = ""
             
         sub = tenant.get("subdomain", get_subdomain_by_email(owner_email))
+        settings["subdomain"] = sub
         kb_path = os.path.join(get_tenant_dir(sub), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
-    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False}
+    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": ""}
 
 @app.post("/api/tenant/settings")
 async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):
