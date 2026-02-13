@@ -565,7 +565,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            await loadSuggestions();
+            try {
+                await loadSuggestions();
+            } catch (e) {
+                console.warn("Initial loadSuggestions failed", e);
+            }
             return;
         }
 
@@ -583,7 +587,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     showFileInfo("Загруженная база знаний");
                 }
             }
-            await loadSuggestions();
+            try {
+                await loadSuggestions();
+            } catch (e) {
+                console.warn("Admin loadSuggestions failed", e);
+            }
         } catch (err) {
             console.error("Admin data fetch failed", err);
         }

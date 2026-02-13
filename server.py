@@ -137,6 +137,8 @@ def create_token(email: str, is_admin: bool = False):
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 async def get_current_user(authorization: str = Header(None), required: bool = True):
+    if authorization:
+        print(f"DEBUG: get_current_user auth: {authorization[:20]}...", flush=True)
     if not authorization or not authorization.startswith("Bearer "):
         if required: raise HTTPException(status_code=401, detail="Missing or invalid token")
         return None
