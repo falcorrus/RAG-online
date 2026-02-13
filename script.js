@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for token in URL (after registration redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenFromUrl = urlParams.get('token');
+    if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
+        // Clean up URL without reloading
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+    }
+
     // Elements
     const queryInput = document.getElementById('queryInput');
     const sendBtn = document.getElementById('sendBtn');
@@ -352,6 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 await initSettings();
+
+                if (isRegisterMode && data.subdomain) {
+                    const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
+                    window.location.href = `${newUrl}?token=${data.token}`;
+                    return;
+                }
 
                 const publicRespAfterInit = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicRespAfterInit.ok) {
