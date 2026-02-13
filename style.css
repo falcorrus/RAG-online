@@ -1117,8 +1117,18 @@ input:checked + .slider:before {
 }
 
 .todo-icon {
-    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
     flex-shrink: 0;
+    color: var(--brand-color);
+    opacity: 0.8;
+}
+
+.todo-item.done .todo-icon {
+    color: #22c55e;
 }
 
 .todo-text {
