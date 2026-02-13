@@ -178,14 +178,9 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             
             prompt = f"""Analyze this Knowledge Base. 
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
-<<<<<<< HEAD
 2. Extract the Business Name from the "## Название" section under "Общие настройки" and TRANSLATE it into {lang_name}.
 3. Extract the Under-Answer Text (signature) from the "## Подпись" section under "Общие настройки". Keep it EXACTLY as it appears, but translated to {lang_name} ONLY if it contains descriptive labels (e.g., "Contact:"). 
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name", "underAnswerText": "Contact info"}}.
-=======
-2. Extract or translate the Business/Company name into {lang_name}. If the name is in another language, TRANSLATE it accurately to {lang_name}.
-Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name"}}.
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
 KB: {limited_content}"""
             
             async with httpx.AsyncClient() as client:
@@ -196,25 +191,19 @@ KB: {limited_content}"""
                     try:
                         data = json.loads(clean_text)
                         all_suggestions[code] = data.get("suggestions", [])
-<<<<<<< HEAD
-                        all_names[code] = data.get("businessName", "").strip()
+                        
+                        b_name = data.get("businessName", "").strip()
+                        # If English name still contains Cyrillic, try to strip it or use fallback
+                        if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
+                            b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
+                            if any('\u0400' <= c <= '\u04FF' for c in b_name):
+                                b_name = "AI Knowledge Base" 
+                        all_names[code] = b_name
                         
                         if "under_answers" not in locals(): under_answers = {}
                         under_answers[code] = data.get("underAnswerText", "").strip()
                         
                         print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={all_names[code]}, underAnswer={under_answers[code]}", flush=True)
-=======
-                        b_name = data.get("businessName", "").strip()
-                        # If English name still contains Cyrillic, try to strip it or use fallback
-                        if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                            # Remove anything in parentheses if it contains Cyrillic
-                            b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
-                            # If it still has Cyrillic, it's probably untranslated
-                            if any('\u0400' <= c <= '\u04FF' for c in b_name):
-                                b_name = "AI Knowledge Base" 
-                        all_names[code] = b_name
-                        print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={b_name}", flush=True)
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
                     except json.JSONDecodeError as json_err:
                         print(f"ERROR: JSONDecodeError for {code}: {json_err}")
                         all_suggestions[code] = found_q[:3]
@@ -242,18 +231,6 @@ async def send_telegram_notification(message: str):
         except Exception as e:
             print(f"ERROR: Failed to send Telegram notification: {e}", flush=True)
 
-async def send_telegram_notification(message: str):
-    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("DEBUG: Telegram notification skipped (missing config)", flush=True)
-        return
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
-    async with httpx.AsyncClient() as client:
-        try:
-            await client.post(url, json=payload, timeout=5.0)
-        except Exception as e:
-            print(f"ERROR: Failed to send Telegram notification: {e}", flush=True)
-
 # --- Routes ---
 @app.post("/api/auth/register")
 async def register(auth: UserAuth, background_tasks: BackgroundTasks):
@@ -262,17 +239,11 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     
     # Generate subdomain if not provided
     sub = auth.subdomain or auth.email.split('@')[0]
-<<<<<<< HEAD
     sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
     
     # Create directory immediately
     get_tenant_dir(auth.email)
     
-=======
-    # Simple cleanup for subdomain (alphanumeric only)
-    sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
-    
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
     tenants[auth.email] = {
         "password": pwd_context.hash(auth.password),
         "is_admin": auth.email == "ekirshin@gmail.com",
@@ -403,7 +374,6 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
             context = f.read()
             
     # CRITICAL: Remove General Settings section from AI context to prevent duplication
-    # It looks for headers like # Общие настройки, # General Settings, # Configurações, # Служебная информация
     context = re.sub(r'(?i)#\s*(Общие настройки|General Settings|Configurações|Служебная информация).*?(?=#|\Z)', '', context, flags=re.DOTALL)
     
     # Remove HTML comments to keep them hidden from AI
@@ -415,20 +385,12 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     system_content = f"""You are a helpful and professional Knowledge Base assistant.
 Your goal is to provide accurate information based on the provided context.
 
-<<<<<<< HEAD
 MANDATORY RULES:
 1. You MUST answer EXCLUSIVELY in {target_lang}.
 2. If the user question or the context is in a different language, you MUST TRANSLATE the information and your response into {target_lang} naturally.
 3. NEVER output text in any language other than {target_lang}.
 4. EXCLUDE SIGNATURES: Do NOT include contact info, telegram handles, or "General Settings" data from the context in your answer. This info is already displayed in the UI.
 5. Maintain a helpful and professional tone.
-=======
-MANDATORY LANGUAGE RULE:
-1. You MUST answer EXCLUSIVELY in {target_lang}.
-2. If the user question or the context is in a different language (e.g., Russian), you MUST TRANSLATE the information and your response into {target_lang} naturally and fluently.
-3. NEVER output text in any language other than {target_lang}.
-4. Maintain a helpful and professional tone appropriate for {target_lang}.
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
 
 CONTEXT:
 ---
