@@ -230,9 +230,9 @@ body.has-results .title-area {
     -webkit-backdrop-filter: blur(30px);
     border: 1px solid var(--border-color);
     border-radius: 24px;
-    padding: 14px 18px;
+    padding: 8px 16px;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 12px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     transition: all var(--transition-speed) var(--ease-out);
@@ -256,14 +256,15 @@ textarea {
     outline: none;
     max-height: 150px;
     padding: 4px 0;
+    text-align: center;
 }
 
 .send-btn {
     background: var(--brand-color);
     border: none;
-    border-radius: 14px;
-    width: 42px;
-    height: 42px;
+    border-radius: 12px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -277,6 +278,25 @@ textarea {
 .send-btn.active {
     opacity: 1;
     pointer-events: auto;
+}
+
+.clear-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.clear-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
 /* Suggestions */
