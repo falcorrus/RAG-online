@@ -71,6 +71,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const authError = document.getElementById('authError');
     const authBackBtn = document.getElementById('authBackBtn');
 
+    const welcomeBanner = document.getElementById('welcomeBanner');
+    const downloadDemoBtn = document.getElementById('downloadDemoBtn');
+    const goToSettingsBtn = document.getElementById('goToSettingsBtn');
+
+    function toggleUIByKnowledgeBase(hasKb) {
+        if (!hasKb) {
+            // State: NO KNOWLEDGE BASE
+            if (welcomeBanner) welcomeBanner.classList.remove('force-hidden');
+            
+            // Hide everything else
+            if (searchWrapper) searchWrapper.classList.add('force-hidden');
+            if (headerTools) headerTools.classList.add('force-hidden');
+            if (poweredBy) poweredBy.classList.add('force-hidden');
+            if (creatorFooter) creatorFooter.classList.add('force-hidden');
+            
+            document.body.classList.remove('has-results');
+            if (mainTitle) mainTitle.classList.remove('visible');
+            if (mainSparkle) mainSparkle.classList.remove('visible');
+        } else {
+            // State: KNOWLEDGE BASE EXISTS
+            if (welcomeBanner) welcomeBanner.classList.add('force-hidden');
+            
+            // Show everything else
+            if (searchWrapper) searchWrapper.classList.remove('force-hidden');
+            if (headerTools) headerTools.classList.remove('force-hidden');
+            if (poweredBy) poweredBy.classList.remove('force-hidden');
+            if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+
+            if (mainSparkle) {
+                mainSparkle.classList.remove('force-hidden');
+                mainSparkle.classList.add('visible');
+            }
+            if (mainTitle) {
+                mainTitle.classList.remove('force-hidden');
+                mainTitle.classList.add('visible');
+            }
+        }
+    }
+
+    // INITIAL STATE: Show only banner while waiting for API
+    toggleUIByKnowledgeBase(false);
+
+    if (downloadDemoBtn) {
+        downloadDemoBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('DEBUG: downloadDemoBtn clicked');
+            downloadDemoFile();
+        });
+    }
+    if (goToSettingsBtn) {
+        goToSettingsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('DEBUG: goToSettingsBtn clicked');
+            const token = localStorage.getItem('token');
+            if (!token) showAuth();
+            else {
+                authPanel.classList.add('hidden');
+                settingsPanel.classList.remove('hidden');
+                adminOverlay.classList.remove('hidden');
+                toggleUIByKnowledgeBase(true);
+            }
+        });
+    }
+
+    // INITIAL STATE: Show only banner while waiting for API
+    toggleUIByKnowledgeBase(false);
+
     // State
     function getInitialLang() {
         const saved = localStorage.getItem('user_lang');
@@ -187,41 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     initiallyOpenToggle.checked = true; // Default state
-
-    // Force hide everything initially to prevent flicker
-    toggleUIByKnowledgeBase(false);
-
-    const welcomeBanner = document.getElementById('welcomeBanner');
-    const downloadDemoBtn = document.getElementById('downloadDemoBtn');
-    const goToSettingsBtn = document.getElementById('goToSettingsBtn');
-
-    function toggleUIByKnowledgeBase(hasKb) {
-        if (!hasKb) {
-            if (welcomeBanner) welcomeBanner.classList.remove('force-hidden');
-            if (headerTools) headerTools.classList.add('force-hidden');
-            if (mainSparkle) mainSparkle.classList.add('force-hidden');
-            if (mainTitle) mainTitle.classList.add('force-hidden');
-            if (poweredBy) poweredBy.classList.add('force-hidden');
-            if (creatorFooter) creatorFooter.classList.add('force-hidden');
-            document.body.classList.remove('has-results');
-            
-            if (mainTitle) mainTitle.classList.remove('visible');
-            if (mainSparkle) mainSparkle.classList.remove('visible');
-        } else {
-            if (welcomeBanner) welcomeBanner.classList.add('force-hidden');
-            if (headerTools) headerTools.classList.remove('force-hidden');
-            if (mainSparkle) {
-                mainSparkle.classList.remove('force-hidden');
-                mainSparkle.classList.add('visible');
-            }
-            if (mainTitle) {
-                mainTitle.classList.remove('force-hidden');
-                mainTitle.classList.add('visible');
-            }
-            if (poweredBy) poweredBy.classList.remove('force-hidden');
-            if (creatorFooter) creatorFooter.classList.remove('force-hidden');
-        }
-    }
 
     // --- API Helpers ---
     async function apiRequest(path, method = 'GET', body = null) {
@@ -442,22 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error("Admin data fetch failed", err);
         }
-    }
-
-    if (downloadDemoBtn) downloadDemoBtn.addEventListener('click', downloadDemoFile);
-    if (goToSettingsBtn) {
-        goToSettingsBtn.addEventListener('click', () => {
-            const token = localStorage.getItem('token');
-            if (!token) showAuth(); // Если нет токена, переходим к авторизации
-            else {
-                // Если токен есть, показываем настройки
-                authPanel.classList.add('hidden');
-                settingsPanel.classList.remove('hidden');
-                adminOverlay.classList.remove('hidden');
-                // Скрываем баннер и показываем основной UI
-                toggleUIByKnowledgeBase(true);
-            }
-        });
     }
 
     async function loadSuggestions() {

@@ -1059,7 +1059,12 @@ input:checked + .slider:before {
     gap: 16px;
     animation: fadeInDown 0.6s var(--ease-out);
     backdrop-filter: blur(10px);
-    z-index: 100; /* Убедимся, что баннер находится поверх */
+    z-index: 2000; /* Убедимся, что баннер находится поверх всего */
+    pointer-events: auto !important;
+}
+
+.welcome-banner * {
+    pointer-events: auto !important;
 }
 
 @keyframes fadeInDown {
@@ -1088,6 +1093,9 @@ input:checked + .slider:before {
     cursor: pointer;
     transition: all 0.2s;
     border: none;
+    position: relative;
+    z-index: 2100;
+    pointer-events: auto !important;
 }
 
 .welcome-btn.primary {
