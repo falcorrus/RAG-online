@@ -810,81 +810,62 @@ input:checked + .slider:before {
 .onboarding-steps {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 0;
+    position: relative;
+    padding: 10px 0;
 }
 
 .onboarding-step {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s var(--ease-out);
+    padding: 12px 0;
+    background: transparent;
+    border: none;
     position: relative;
-    overflow: hidden;
 }
 
-.onboarding-step:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--brand-color);
-    transform: translateY(-2px);
+/* Vertical line connector */
+.onboarding-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 52px;
+    bottom: -12px;
+    width: 2px;
+    background: rgba(99, 102, 241, 0.2);
+    z-index: 1;
 }
 
 .step-icon-wrapper {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
     background: rgba(99, 102, 241, 0.1);
     color: var(--brand-color);
-    border-radius: 14px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: all 0.3s ease;
-}
-
-.onboarding-step:hover .step-icon-wrapper {
-    background: var(--brand-color);
-    color: white;
-    transform: scale(1.1) rotate(-5deg);
+    z-index: 2;
+    border: 2px solid var(--bg-card);
 }
 
 .step-info {
     flex: 1;
+    padding-top: 8px;
 }
 
 .step-text {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 500;
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
-/* Shimmer Effect */
+/* Shimmer Effect - updated for new style */
 .shimmer-step::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-    background-image: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0,
-        rgba(255, 255, 255, 0.03) 20%,
-        rgba(255, 255, 255, 0.06) 60%,
-        rgba(255, 255, 255, 0)
-    );
-    animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-    100% {
-        transform: translateX(100%);
-    }
+    display: none; /* Disable old shimmer for cleaner look */
 }
 
 /* Subdomain Input */
