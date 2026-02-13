@@ -594,7 +594,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     await loadSuggestions();
-                    showToast(currentLang === 'ru' ? "База знаний обновлена" : "Knowledge base updated");
+                    const msg = currentLang === 'ru' ? 
+                        "База обрабатывается. Подождите 5 секунд, страница перезагрузится автоматически..." : 
+                        "Knowledge base is being processed. Please wait 5 seconds, the page will reload automatically...";
+                    showToast(msg, false);
+                    setTimeout(() => window.location.reload(), 5000);
                 } else {
                     const errorData = await resp.json();
                     showToast(errorData.detail || "Upload error", true);
