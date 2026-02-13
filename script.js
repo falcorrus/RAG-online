@@ -190,6 +190,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadDemoBtn = document.getElementById('downloadDemoBtn');
     const goToSettingsBtn = document.getElementById('goToSettingsBtn');
 
+    function toggleUIByKnowledgeBase(hasKb) {
+        if (!hasKb) {
+            welcomeBanner.classList.remove('force-hidden');
+            if (headerTools) headerTools.classList.add('force-hidden');
+            if (mainSparkle) mainSparkle.classList.add('force-hidden');
+            if (mainTitle) mainTitle.classList.add('force-hidden');
+            if (poweredBy) poweredBy.classList.add('force-hidden');
+            if (creatorFooter) creatorFooter.classList.add('force-hidden');
+            document.body.classList.remove('has-results');
+        } else {
+            welcomeBanner.classList.add('force-hidden');
+            if (headerTools) headerTools.classList.remove('force-hidden');
+            if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+            if (mainTitle) mainTitle.classList.remove('force-hidden');
+            if (poweredBy) poweredBy.classList.remove('force-hidden');
+            if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+        }
+    }
+
     // --- API Helpers ---
     async function apiRequest(path, method = 'GET', body = null) {
         const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -291,38 +310,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const publicRespAfterInit = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicRespAfterInit.ok) {
                     const settingsAfterInit = await publicRespAfterInit.json();
-                    if (settingsAfterInit.kb_exists === false) { // Если KB пуста
+                    toggleUIByKnowledgeBase(settingsAfterInit.kb_exists);
+                    if (settingsAfterInit.kb_exists === false) {
                         adminOverlay.classList.remove('hidden');
                         authPanel.classList.add('hidden');
                         onboardingPanel.classList.add('hidden');
                         settingsPanel.classList.remove('hidden');
                         showToast(currentLang === 'ru' ? "Аккаунт успешно создан! Загрузите базу знаний." : "Account created! Upload your knowledge base.", false);
-                        // Дополнительно показываем welcomeBanner, если он был скрыт при входе/регистрации
-                        welcomeBanner.classList.remove('force-hidden');
-                        if (headerTools) headerTools.classList.add('force-hidden');
-                        // searchWrapper остается видимым
-                        if (poweredBy) poweredBy.classList.add('force-hidden');
-                        if (creatorFooter) creatorFooter.classList.add('force-hidden');
-                        if (mainTitle) mainTitle.classList.add('force-hidden');
-                        if (mainSparkle) mainSparkle.classList.add('force-hidden');
-                        document.body.classList.remove('has-results');
-                        return; // Выходим, чтобы не закрывать adminOverlay
+                        return;
                     }
                 }
 
-                // Если KB существует или это просто вход, закрываем все панели и показываем основной UI
                 adminOverlay.classList.add('hidden');
                 authPanel.classList.add('hidden');
                 onboardingPanel.classList.add('hidden');
-                settingsPanel.classList.add('hidden'); // Убедимся, что settingsPanel тоже скрыта при обычном логине
-                // Убеждаемся, что все основные элементы UI видны после закрытия оверлея
-                welcomeBanner.classList.add('force-hidden'); // Скрываем баннер
-                if (headerTools) headerTools.classList.remove('force-hidden');
-                // searchWrapper остается видимым
-                if (poweredBy) poweredBy.classList.remove('force-hidden');
-                if (creatorFooter) creatorFooter.classList.remove('force-hidden');
-                if (mainTitle) mainTitle.classList.remove('force-hidden');
-                if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+                settingsPanel.classList.add('hidden');
                 
                 if (isRegisterMode) {
                     showToast(currentLang === 'ru' ? "Аккаунт успешно создан!" : "Account created successfully!");
@@ -395,25 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const settings = await publicResp.json();
                 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
-
-                if (settings.kb_exists === false) {
-                    console.log('initSettings: kb_exists is FALSE, attempting to show welcomeBanner');
-                    welcomeBanner.classList.remove('force-hidden'); 
-                    if (headerTools) headerTools.classList.add('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.add('force-hidden');
-                    if (mainTitle) mainTitle.classList.add('force-hidden');
-                    if (poweredBy) poweredBy.classList.add('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.add('force-hidden');
-                    document.body.classList.remove('has-results'); 
-                } else {
-                    console.log('initSettings: kb_exists is TRUE, attempting to hide welcomeBanner');
-                    welcomeBanner.classList.add('force-hidden'); 
-                    if (headerTools) headerTools.classList.remove('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.remove('force-hidden');
-                    if (mainTitle) mainTitle.classList.remove('force-hidden');
-                    if (poweredBy) poweredBy.classList.remove('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.remove('force-hidden');
-                }
+                toggleUIByKnowledgeBase(settings.kb_exists);
                 
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
@@ -449,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
-                    welcomeBanner.classList.add('hidden');
+                    toggleUIByKnowledgeBase(true);
                 }
             }
             await loadSuggestions();
@@ -469,12 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 settingsPanel.classList.remove('hidden');
                 adminOverlay.classList.remove('hidden');
                 // Скрываем баннер и показываем основной UI
-                welcomeBanner.classList.add('force-hidden');
-                if (headerTools) headerTools.classList.remove('force-hidden');
-                if (mainSparkle) mainSparkle.classList.remove('force-hidden');
-                if (mainTitle) mainTitle.classList.remove('force-hidden');
-                if (poweredBy) poweredBy.classList.remove('force-hidden');
-                if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+                toggleUIByKnowledgeBase(true);
             }
         });
     }
@@ -558,12 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
-                    welcomeBanner.classList.add('force-hidden'); // Скрываем баннер
-                    if (headerTools) headerTools.classList.remove('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.remove('force-hidden');
-                    if (mainTitle) mainTitle.classList.remove('force-hidden');
-                    if (poweredBy) poweredBy.classList.remove('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+                    toggleUIByKnowledgeBase(true);
                     
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
@@ -697,14 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     fileInfo.classList.add('hidden');
                     kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
                     
-                    // Показываем welcomeBanner и скрываем элементы UI
-                    welcomeBanner.classList.remove('force-hidden');
-                    if (headerTools) headerTools.classList.add('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.add('force-hidden');
-                    if (mainTitle) mainTitle.classList.add('force-hidden');
-                    if (poweredBy) poweredBy.classList.add('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.add('force-hidden');
-                    document.body.classList.remove('has-results');
+                    toggleUIByKnowledgeBase(false);
 
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
