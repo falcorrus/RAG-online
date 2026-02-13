@@ -1070,7 +1070,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function typeWriterEffect(text, element) {
-        element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        element.innerHTML = '';
+        const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        
+        // Split by tags and characters to preserve HTML
+        const parts = formattedText.split(/(<[^>]*>)/g);
+        let i = 0;
+        let charIndex = 0;
+        
+        function type() {
+            if (i < parts.length) {
+                if (parts[i].startsWith('<')) {
+                    element.innerHTML += parts[i];
+                    i++;
+                    setTimeout(type, 0);
+                } else {
+                    if (charIndex < parts[i].length) {
+                        element.innerHTML += parts[i].charAt(charIndex);
+                        charIndex++;
+                        setTimeout(type, 15); // Adjust speed here
+                    } else {
+                        i++;
+                        charIndex = 0;
+                        setTimeout(type, 0);
+                    }
+                }
+            }
+        }
+        type();
     }
 
     const creatorLink = document.getElementById('creatorLink');
