@@ -367,9 +367,11 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/auth/login")
-async def login(auth: UserAuth):
+async def login(auth: UserAuth, request: Request):
     email = auth.email.strip().lower()
-    print(f"DEBUG: Login attempt for email: '{email}'", flush=True)
+    host = request.headers.get("host", "")
+    print(f"DEBUG: Login attempt for email: '{email}' on host: '{host}'", flush=True)
+    
     tenants = get_tenants()
     user = tenants.get(email)
     if not user:
@@ -379,6 +381,15 @@ async def login(auth: UserAuth):
     if not pwd_context.verify(auth.password, user["password"]):
         print(f"DEBUG: Login failed - password mismatch for '{email}'", flush=True)
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Domain restriction check
+    expected_owner = get_tenant_by_host(host)
+    # Special case: allow admin/default tenant on localhost or raw IP for debugging
+    is_local = "localhost" in host or "127.0.0.1" in host or re.match(r"^\d+\.\d+\.\d+\.\d+", host)
+    
+    if not is_local and email != expected_owner:
+        print(f"DEBUG: Login blocked - User '{email}' cannot login on host '{host}' (belongs to '{expected_owner}')", flush=True)
+        raise HTTPException(status_code=403, detail="Access denied for this domain")
         
     print(f"DEBUG: Login successful for '{email}'", flush=True)
     return { "token": create_token(email, user.get("is_admin", False)), "subdomain": user.get("subdomain") }
