@@ -246,9 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleAuth() {
         console.log('handleAuth: Function called');
-        const email = authEmail.value;
+        const email = authEmail.value.trim().toLowerCase();
         const password = authPass.value;
-        const subdomain = authSubdomain.value;
+        const subdomain = authSubdomain.value.trim();
         const path = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
         
         const baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -256,14 +256,18 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
         const url = baseUrl + path;
 
-        if (!email || !password) {
-            authError.textContent = 'Введите email и пароль';
+        if (!email || !password || (isRegisterMode && !subdomain)) {
+            if (currentLang === 'ru') {
+                authError.textContent = isRegisterMode ? 'Введите почту, пароль и поддомен' : 'Введите email и пароль';
+            } else {
+                authError.textContent = isRegisterMode ? 'Enter email, password and subdomain' : 'Enter email and password';
+            }
             authError.classList.remove('hidden');
             return;
         }
 
         const body = { email, password };
-        if (isRegisterMode && subdomain) body.subdomain = subdomain;
+        if (isRegisterMode) body.subdomain = subdomain;
 
         try {
             const resp = await fetch(url, {

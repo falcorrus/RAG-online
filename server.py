@@ -82,16 +82,24 @@ def save_tenants(tenants):
     with open(TENANTS_FILE, 'w') as f:
         json.dump(tenants, f, indent=4)
 
-def get_tenant_dir(email: str):
+def get_subdomain_by_email(email: str):
+    tenants = get_tenants()
+    tenant = tenants.get(email)
+    if tenant and tenant.get("subdomain"):
+        return tenant["subdomain"]
+    # Fallback for new registrations or legacy
+    return re.sub(r'[^a-zA-Z0-9]', '_', email.lower())
+
+def get_tenant_dir(subdomain: str):
     """Returns the path to the tenant's private directory, creating it if needed."""
-    folder_name = re.sub(r'[^a-zA-Z0-9]', '_', email.lower())
-    path = os.path.join(STORAGE_DIR, folder_name)
+    path = os.path.join(STORAGE_DIR, subdomain)
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     return path
 
 def get_tenant_log_path(email: str):
-    return os.path.join(get_tenant_dir(email), "logs.json")
+    sub = get_subdomain_by_email(email)
+    return os.path.join(get_tenant_dir(sub), "logs.json")
 
 def load_tenant_logs(email: str) -> List[dict]:
     path = get_tenant_log_path(email)
@@ -234,27 +242,39 @@ async def send_telegram_notification(message: str):
 # --- Routes ---
 @app.post("/api/auth/register")
 async def register(auth: UserAuth, background_tasks: BackgroundTasks):
+    email = auth.email.strip().lower() if auth.email else ""
+    password = auth.password if auth.password else ""
+    subdomain = auth.subdomain.strip().lower() if auth.subdomain else ""
+
+    print(f"DEBUG: Registration attempt for email: '{email}', subdomain: '{subdomain}'", flush=True)
+
+    if not email or not password or not subdomain:
+        print(f"DEBUG: Registration failed - missing required fields", flush=True)
+        raise HTTPException(status_code=400, detail="Email, password, and subdomain are required")
+
     tenants = get_tenants()
-    if auth.email in tenants: raise HTTPException(status_code=400, detail="User already exists")
-    
-    # Generate subdomain: priority to explicit field, fallback to email prefix
-    raw_sub = auth.subdomain.strip() if auth.subdomain else ""
-    sub = raw_sub if raw_sub else auth.email.split('@')[0]
+    if email in tenants:
+        print(f"DEBUG: Registration failed - user '{email}' already exists", flush=True)
+        raise HTTPException(status_code=400, detail="User already exists")
     
     # Cleanup subdomain (alphanumeric and hyphens only)
-    sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
+    sub = re.sub(r'[^a-zA-Z0-9-]', '', subdomain)
+    
+    if not sub:
+        raise HTTPException(status_code=400, detail="Invalid subdomain format")
     
     # Check for subdomain uniqueness
     for existing_email, data in tenants.items():
         if data.get("subdomain") == sub:
+            print(f"DEBUG: Registration failed - subdomain '{sub}' taken", flush=True)
             raise HTTPException(status_code=400, detail=f"Subdomain '{sub}' is already taken")
     
     # Create directory immediately
-    get_tenant_dir(auth.email)
+    get_tenant_dir(sub)
     
-    tenants[auth.email] = {
+    tenants[email] = {
         "password": pwd_context.hash(auth.password),
-        "is_admin": auth.email == "ekirshin@gmail.com",
+        "is_admin": email == "ekirshin@gmail.com",
         "subdomain": sub,
         "settings": {"initiallyOpen": True},
         "suggestions_cache": {}
@@ -263,10 +283,11 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     
     # Send notification
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
-    notif_msg = f"🚀 *Новая регистрация в RAG-online!*\n\n📧 *Email:* `{auth.email}`\n🌐 *Поддомен:* `{sub}`\n⏰ *Время:* {now}"
+    notif_msg = f"🚀 *Новая регистрация в RAG-online!*\n\n📧 *Email:* `{email}`\n🌐 *Поддомен:* `{sub}`\n⏰ *Время:* {now}"
     background_tasks.add_task(send_telegram_notification, notif_msg)
     
-    return { "token": create_token(auth.email, tenants[auth.email]["is_admin"]), "subdomain": sub }
+    print(f"DEBUG: Registration successful for '{email}'", flush=True)
+    return { "token": create_token(email, tenants[email]["is_admin"]), "subdomain": sub }
 
 @app.get("/api/settings")
 async def get_public_settings(request: Request, lang: str = "ru"):
@@ -286,7 +307,8 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         if not settings["underAnswerText"]:
              settings["underAnswerText"] = ""
             
-        kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
+        sub = tenant.get("subdomain", get_subdomain_by_email(owner_email))
+        kb_path = os.path.join(get_tenant_dir(sub), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
     return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False}
@@ -316,11 +338,20 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
 
 @app.post("/api/auth/login")
 async def login(auth: UserAuth):
+    email = auth.email.strip().lower()
+    print(f"DEBUG: Login attempt for email: '{email}'", flush=True)
     tenants = get_tenants()
-    user = tenants.get(auth.email)
-    if not user or not pwd_context.verify(auth.password, user["password"]):
+    user = tenants.get(email)
+    if not user:
+        print(f"DEBUG: Login failed - user '{email}' not found in tenants", flush=True)
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    return { "token": create_token(auth.email, user.get("is_admin", False)), "subdomain": user.get("subdomain") }
+    
+    if not pwd_context.verify(auth.password, user["password"]):
+        print(f"DEBUG: Login failed - password mismatch for '{email}'", flush=True)
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+    print(f"DEBUG: Login successful for '{email}'", flush=True)
+    return { "token": create_token(email, user.get("is_admin", False)), "subdomain": user.get("subdomain") }
 
 @app.post("/api/tenant/kb")
 async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(get_current_user)):
@@ -330,7 +361,8 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
         raise HTTPException(status_code=404, detail="Tenant not found")
 
     content = data.get("content", "")
-    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
+    sub = get_subdomain_by_email(owner_email)
+    kb_path = os.path.join(get_tenant_dir(sub), "base.md")
 
     print(f"DEBUG: Attempting to save KB for {owner_email} to {kb_path} (content length: {len(content)})", flush=True)
     try:
@@ -375,7 +407,8 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     tenants = get_tenants()
     if owner_email not in tenants: return {"answer": "Knowledge base not configured."}
     
-    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
+    sub = get_subdomain_by_email(owner_email)
+    kb_path = os.path.join(get_tenant_dir(sub), "base.md")
     context = ""
     if os.path.exists(kb_path):
         with open(kb_path, 'r', encoding='utf-8') as f: 
@@ -461,7 +494,8 @@ async def get_settings(user=Depends(get_current_user)):
 @app.get("/api/tenant/kb")
 async def get_kb(user=Depends(get_current_user)):
     owner_email = user["sub"]
-    kb_path = os.path.join(get_tenant_dir(owner_email), "base.md")
+    sub = get_subdomain_by_email(owner_email)
+    kb_path = os.path.join(get_tenant_dir(sub), "base.md")
     if os.path.exists(kb_path):
         try:
             with open(kb_path, 'r', encoding='utf-8') as f:
