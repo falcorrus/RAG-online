@@ -811,9 +811,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const val = queryInput.value.trim();
         
         // Dynamic height adjustment
-        queryInput.style.height = 'auto';
+        queryInput.style.height = '24px'; // Fixed base height for single line
         if (queryInput.value.length > 0) {
-            queryInput.style.height = (queryInput.scrollHeight) + 'px';
+            const newHeight = queryInput.scrollHeight;
+            if (newHeight > 24) {
+                queryInput.style.height = newHeight + 'px';
+            }
         }
         
         if (val.length > 0) { 
