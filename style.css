@@ -362,10 +362,84 @@ textarea {
     font-weight: 600;
 }
 
+.text-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.text-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: var(--brand-color);
+}
+
 .user-badge {
     color: var(--text-secondary);
     font-size: 0.875rem;
     opacity: 0.7;
+}
+
+/* Onboarding Steps Flow */
+.onboarding-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding: 8px 0;
+}
+
+.onboarding-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 16px 0;
+    position: relative;
+}
+
+.onboarding-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 52px;
+    bottom: -12px;
+    width: 2px;
+    background: rgba(99, 102, 241, 0.2);
+    z-index: 1;
+}
+
+.step-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--brand-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 2;
+    border: 2px solid var(--bg-card);
+}
+
+.step-info {
+    flex: 1;
+    padding-top: 8px;
+}
+
+.step-text {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
 }
 
 .segmented-control {
