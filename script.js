@@ -33,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewLogsBtn = document.getElementById('viewLogsBtn');
     const clearLogsBtn = document.getElementById('clearLogsBtn');
     const closeLogsBtn = document.getElementById('closeLogsBtn');
+    const adminPanelTitle = document.getElementById('adminPanelTitle');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
     const resultsArea = document.getElementById('resultsArea');
     const answerCard = document.getElementById('answerCard');
@@ -72,6 +75,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmActionBtn) confirmActionBtn.addEventListener('click', () => {
         if (onConfirmAction) onConfirmAction();
         hideConfirmationModal();
+    });
+
+    // Tab Logic
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+            
+            // Update buttons
+            tabBtns.forEach(b => b.classList.toggle('active', b === btn));
+            
+            // Update contents
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${targetTab}Tab`);
+            });
+
+            if (targetTab === 'logs') {
+                loadLogs();
+            }
+        });
     });
 
     let underAnswerText = "";
@@ -231,7 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
             source_label: "Для вопросов: @argodon",
-            admin_title: "Настройки администратора",
+            admin_title: "Панель управления",
+            tab_settings: "Настройки",
+            tab_logs: "Логи чата",
+            download_logs_btn: "Скачать логи",
+            download_kb_btn: "Скачать базу",
             kb_upload_label: "База знаний (.md)",
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
@@ -242,8 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             view_logs_btn: "Просмотреть логи",
             logs_title: "Логи чата",
             no_logs_msg: "Логи пока пусты.",
-            clear_logs_btn: "Очистить логи",
-            download_logs_btn: "Скачать",
+            clear_logs_btn: "Очистить все",
             log_item_label: "Запрос",
             promo_link: "Создайте свой RAG в 2 клика",
             auth_btn_login: "Войти",
@@ -274,7 +299,11 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_2: "Work schedule",
             suggestion_3: "HR Contacts",
             source_label: "Questions: @argodon",
-            admin_title: "Admin Settings",
+            admin_title: "Control Panel",
+            tab_settings: "Settings",
+            tab_logs: "Chat Logs",
+            download_logs_btn: "Download Logs",
+            download_kb_btn: "Download KB",
             kb_upload_label: "Knowledge Base (.md)",
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
@@ -285,8 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             view_logs_btn: "View Logs",
             logs_title: "Chat Logs",
             no_logs_msg: "No logs yet.",
-            clear_logs_btn: "Clear Logs",
-            download_logs_btn: "Download",
+            clear_logs_btn: "Clear All",
             log_item_label: "Query",
             promo_link: "Create your RAG in 2 clicks",
             auth_btn_login: "Login",
@@ -317,7 +345,11 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_2: "Horário de trabalho",
             suggestion_3: "Contatos de RH",
             source_label: "Questões: @argodon",
-            admin_title: "Configurações do Administrador",
+            admin_title: "Painel de Controle",
+            tab_settings: "Configurações",
+            tab_logs: "Registros",
+            download_logs_btn: "Baixar logs",
+            download_kb_btn: "Baixar base",
             kb_upload_label: "Base de Conhecimento (.md)",
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
@@ -328,8 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
             view_logs_btn: "Ver Registros",
             logs_title: "Registros de Chat",
             no_logs_msg: "Nenhum registro ainda.",
-            clear_logs_btn: "Limpar Registros",
-            download_logs_btn: "Baixar",
+            clear_logs_btn: "Limpar tudo",
             log_item_label: "Consulta",
             promo_link: "Crie seu RAG em 2 cliques",
             auth_btn_login: "Entrar",
@@ -622,10 +653,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 const data = await resp.json();
                 suggestionsContainer.innerHTML = '';
-                data.suggestions.forEach(text => {
+                data.suggestions.forEach((text, index) => {
                     const chip = document.createElement('div');
                     chip.className = 'suggestion-chip';
                     chip.textContent = text;
+                    chip.style.opacity = '0';
+                    chip.style.transform = 'translateY(10px)';
+                    chip.style.transition = `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s`;
+                    
                     chip.addEventListener('click', () => {
                         if (queryInput) {
                             queryInput.value = text;
@@ -634,6 +669,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                     suggestionsContainer.appendChild(chip);
+                    
+                    // Trigger animation
+                    requestAnimationFrame(() => {
+                        chip.style.opacity = '1';
+                        chip.style.transform = 'translateY(0)';
+                    });
                 });
             }
         } catch (err) {
@@ -647,8 +688,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const toastIcon = toast.querySelector('.toast-icon');
         
         toastMessage.textContent = message;
-        toastIcon.textContent = isError ? '✕' : '✓';
-        toastIcon.style.color = isError ? '#ff4d4d' : '#4ade80';
+        
+        if (isError) {
+            toastIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+        } else {
+            toastIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        }
         
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
@@ -809,6 +854,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (!token) showAuth();
             else {
+                // Reset to settings tab
+                tabBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === 'settings'));
+                tabContents.forEach(content => content.classList.toggle('active', content.id === 'settingsTab'));
+
+                // Set admin info from token
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    const email = payload.sub || "";
+                    const adminEmailSpan = document.querySelector('.admin-email');
+                    if (adminEmailSpan) {
+                        adminEmailSpan.textContent = email;
+                        adminEmailSpan.title = email;
+                    }
+                } catch (e) {
+                    console.error("Failed to parse token for email", e);
+                }
+
                 authPanel.classList.add('hidden');
                 settingsPanel.classList.remove('hidden');
                 adminOverlay.classList.remove('hidden');
@@ -1007,6 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const creatorLink = document.getElementById('creatorLink');
     const creatorPopup = document.getElementById('creatorPopup');
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
+    const downloadKbBtn = document.getElementById('downloadKbBtn');
     const promoLink = document.getElementById('promoLink');
     const copyBtn = document.getElementById('copyBtn');
 
@@ -1033,29 +1096,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (viewLogsBtn) viewLogsBtn.addEventListener('click', async () => {
-        settingsPanel.classList.add('hidden');
-        logsPanel.classList.remove('hidden');
-        await loadLogs();
-    });
-
-    if (closeLogsBtn) closeLogsBtn.addEventListener('click', () => {
-        logsPanel.classList.add('hidden');
-        settingsPanel.classList.remove('hidden');
-    });
-
-    if (clearLogsBtn) clearLogsBtn.addEventListener('click', async () => {
-        if (!confirm(currentLang === 'ru' ? "Вы уверены, что хотите очистить все логи?" : "Are you sure you want to clear all logs?")) return;
-        try {
-            const resp = await apiRequest('/api/tenant/logs', 'DELETE');
-            if (resp.ok) {
-                showToast(currentLang === 'ru' ? "Логи очищены" : "Logs cleared");
-                renderLogs([]);
-            }
-        } catch (err) {
-            showToast("Error", true);
-        }
-    });
+    if (clearLogsBtn) {
+        clearLogsBtn.addEventListener('click', () => {
+            showConfirmationModal(currentLang === 'ru' ? "Очистить все логи?" : "Clear all logs?", async () => {
+                try {
+                    const resp = await apiRequest('/api/tenant/logs', 'DELETE');
+                    if (resp.ok) {
+                        showToast(currentLang === 'ru' ? "Логи очищены" : "Logs cleared");
+                        renderLogs([]);
+                    }
+                } catch (err) {
+                    showToast("Error", true);
+                }
+            });
+        });
+    }
 
     function renderLogs(logs) {
         logsContent.innerHTML = '';
@@ -1064,9 +1119,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        logs.slice().reverse().forEach(log => {
+        logs.slice().reverse().forEach((log, index) => {
             const logItem = document.createElement('div');
             logItem.className = 'log-item';
+            logItem.style.opacity = '0';
+            logItem.style.transform = 'translateY(10px)';
+            logItem.style.transition = `all 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${Math.min(index * 0.03, 0.5)}s`;
+
             const timestamp = new Date(log.timestamp).toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US');
             logItem.innerHTML = `
                 <div class="log-header">
@@ -1077,6 +1136,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="log-answer">Answer: ${log.answer}</div>
             `;
             logsContent.appendChild(logItem);
+            
+            requestAnimationFrame(() => {
+                logItem.style.opacity = '1';
+                logItem.style.transform = 'translateY(0)';
+            });
         });
     }
 
@@ -1114,7 +1178,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function downloadKb() {
+        try {
+            const resp = await apiRequest('/api/tenant/kb');
+            if (resp.ok) {
+                const data = await resp.json();
+                if (!data.content) {
+                    showToast(currentLang === 'ru' ? "База пуста" : "Knowledge base is empty", true);
+                    return;
+                }
+                const blob = new Blob([data.content], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `kb_${new Date().toISOString().split('T')[0]}.md`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast(currentLang === 'ru' ? "База знаний скачана" : "Knowledge base downloaded");
+            }
+        } catch (err) {
+            showToast("Error", true);
+        }
+    }
+
     if (downloadLogsBtn) downloadLogsBtn.addEventListener('click', downloadLogs);
+    if (downloadKbBtn) downloadKbBtn.addEventListener('click', downloadKb);
 
     if (creatorLink && creatorPopup) {
         creatorLink.addEventListener('click', (e) => {

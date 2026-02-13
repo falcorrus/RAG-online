@@ -7,7 +7,7 @@
     <title>AI Knowledge Base</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Google tag (gtag.js) -->
@@ -25,7 +25,9 @@
     <div class="background-gradient"></div>
 
     <div class="floating-btn" id="floatingBtn">
-        ✨
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
     </div>
 
     <div class="header-tools force-hidden">
@@ -130,53 +132,76 @@
             </div>
         </div>
 
-        <!-- Admin View -->
-        <div class="admin-panel hidden" id="settingsPanel">
-            <div class="admin-header">
-                <h2 data-i18n="admin_title">Настройки администратора</h2>
-                <button class="action-btn" id="viewLogsBtn" data-i18n="view_logs_btn">Просмотреть логи</button>
-                <button class="close-btn" id="closeAdminBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+        <div class="admin-panel hidden" id="settingsPanel" style="max-width: 600px;">
+            <div class="admin-header-compact">
+                <div class="header-top">
+                    <h2 id="adminPanelTitle" data-i18n="admin_title">Настройки</h2>
+                    <button class="close-btn" id="closeAdminBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="user-badge-wrapper">
+                    <span class="user-badge admin-email"></span>
+                </div>
+                
+                <div class="admin-tabs segmented-control">
+                    <button class="tab-btn active" data-tab="settings" data-i18n="tab_settings">Настройки</button>
+                    <button class="tab-btn" data-tab="logs" id="viewLogsBtn" data-i18n="tab_logs">Логи чата</button>
+                </div>
             </div>
 
-            <div class="admin-content">
-                <!-- File Drop Zone -->
-                <div class="setting-group">
-                    <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
-                    <div class="drop-zone" id="kbDropZone">
-                        <div class="drop-zone-content">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <p data-i18n="drop_zone_text">Перетащите .md файл или кликните для выбора</p>
-                            <input type="file" id="kbFileInput" accept=".md" class="hidden">
+            <div class="admin-main">
+                <!-- Settings Tab -->
+                <div class="tab-content active" id="settingsTab">
+                    <div class="admin-content">
+                        <!-- File Drop Zone -->
+                        <div class="setting-group">
+                            <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
+                            <div class="drop-zone" id="kbDropZone">
+                                <div class="drop-zone-content">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <p data-i18n="drop_zone_text">Перетащите .md файл или кликните для выбора</p>
+                                    <input type="file" id="kbFileInput" accept=".md" class="hidden">
+                                </div>
+                                <div class="file-info hidden" id="fileInfo">
+                                    <span class="file-name"></span>
+                                    <button class="remove-file-btn" id="removeFileBtn">✕</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="file-info hidden" id="fileInfo">
-                            <span class="file-name"></span>
-                            <button class="remove-file-btn" id="removeFileBtn">✕</button>
+
+                        <!-- Toggles -->
+                        <div class="setting-group">
+                            <div class="toggle-wrapper">
+                                <span class="setting-label" data-i18n="initially_open_label">Изначально открыто</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="initiallyOpenToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Toggles -->
-                <div class="setting-group">
-                    <div class="toggle-wrapper">
-                        <span class="setting-label" data-i18n="initially_open_label">Изначально открыто</span>
-                        <label class="switch">
-                            <input type="checkbox" id="initiallyOpenToggle">
-                            <span class="slider round"></span>
-                        </label>
+                <!-- Logs Tab -->
+                <div class="tab-content" id="logsTab">
+                    <div class="logs-toolbar">
+                        <button class="action-btn small" id="downloadKbBtn" data-i18n="download_kb_btn">Скачать базу</button>
+                        <button class="action-btn small" id="downloadLogsBtn" data-i18n="download_logs_btn">Скачать логи</button>
+                        <button class="action-btn small danger" id="clearLogsBtn" data-i18n="clear_logs_btn">Очистить</button>
+                    </div>
+                    <div class="admin-content" id="logsContent" style="max-height: 400px; overflow-y: auto;">
+                        <p data-i18n="no_logs_msg">Логи пока пусты.</p>
                     </div>
                 </div>
-
-                <!-- Default Language -->
             </div>
 
             <div class="admin-footer">
@@ -184,26 +209,8 @@
             </div>
         </div>
 
-        <!-- Logs View -->
-        <div class="admin-panel hidden" id="logsPanel">
-            <div class="admin-header">
-                <h2 data-i18n="logs_title">Логи чата</h2>
-                <button class="action-btn" id="downloadLogsBtn" data-i18n="download_logs_btn">Скачать</button>
-                <button class="close-btn" id="closeLogsBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <div class="admin-content" id="logsContent">
-                <!-- Logs will be loaded here -->
-                <p data-i18n="no_logs_msg">Логи пока пусты.</p>
-            </div>
-            <div class="admin-footer">
-                <button class="action-btn" id="clearLogsBtn" data-i18n="clear_logs_btn">Очистить логи</button>
-            </div>
-        </div>
+        <!-- Remove old logsPanel as it's now integrated -->
+        <div class="admin-panel hidden" id="logsPanel"></div>
     </div>
 
     <main class="container" id="mainContainer">
@@ -236,7 +243,11 @@
 
         <div class="search-wrapper" id="searchWrapper">
             <div class="title-area">
-                <div class="sparkle-icon force-hidden" id="mainSparkle">✨</div>
+                <div class="sparkle-icon force-hidden" id="mainSparkle">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1"></path>
+                    </svg>
+                </div>
                 <h1 data-i18n="title_main" id="mainTitle" class="force-hidden">AI Knowledge Base</h1>
             </div>
 
