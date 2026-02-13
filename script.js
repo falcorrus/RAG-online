@@ -292,6 +292,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         onboardingPanel.classList.add('hidden');
                         settingsPanel.classList.remove('hidden');
                         showToast(currentLang === 'ru' ? "Аккаунт успешно создан! Загрузите базу знаний." : "Account created! Upload your knowledge base.", false);
+                        // Дополнительно показываем welcomeBanner, если он был скрыт при входе/регистрации
+                        welcomeBanner.classList.remove('force-hidden');
+                        if (headerTools) headerTools.classList.add('force-hidden');
+                        if (mainSparkle) mainSparkle.classList.add('force-hidden');
+                        if (mainTitle) mainTitle.classList.add('force-hidden');
+                        if (poweredBy) poweredBy.classList.add('force-hidden');
+                        if (creatorFooter) creatorFooter.classList.add('force-hidden');
+                        document.body.classList.remove('has-results');
                         return; // Выходим, чтобы не закрывать adminOverlay
                     }
                 }
@@ -301,6 +309,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 authPanel.classList.add('hidden');
                 onboardingPanel.classList.add('hidden');
                 settingsPanel.classList.add('hidden'); // Убедимся, что settingsPanel тоже скрыта при обычном логине
+                // Убеждаемся, что все основные элементы UI видны после закрытия оверлея
+                welcomeBanner.classList.add('force-hidden');
+                if (headerTools) headerTools.classList.remove('force-hidden');
+                if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+                if (mainTitle) mainTitle.classList.remove('force-hidden');
+                if (poweredBy) poweredBy.classList.remove('force-hidden');
+                if (creatorFooter) creatorFooter.classList.remove('force-hidden');
 
                 if (isRegisterMode) {
                     showToast(currentLang === 'ru' ? "Аккаунт успешно создан!" : "Account created successfully!");
@@ -374,20 +389,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
 
                 if (settings.kb_exists === false) {
-                    welcomeBanner.classList.remove('hidden');
-                    if (headerTools) headerTools.classList.add('hidden');
-                    if (mainSparkle) mainSparkle.classList.add('hidden');
-                    if (mainTitle) mainTitle.classList.add('hidden');
-                    if (poweredBy) poweredBy.classList.add('hidden');
-                    if (creatorFooter) creatorFooter.classList.add('hidden');
+                    welcomeBanner.classList.remove('force-hidden'); // Показываем баннер
+                    if (headerTools) headerTools.classList.add('force-hidden');
+                    if (mainSparkle) mainSparkle.classList.add('force-hidden');
+                    if (mainTitle) mainTitle.classList.add('force-hidden');
+                    if (poweredBy) poweredBy.classList.add('force-hidden');
+                    if (creatorFooter) creatorFooter.classList.add('force-hidden');
                     document.body.classList.remove('has-results'); // Показываем suggestions
                 } else {
-                    welcomeBanner.classList.add('hidden');
-                    if (headerTools) headerTools.classList.remove('hidden');
-                    if (mainSparkle) mainSparkle.classList.remove('hidden');
-                    if (mainTitle) mainTitle.classList.remove('hidden');
-                    if (poweredBy) poweredBy.classList.remove('hidden');
-                    if (creatorFooter) creatorFooter.classList.remove('hidden');
+                    welcomeBanner.classList.add('force-hidden'); // Скрываем баннер
+                    if (headerTools) headerTools.classList.remove('force-hidden');
+                    if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+                    if (mainTitle) mainTitle.classList.remove('force-hidden');
+                    if (poweredBy) poweredBy.classList.remove('force-hidden');
+                    if (creatorFooter) creatorFooter.classList.remove('force-hidden');
                 }
                 
                 underAnswerText = settings.underAnswerText || "";

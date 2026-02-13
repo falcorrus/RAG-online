@@ -1059,6 +1059,7 @@ input:checked + .slider:before {
     gap: 16px;
     animation: fadeInDown 0.6s var(--ease-out);
     backdrop-filter: blur(10px);
+    z-index: 100; /* Убедимся, что баннер находится поверх */
 }
 
 @keyframes fadeInDown {
@@ -1107,4 +1108,17 @@ input:checked + .slider:before {
 
 .welcome-btn.secondary:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* New utility classes for force hiding/showing */
+.force-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+.force-visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
 }
