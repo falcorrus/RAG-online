@@ -322,34 +322,35 @@
 
     <!-- Confirmation Modal -->
     <div class="admin-overlay hidden" id="confirmationModal">
-        <div class="admin-panel" style="max-width: 380px;">
-            <div class="admin-header">
-                <h2 data-i18n="confirm_title">Подтверждение</h2>
-                <button class="close-btn" id="closeConfirmBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
+        <div class="admin-panel" style="max-width: 400px;">
+            <div class="admin-header-compact">
+                <div class="header-top">
+                    <h2 data-i18n="confirm_title">Подтверждение</h2>
+                    <button class="icon-close-btn small" id="closeConfirmBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
             </div>
             <div class="admin-content" style="padding-bottom: 0;">
                 <p id="confirmMessage" style="color: var(--text-primary); font-size: 1rem; line-height: 1.5;"></p>
             </div>
             <div class="admin-footer" style="justify-content: flex-end; gap: 12px; border-top: none; padding-top: 24px;">
-                <button class="action-btn" id="cancelConfirmBtn" data-i18n="cancel_btn" style="width: auto; min-width: 80px;">Отмена</button>
-                <button class="save-btn btn-danger" id="confirmActionBtn" data-i18n="delete_btn" style="width: auto; min-width: 100px;">Удалить</button>
+                <button class="action-btn small" id="cancelConfirmBtn" data-i18n="cancel_btn">Отмена</button>
+                <button class="action-btn small danger" id="confirmActionBtn" data-i18n="delete_btn">Удалить</button>
             </div>
         </div>
     </div>
 
     <!-- Processing Modal -->
     <div class="admin-overlay hidden" id="processingModal">
-        <div class="admin-panel" style="max-width: 380px; text-align: center; padding: 40px 24px;">
-            <div class="processing-loader">
-                <div class="spinner"></div>
+        <div class="admin-panel" style="max-width: 400px; text-align: center;">
+            <div class="admin-content" style="padding: 48px 32px;">
+                <div class="processing-loader">
+                    <div class="spinner"></div>
+                </div>
+                <h2 id="processingTitle" style="margin-top: 24px; font-size: 1.25rem; color: var(--text-primary);" data-i18n="processing_kb_title">База обрабатывается</h2>
+                <p id="processingMessage" style="margin-top: 12px; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;" data-i18n="processing_kb_msg">Подождите несколько секунд...</p>
             </div>
-            <h2 id="processingTitle" style="margin-top: 24px; font-size: 1.25rem; color: var(--text-primary);" data-i18n="processing_kb_title">База обрабатывается</h2>
-            <p id="processingMessage" style="margin-top: 12px; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;" data-i18n="processing_kb_msg">Подождите несколько секунд, страница перезагрузится автоматически...</p>
         </div>
     </div>
 

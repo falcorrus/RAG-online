@@ -648,6 +648,15 @@ input:checked + .slider:before { transform: translateX(22px); }
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+.action-btn.danger {
+    color: var(--color-error) !important;
+}
+
+.action-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: var(--color-error) !important;
+}
+
 .admin-footer {
     padding: 24px 32px 32px 32px;
     border-top: 1px solid var(--border-light);
@@ -670,6 +679,26 @@ input:checked + .slider:before { transform: translateX(22px); }
 .save-btn:hover {
     transform: translateY(-2px);
     background: var(--brand-color-hover);
+}
+
+/* Processing & States */
+.processing-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    border-top-color: var(--brand-color);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* Utilities */
