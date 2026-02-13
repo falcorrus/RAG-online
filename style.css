@@ -934,6 +934,36 @@ input:checked + .slider:before {
     transform: translateY(0);
 }
 
+.btn-danger {
+    background-color: var(--color-error);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Processing Loader */
+.processing-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--brand-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
 .powered-by {
     font-size: 0.85rem;
     color: var(--text-muted);
@@ -1061,6 +1091,17 @@ input:checked + .slider:before {
     backdrop-filter: blur(10px);
     z-index: 2000; /* Убедимся, что баннер находится поверх всего */
     pointer-events: auto !important;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.welcome-banner.force-hidden {
+    display: none !important;
+}
+
+.welcome-banner.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+    pointer-events: none;
 }
 
 .welcome-banner * {
@@ -1135,6 +1176,30 @@ input:checked + .slider:before {
     font-size: 0.95rem;
     line-height: 1.4;
     color: var(--text-primary);
+    transition: all 0.5s ease;
+    position: relative;
+    display: inline-block;
+}
+
+.todo-item.done .todo-text {
+    opacity: 0.5;
+}
+
+.todo-item.done .todo-text::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 2px;
+    background: #22c55e;
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: strike 0.8s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes strike {
+    to { transform: scaleX(1); }
 }
 
 .welcome-actions {

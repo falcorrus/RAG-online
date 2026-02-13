@@ -46,6 +46,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const poweredBy = document.querySelector('.powered-by');
     const creatorFooter = document.querySelector('.creator-footer');
 
+    // Confirmation Modal Elements
+    const confirmationModal = document.getElementById('confirmationModal');
+    const closeConfirmBtn = document.getElementById('closeConfirmBtn');
+    const cancelConfirmBtn = document.getElementById('cancelConfirmBtn');
+    const confirmActionBtn = document.getElementById('confirmActionBtn');
+    const confirmMessageText = document.getElementById('confirmMessage');
+    const processingModal = document.getElementById('processingModal');
+
+    let onConfirmAction = null;
+
+    function showConfirmationModal(message, actionCallback) {
+        if (confirmMessageText) confirmMessageText.textContent = message;
+        onConfirmAction = actionCallback;
+        if (confirmationModal) confirmationModal.classList.remove('hidden');
+    }
+
+    function hideConfirmationModal() {
+        if (confirmationModal) confirmationModal.classList.add('hidden');
+        onConfirmAction = null;
+    }
+
+    if (closeConfirmBtn) closeConfirmBtn.addEventListener('click', hideConfirmationModal);
+    if (cancelConfirmBtn) cancelConfirmBtn.addEventListener('click', hideConfirmationModal);
+    if (confirmActionBtn) confirmActionBtn.addEventListener('click', () => {
+        if (onConfirmAction) onConfirmAction();
+        hideConfirmationModal();
+    });
+
     let underAnswerText = "";
 
     function updateSourceDisplay() {
@@ -85,10 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadDemoBtn = document.getElementById('downloadDemoBtn');
     const goToSettingsBtn = document.getElementById('goToSettingsBtn');
 
-    function toggleUIByKnowledgeBase(hasKb) {
+    function toggleUIByKnowledgeBase(hasKb, delayBannerHide = false) {
         const todoUpload = document.getElementById('todoUpload');
-        if (todoUpload) {
-            if (hasKb) {
+        
+        const updateTodo = (done) => {
+            if (!todoUpload) return;
+            if (done) {
                 todoUpload.classList.add('done');
                 const icon = todoUpload.querySelector('.todo-icon');
                 if (icon) icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg>';
@@ -97,39 +127,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 const icon = todoUpload.querySelector('.todo-icon');
                 if (icon) icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>';
             }
-        }
+        };
 
-        if (!hasKb) {
-            // State: NO KNOWLEDGE BASE
-            if (welcomeBanner) welcomeBanner.classList.remove('force-hidden');
-            
-            // Hide everything else
-            if (searchWrapper) searchWrapper.classList.add('force-hidden');
-            if (headerTools) headerTools.classList.add('force-hidden');
-            if (poweredBy) poweredBy.classList.add('force-hidden');
-            if (creatorFooter) creatorFooter.classList.add('force-hidden');
-            
-            document.body.classList.remove('has-results');
-            if (mainTitle) mainTitle.classList.remove('visible');
-            if (mainSparkle) mainSparkle.classList.remove('visible');
+        const applyState = (kb) => {
+            if (!kb) {
+                // State: NO KNOWLEDGE BASE
+                if (welcomeBanner) {
+                    welcomeBanner.classList.remove('force-hidden');
+                    welcomeBanner.classList.remove('fade-out');
+                }
+                
+                // Hide everything else
+                if (searchWrapper) searchWrapper.classList.add('force-hidden');
+                if (headerTools) headerTools.classList.add('force-hidden');
+                if (poweredBy) poweredBy.classList.add('force-hidden');
+                if (creatorFooter) creatorFooter.classList.add('force-hidden');
+                
+                document.body.classList.remove('has-results');
+                if (mainTitle) mainTitle.classList.remove('visible');
+                if (mainSparkle) mainSparkle.classList.remove('visible');
+            } else {
+                // State: KNOWLEDGE BASE EXISTS
+                if (welcomeBanner) {
+                    welcomeBanner.classList.add('fade-out');
+                    setTimeout(() => welcomeBanner.classList.add('force-hidden'), 500);
+                }
+                
+                // Show everything else
+                if (searchWrapper) searchWrapper.classList.remove('force-hidden');
+                if (headerTools) headerTools.classList.remove('force-hidden');
+                if (poweredBy) poweredBy.classList.remove('force-hidden');
+                if (creatorFooter) creatorFooter.classList.remove('force-hidden');
+
+                if (mainSparkle) {
+                    mainSparkle.classList.remove('force-hidden');
+                    mainSparkle.classList.add('visible');
+                }
+                if (mainTitle) {
+                    mainTitle.classList.remove('force-hidden');
+                    mainTitle.classList.add('visible');
+                }
+            }
+        };
+
+        if (hasKb && delayBannerHide) {
+            // Sequence:
+            // 1. Wait a bit
+            // 2. Strike the item
+            // 3. Wait to see the strike
+            // 4. Fade out banner
+            setTimeout(() => updateTodo(true), 500);
+            setTimeout(() => applyState(true), 2500);
         } else {
-            // State: KNOWLEDGE BASE EXISTS
-            if (welcomeBanner) welcomeBanner.classList.add('force-hidden');
-            
-            // Show everything else
-            if (searchWrapper) searchWrapper.classList.remove('force-hidden');
-            if (headerTools) headerTools.classList.remove('force-hidden');
-            if (poweredBy) poweredBy.classList.remove('force-hidden');
-            if (creatorFooter) creatorFooter.classList.remove('force-hidden');
-
-            if (mainSparkle) {
-                mainSparkle.classList.remove('force-hidden');
-                mainSparkle.classList.add('visible');
-            }
-            if (mainTitle) {
-                mainTitle.classList.remove('force-hidden');
-                mainTitle.classList.add('visible');
-            }
+            updateTodo(hasKb);
+            applyState(hasKb);
         }
     }
 
@@ -207,7 +258,12 @@ document.addEventListener('DOMContentLoaded', () => {
             onboarding_step_1: "Зарегистрируйтесь, чтобы открыть свой RAG.",
             onboarding_step_2: "Загрузите базу знаний (Markdown или текст).",
             onboarding_next: "Далее",
-            auth_subdomain_label: "Желаемый поддомен"
+            auth_subdomain_label: "Желаемый поддомен",
+            processing_kb_title: "База обрабатывается",
+            processing_kb_msg: "Подождите несколько секунд, страница перезагрузится автоматически...",
+            confirm_title: "Подтверждение",
+            cancel_btn: "Отмена",
+            delete_btn: "Удалить"
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -241,7 +297,12 @@ document.addEventListener('DOMContentLoaded', () => {
             onboarding_step_1: "Register to get access to your RAG.",
             onboarding_step_2: "Upload knowledge base (Markdown or text).",
             onboarding_next: "Next",
-            auth_subdomain_label: "Desired subdomain"
+            auth_subdomain_label: "Desired subdomain",
+            processing_kb_title: "Knowledge base is being processed",
+            processing_kb_msg: "Please wait a few seconds, the page will reload automatically...",
+            confirm_title: "Confirmation",
+            cancel_btn: "Cancel",
+            delete_btn: "Delete"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -275,7 +336,12 @@ document.addEventListener('DOMContentLoaded', () => {
             onboarding_step_1: "Registre-se para ter acesso ao seu RAG.",
             onboarding_step_2: "Carregue a base de conhecimento (Markdown ou texto).",
             onboarding_next: "Próximo",
-            auth_subdomain_label: "Subdomínio desejado"
+            auth_subdomain_label: "Subdomínio desejado",
+            processing_kb_title: "Base sendo processada",
+            processing_kb_msg: "Aguarde alguns segundos, a página será recarregada automaticamente...",
+            confirm_title: "Confirmação",
+            cancel_btn: "Cancelar",
+            delete_btn: "Excluir"
         }
     };
 
@@ -600,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     gtag('event', 'kb_upload', { 'file_name': file.name, 'file_size': file.size });
                     showFileInfo(file.name);
-                    toggleUIByKnowledgeBase(true);
+                    toggleUIByKnowledgeBase(true, true);
                     
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
@@ -609,11 +675,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     await loadSuggestions();
-                    const msg = currentLang === 'ru' ? 
-                        "База обрабатывается. Подождите 5 секунд, страница перезагрузится автоматически..." : 
-                        "Knowledge base is being processed. Please wait 5 seconds, the page will reload automatically...";
-                    showToast(msg, false);
-                    setTimeout(() => window.location.reload(), 5000);
+                    
+                    if (processingModal) {
+                        const procTitle = document.getElementById('processingTitle');
+                        const procMsg = document.getElementById('processingMessage');
+                        if (procTitle && procMsg && translations[currentLang]) {
+                            procTitle.textContent = translations[currentLang].processing_kb_title;
+                            procMsg.textContent = translations[currentLang].processing_kb_msg;
+                        }
+                        
+                        // Delay showing processing modal to match banner transition
+                        setTimeout(() => {
+                            processingModal.classList.remove('hidden');
+                            adminOverlay.classList.add('hidden'); // Hide admin panel while processing
+                        }, 2500);
+                    }
+                    
+                    setTimeout(() => window.location.reload(), 6500);
                 } else {
                     const errorData = await resp.json();
                     showToast(errorData.detail || "Upload error", true);
@@ -733,27 +811,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (kbFileInput) kbFileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) handleFileSelect(e.target.files[0]); });
     
     if (removeFileBtn) {
-        removeFileBtn.addEventListener('click', async (e) => {
+        removeFileBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (!confirm("Удалить базу знаний?")) return;
-            try {
-                const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
-                if (resp.ok) {
-                    fileInfo.classList.add('hidden');
-                    kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-                    
-                    toggleUIByKnowledgeBase(false);
+            showConfirmationModal("Удалить базу знаний?", async () => {
+                try {
+                    const resp = await apiRequest('/api/tenant/kb', 'POST', { content: "" });
+                    if (resp.ok) {
+                        fileInfo.classList.add('hidden');
+                        kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
+                        
+                        toggleUIByKnowledgeBase(false);
 
-                    const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
-                    if (publicResp.ok) {
-                        const pubData = await publicResp.json();
-                        updateTitle(pubData.kb_exists, pubData.businessName);
+                        const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+                        if (publicResp.ok) {
+                            const pubData = await publicResp.json();
+                            updateTitle(pubData.kb_exists, pubData.businessName);
+                        }
+                        await loadSuggestions();
                     }
-                    await loadSuggestions();
+                } catch (err) {
+                    showToast("Ошибка при удалении.", true);
                 }
-            } catch (err) {
-                alert("Ошибка при удалении.");
-            }
+            });
         });
     }
 
