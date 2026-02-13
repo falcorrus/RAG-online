@@ -364,8 +364,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 await initSettings();
 
                 if (isRegisterMode && data.subdomain) {
-                    const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
-                    window.location.href = `${newUrl}?token=${data.token}`;
+                    const message = currentLang === 'ru' ? 
+                        "Настраиваем безопасное соединение для вашего домена... Подождите пару секунд." : 
+                        "Setting up secure connection for your domain... Please wait a few seconds.";
+                    showToast(message, false);
+                    
+                    setTimeout(() => {
+                        const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
+                        window.location.href = `${newUrl}?token=${data.token}`;
+                    }, 6000); // 6 seconds delay
                     return;
                 }
 
