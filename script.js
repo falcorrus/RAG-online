@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
             log_item_label: "Запрос",
+<<<<<<< HEAD
             promo_link: "Создайте свой RAG в 2 клика",
             auth_btn_login: "Войти",
             auth_btn_register: "Создать аккаунт",
@@ -102,6 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_toggle_register: "Хотите такой же? Регистрация",
             welcome_download_demo: "Скачать пример",
             welcome_go_to_settings: "В настройки"
+=======
+            promo_link: "Создайте свой RAG в 2 клика"
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -123,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Clear Logs",
             download_logs_btn: "Download",
             log_item_label: "Query",
+<<<<<<< HEAD
             promo_link: "Create your RAG in 2 clicks",
             auth_btn_login: "Login",
             auth_btn_register: "Create Account",
@@ -130,6 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_toggle_register: "Want the same? Register",
             welcome_download_demo: "Download Demo",
             welcome_go_to_settings: "Go to Settings"
+=======
+            promo_link: "Create your RAG in 2 clicks"
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -151,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
             log_item_label: "Consulta",
+<<<<<<< HEAD
             promo_link: "Crie seu RAG em 2 cliques",
             auth_btn_login: "Entrar",
             auth_btn_register: "Criar Conta",
@@ -158,6 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_toggle_register: "Quer um igual? Registre-se",
             welcome_download_demo: "Baixar Demonstração",
             welcome_go_to_settings: "Configurações"
+=======
+            promo_link: "Crie seu RAG em 2 cliques"
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         }
     };
 
@@ -194,18 +206,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function downloadDemoFile() {
         try {
+<<<<<<< HEAD
             const response = await fetch('/RAG-demo.md');
+=======
+            const response = await fetch('/demo.md');
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
             if (!response.ok) throw new Error('Demo file not found');
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
+<<<<<<< HEAD
             a.download = 'RAG-demo.md';
+=======
+            a.download = 'demo.md';
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+<<<<<<< HEAD
             showToast(currentLang === 'ru' ? "Файл RAG-demo.md скачан" : "RAG-demo.md downloaded");
+=======
+            showToast(currentLang === 'ru' ? "Файл demo.md скачан" : "demo.md downloaded");
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         } catch (err) {
             console.error('Download error:', err);
             showToast("Error downloading demo file", true);
@@ -274,7 +298,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener('click', () => {
             isRegisterMode = !isRegisterMode;
+<<<<<<< HEAD
             updateAuthLabels();
+=======
+            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
+            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Хотите такой же? Регистрация';
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         });
     }
 
@@ -315,10 +345,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     welcomeBanner.classList.add('hidden');
                 }
                 
+<<<<<<< HEAD
                 // CRITICAL FIX: Assign the value from server to local variable
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
                 
+=======
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
                 // If user has manual choice, keep it. 
                 // Otherwise, use server's defaultLang IF it's different from our current detected lang
                 const savedLang = localStorage.getItem('user_lang');
@@ -718,6 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const promoLink = document.getElementById('promoLink');
+<<<<<<< HEAD
     const copyBtn = document.getElementById('copyBtn');
 
     if (copyBtn) {
@@ -734,6 +768,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+=======
+>>>>>>> d5d984198763e60fd88773c884f7f8e590808419
 
     if (promoLink) {
         promoLink.addEventListener('click', (e) => {
