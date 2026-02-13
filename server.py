@@ -13,6 +13,8 @@ from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta
 import tiktoken # Import tiktoken
+import subprocess
+import asyncio
 
 load_dotenv(override=True)
 API_KEY = os.getenv("GEMINI_API_KEY")
@@ -239,6 +241,30 @@ async def send_telegram_notification(message: str):
         except Exception as e:
             print(f"ERROR: Failed to send Telegram notification: {e}", flush=True)
 
+async def run_ssl_setup(subdomain: str):
+    """Runs the SSL setup script for a new subdomain."""
+    try:
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "setup_ssl.sh")
+        if os.path.exists(script_path):
+            print(f"DEBUG: Starting SSL setup for {subdomain}...", flush=True)
+            # Run the script. It requires sudo, so ensure the server process has rights or script handles it.
+            # In your setup_ssl.sh, there is a check for EUID -ne 0.
+            process = await asyncio.create_subprocess_exec(
+                "bash", script_path, subdomain,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode == 0:
+                print(f"DEBUG: SSL setup successful for {subdomain}", flush=True)
+            else:
+                print(f"ERROR: SSL setup failed for {subdomain}: {stderr.decode()}", flush=True)
+        else:
+            print(f"ERROR: setup_ssl.sh not found at {script_path}", flush=True)
+    except Exception as e:
+        print(f"ERROR: Exception during SSL setup for {subdomain}: {e}", flush=True)
+
 # --- Routes ---
 @app.post("/api/auth/register")
 async def register(auth: UserAuth, background_tasks: BackgroundTasks):
@@ -285,6 +311,7 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
     notif_msg = f"🚀 *Новая регистрация в RAG-online!*\n\n📧 *Email:* `{email}`\n🌐 *Поддомен:* `{sub}`\n⏰ *Время:* {now}"
     background_tasks.add_task(send_telegram_notification, notif_msg)
+    background_tasks.add_task(run_ssl_setup, sub)
     
     print(f"DEBUG: Registration successful for '{email}'", flush=True)
     return { "token": create_token(email, tenants[email]["is_admin"]), "subdomain": sub }
