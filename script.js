@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
             save_btn: "Сохранить изменения",
+            close_btn: "Закрыть",
             status_analyzing: "Анализирую базу знаний...",
             status_ai_thinking: "ИИ формирует ответ...",
             view_logs_btn: "Просмотреть логи",
@@ -207,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
             save_btn: "Save Changes",
+            close_btn: "Close",
             status_analyzing: "Analyzing knowledge base...",
             status_ai_thinking: "AI is thinking...",
             view_logs_btn: "View Logs",
@@ -240,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
             save_btn: "Salvar alterações",
+            close_btn: "Fechar",
             status_analyzing: "Analisando base de conhecimento...",
             status_ai_thinking: "IA está pensando...",
             view_logs_btn: "Ver Registros",
@@ -560,7 +563,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateTitle(pubData.kb_exists, pubData.businessName);
                 }
                 
-                adminOverlay.classList.add('hidden');
                 showToast(currentLang === 'ru' ? "Настройки сохранены" : "Settings saved");
             } else {
                 const errorData = await resp.json();
@@ -695,7 +697,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (closeAdminBtn) closeAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
-    if (saveAdminBtn) saveAdminBtn.addEventListener('click', saveSettings);
+    if (saveAdminBtn) saveAdminBtn.addEventListener('click', () => adminOverlay.classList.add('hidden'));
+    
+    if (initiallyOpenToggle) {
+        initiallyOpenToggle.addEventListener('change', saveSettings);
+    }
     
     if (kbDropZone) {
         kbDropZone.addEventListener('click', (e) => {
