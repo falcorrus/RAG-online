@@ -1112,9 +1112,7 @@ input:checked + .slider:before {
 
 /* New utility classes for force hiding/showing */
 .force-hidden {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    visibility: hidden !important;
+    display: none !important;
 }
 
 .force-visible {

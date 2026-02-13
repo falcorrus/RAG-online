@@ -192,18 +192,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function toggleUIByKnowledgeBase(hasKb) {
         if (!hasKb) {
-            welcomeBanner.classList.remove('force-hidden');
+            if (welcomeBanner) welcomeBanner.classList.remove('force-hidden');
             if (headerTools) headerTools.classList.add('force-hidden');
             if (mainSparkle) mainSparkle.classList.add('force-hidden');
             if (mainTitle) mainTitle.classList.add('force-hidden');
             if (poweredBy) poweredBy.classList.add('force-hidden');
             if (creatorFooter) creatorFooter.classList.add('force-hidden');
             document.body.classList.remove('has-results');
+            
+            if (mainTitle) mainTitle.classList.remove('visible');
+            if (mainSparkle) mainSparkle.classList.remove('visible');
         } else {
-            welcomeBanner.classList.add('force-hidden');
+            if (welcomeBanner) welcomeBanner.classList.add('force-hidden');
             if (headerTools) headerTools.classList.remove('force-hidden');
-            if (mainSparkle) mainSparkle.classList.remove('force-hidden');
-            if (mainTitle) mainTitle.classList.remove('force-hidden');
+            if (mainSparkle) {
+                mainSparkle.classList.remove('force-hidden');
+                mainSparkle.classList.add('visible');
+            }
+            if (mainTitle) {
+                mainTitle.classList.remove('force-hidden');
+                mainTitle.classList.add('visible');
+            }
             if (poweredBy) poweredBy.classList.remove('force-hidden');
             if (creatorFooter) creatorFooter.classList.remove('force-hidden');
         }
@@ -398,18 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 toggleUIByKnowledgeBase(settings.kb_exists);
-                
-                underAnswerText = settings.underAnswerText || "";
-                updateSourceDisplay();
-                
-                const savedLang = localStorage.getItem('user_lang');
-                if (!savedLang && settings.defaultLang && settings.defaultLang !== currentLang) {
-                    await setLanguage(settings.defaultLang);
-                } else {
-                    await setLanguage(currentLang);
-                }
-                
-                // updateTitle(settings.kb_exists, settings.businessName); // remove hideHeader parameter - временно комментируем
+                updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -735,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const settings = await publicResp.json();
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
-                // updateTitle(settings.kb_exists, settings.businessName); // Временно комментируем
+                updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
             console.warn("Title update failed during language switch", err);
