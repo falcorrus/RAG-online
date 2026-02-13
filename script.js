@@ -186,6 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    initiallyOpenToggle.checked = true; // Default state
+
+    // Force hide everything initially to prevent flicker
+    toggleUIByKnowledgeBase(false);
+
     const welcomeBanner = document.getElementById('welcomeBanner');
     const downloadDemoBtn = document.getElementById('downloadDemoBtn');
     const goToSettingsBtn = document.getElementById('goToSettingsBtn');
@@ -431,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
-                    toggleUIByKnowledgeBase(true);
                 }
             }
             await loadSuggestions();
