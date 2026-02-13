@@ -152,6 +152,18 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
 async def generate_kb_suggestions(owner_email: str, content: str):
     """Automatically generate suggested questions and business name from KB content using AI."""
     print(f"DEBUG: Starting generate_kb_suggestions for {owner_email}", flush=True)
+    
+    tenants = get_tenants()
+    if owner_email not in tenants: return
+
+    if not content.strip():
+        print(f"DEBUG: Empty content for {owner_email}, clearing caches", flush=True)
+        tenants[owner_email]["suggestions_cache"] = {}
+        tenants[owner_email]["business_names_cache"] = {}
+        tenants[owner_email]["underAnswer_cache"] = {}
+        save_tenants(tenants)
+        return
+
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     all_suggestions = {}
     all_names = {}
@@ -417,6 +429,13 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
         print(f"ERROR: Failed to write KB file {kb_path}: {e}", flush=True)
         raise HTTPException(status_code=500, detail=f"Failed to save knowledge base file: {e}")
 
+    # Immediately clear caches if content is empty
+    if not content.strip():
+        tenants[owner_email]["suggestions_cache"] = {}
+        tenants[owner_email]["business_names_cache"] = {}
+        tenants[owner_email]["underAnswer_cache"] = {}
+        save_tenants(tenants)
+
     # Generate new suggestions in background
     background_tasks.add_task(generate_kb_suggestions, owner_email, content)
     return {"status": "ok"}
@@ -463,6 +482,14 @@ async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None
     
     # Remove HTML comments to keep them hidden from AI
     context = re.sub(r'<!--.*?-->', '', context, flags=re.DOTALL)
+
+    if not context.strip():
+        msg = {
+            "Russian": "База знаний еще не настроена. Пожалуйста, загрузите информацию в настройках.",
+            "English": "Knowledge base is not configured yet. Please upload information in settings.",
+            "Portuguese": "A base de conhecimento ainda não está configurada. Por favor, carregue as informações nas configurações."
+        }
+        return {"answer": msg.get(target_lang, msg["English"])}
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
     
