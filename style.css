@@ -631,6 +631,14 @@ body.has-results .results-area {
     backdrop-filter: blur(10px);
 }
 
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 .admin-main {
     padding: 0 32px;
     overflow-y: auto;
