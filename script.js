@@ -668,6 +668,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     showFileInfo(file.name);
                     toggleUIByKnowledgeBase(true, true);
                     
+                    // Hide admin panel immediately to show the banner strikeout animation
+                    if (adminOverlay) adminOverlay.classList.add('hidden');
+                    
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
                         const pubData = await publicResp.json();
@@ -687,7 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Delay showing processing modal to match banner transition
                         setTimeout(() => {
                             processingModal.classList.remove('hidden');
-                            adminOverlay.classList.add('hidden'); // Hide admin panel while processing
                         }, 2500);
                     }
                     
