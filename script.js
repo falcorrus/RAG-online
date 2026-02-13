@@ -109,9 +109,8 @@ document.addEventListener('DOMContentLoaded', () => {
             welcome_download_demo: "Скачать пример",
             welcome_go_to_settings: "В настройки",
             onboarding_title: "Как это работает",
-            onboarding_step_1: "Загрузите базу знаний (Markdown или текст).",
-            onboarding_step_2: "Получите ссылку вида yourname.rag.reloto.ru.",
-            onboarding_step_3: "Ваш ИИ-ассистент онлайн.",
+            onboarding_step_1: "Зарегистрируйтесь, чтобы открыть свой RAG.",
+            onboarding_step_2: "Загрузите базу знаний (Markdown или текст).",
             onboarding_next: "Далее",
             auth_subdomain_label: "Желаемый поддомен"
         },
@@ -143,9 +142,8 @@ document.addEventListener('DOMContentLoaded', () => {
             welcome_download_demo: "Download Demo",
             welcome_go_to_settings: "Go to Settings",
             onboarding_title: "How it works",
-            onboarding_step_1: "Upload knowledge base (Markdown or text).",
-            onboarding_step_2: "Get a link like yourname.rag.reloto.ru.",
-            onboarding_step_3: "Your AI assistant is online.",
+            onboarding_step_1: "Register to get access to your RAG.",
+            onboarding_step_2: "Upload knowledge base (Markdown or text).",
             onboarding_next: "Next",
             auth_subdomain_label: "Desired subdomain"
         },
@@ -177,9 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             welcome_download_demo: "Baixar Demonstração",
             welcome_go_to_settings: "Configurações",
             onboarding_title: "Como funciona",
-            onboarding_step_1: "Carregue a base de conhecimento (Markdown ou texto).",
-            onboarding_step_2: "Obtenha um link como yourname.rag.reloto.ru.",
-            onboarding_step_3: "Seu assistente de IA está online.",
+            onboarding_step_1: "Registre-se para ter acesso ao seu RAG.",
+            onboarding_step_2: "Carregue a base de conhecimento (Markdown ou texto).",
             onboarding_next: "Próximo",
             auth_subdomain_label: "Subdomínio desejado"
         }
@@ -281,6 +278,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 await initSettings();
+
+                // After registration, if KB is empty, keep admin overlay open and show settings panel
+                // instead of immediately closing it.
+                const publicRespAfterInit = await apiRequest(`/api/settings?lang=${currentLang}`);
+                if (publicRespAfterInit.ok) {
+                    const settingsAfterInit = await publicRespAfterInit.json();
+                    if (isRegisterMode && settingsAfterInit.kb_exists === false) {
+                        adminOverlay.classList.remove('hidden');
+                        authPanel.classList.add('hidden');
+                        onboardingPanel.classList.add('hidden');
+                        settingsPanel.classList.remove('hidden');
+                        showToast(currentLang === 'ru' ? "Аккаунт успешно создан! Загрузите базу знаний." : "Account created! Upload your knowledge base.", false);
+                        return; // Exit early to prevent closing adminOverlay
+                    }
+                }
+
                 adminOverlay.classList.add('hidden');
                 authPanel.classList.add('hidden');
                 onboardingPanel.classList.add('hidden');
@@ -373,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await setLanguage(currentLang);
                 }
                 
-                updateTitle(settings.kb_exists, settings.businessName);
+                updateTitle(settings.kb_exists, settings.businessName, !settings.kb_exists);
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -700,10 +713,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateTitle(isKbLoaded, overrideName = null) {
+    function updateTitle(isKbLoaded, overrideName = null, hideHeader = false) {
         const customName = (overrideName && overrideName.length > 0) ? overrideName : "";
         mainTitle.classList.remove('visible');
         if (mainSparkle) mainSparkle.classList.remove('visible');
+
+        if (hideHeader) {
+            mainTitle.classList.add('hidden');
+            if (mainSparkle) mainSparkle.classList.add('hidden');
+            return;
+        } else {
+            mainTitle.classList.remove('hidden');
+            if (mainSparkle) mainSparkle.classList.remove('hidden');
+        }
         
         setTimeout(() => {
             if (isKbLoaded && customName) {
