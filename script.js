@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Очистить логи",
             download_logs_btn: "Скачать",
             log_item_label: "Запрос",
-<<<<<<< HEAD
             promo_link: "Создайте свой RAG в 2 клика",
             auth_btn_login: "Войти",
             auth_btn_register: "Создать аккаунт",
@@ -103,9 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_toggle_register: "Хотите такой же? Регистрация",
             welcome_download_demo: "Скачать пример",
             welcome_go_to_settings: "В настройки"
-=======
-            promo_link: "Создайте свой RAG в 2 клика"
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -127,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Clear Logs",
             download_logs_btn: "Download",
             log_item_label: "Query",
-<<<<<<< HEAD
             promo_link: "Create your RAG in 2 clicks",
             auth_btn_login: "Login",
             auth_btn_register: "Create Account",
@@ -135,9 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_toggle_register: "Want the same? Register",
             welcome_download_demo: "Download Demo",
             welcome_go_to_settings: "Go to Settings"
-=======
-            promo_link: "Create your RAG in 2 clicks"
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -159,17 +151,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clear_logs_btn: "Limpar Registros",
             download_logs_btn: "Baixar",
             log_item_label: "Consulta",
-<<<<<<< HEAD
             promo_link: "Crie seu RAG em 2 cliques",
             auth_btn_login: "Entrar",
             auth_btn_register: "Criar Conta",
             auth_toggle_login: "Já tem uma conta? Entrar",
-            auth_toggle_register: "Quer um igual? Registre-se",
+            auth_toggle_register: "Quer un igual? Registre-se",
             welcome_download_demo: "Baixar Demonstração",
             welcome_go_to_settings: "Configurações"
-=======
-            promo_link: "Crie seu RAG em 2 cliques"
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         }
     };
 
@@ -206,30 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function downloadDemoFile() {
         try {
-<<<<<<< HEAD
             const response = await fetch('/RAG-demo.md');
-=======
-            const response = await fetch('/demo.md');
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
             if (!response.ok) throw new Error('Demo file not found');
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-<<<<<<< HEAD
             a.download = 'RAG-demo.md';
-=======
-            a.download = 'demo.md';
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-<<<<<<< HEAD
             showToast(currentLang === 'ru' ? "Файл RAG-demo.md скачан" : "RAG-demo.md downloaded");
-=======
-            showToast(currentLang === 'ru' ? "Файл demo.md скачан" : "demo.md downloaded");
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         } catch (err) {
             console.error('Download error:', err);
             showToast("Error downloading demo file", true);
@@ -259,8 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log(`Attempting ${isRegisterMode ? 'registration' : 'login'} at ${url}`);
-
         try {
             const resp = await fetch(url, {
                 method: 'POST',
@@ -270,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await resp.json();
             if (resp.ok) {
-                console.log("Auth successful, token received");
                 localStorage.setItem('token', data.token);
                 authError.classList.add('hidden');
                 
@@ -284,12 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 authPanel.classList.add('hidden');
                 settingsPanel.classList.remove('hidden');
             } else {
-                console.error("Auth failed:", data.detail);
                 authError.textContent = data.detail || 'Ошибка входа';
                 authError.classList.remove('hidden');
             }
         } catch (err) {
-            console.error("Auth network error:", err);
             authError.textContent = 'Ошибка сети. Проверьте сервер.';
             authError.classList.remove('hidden');
         }
@@ -298,18 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleAuthMode) {
         toggleAuthMode.addEventListener('click', () => {
             isRegisterMode = !isRegisterMode;
-<<<<<<< HEAD
             updateAuthLabels();
-=======
-            authTitle.textContent = isRegisterMode ? 'Регистрация' : 'Вход в систему';
-            authBtn.textContent = isRegisterMode ? 'Создать аккаунт' : 'Войти';
-            toggleAuthMode.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Хотите такой же? Регистрация';
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
         });
     }
 
     function updateAuthLabels() {
-        const mode = isRegisterMode ? 'register' : 'login';
         authTitle.textContent = currentLang === 'ru' ? (isRegisterMode ? 'Регистрация' : 'Вход в систему') : (isRegisterMode ? 'Registration' : 'Login');
         
         const btnKey = isRegisterMode ? 'auth_btn_register' : 'auth_btn_login';
@@ -329,47 +293,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings & UI ---
     async function initSettings() {
-        // 1. Fetch public settings (available for everyone)
         try {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
-                console.log("Initial settings load:", settings);
                 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
 
-                // Show welcome banner if KB doesn't exist (likely a new user)
                 if (settings.kb_exists === false) {
                     welcomeBanner.classList.remove('hidden');
                 } else {
                     welcomeBanner.classList.add('hidden');
                 }
                 
-<<<<<<< HEAD
-                // CRITICAL FIX: Assign the value from server to local variable
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
                 
-=======
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
-                // If user has manual choice, keep it. 
-                // Otherwise, use server's defaultLang IF it's different from our current detected lang
                 const savedLang = localStorage.getItem('user_lang');
                 if (!savedLang && settings.defaultLang && settings.defaultLang !== currentLang) {
                     await setLanguage(settings.defaultLang);
                 } else {
-                    // Just refresh labels for currentLang
                     await setLanguage(currentLang);
                 }
                 
-                // Final title update (ensures it's correct after setLanguage)
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
         }
 
-        // 2. Auth-specific status (if logged in)
         const token = localStorage.getItem('token');
         if (!token) {
             await loadSuggestions();
@@ -451,21 +403,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveSettings() {
         const isChecked = initiallyOpenToggle.checked;
-        console.log("Saving settings: initiallyOpen =", isChecked);
-        
-        const settings = {
-            initiallyOpen: isChecked
-        };
+        const settings = { initiallyOpen: isChecked };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
             if (resp.ok) {
-                console.log("Settings saved successfully on server");
-                
-                // Update local visual state immediately
                 if (!isChecked) document.body.classList.add('minimized');
                 else document.body.classList.remove('minimized');
 
-                // Refetch public settings to get updated extracted business name
                 const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicResp.ok) {
                     const pubData = await publicResp.json();
@@ -492,7 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const content = e.target.result;
-            console.log("DEBUG: KB content length before sending:", content.length);
             try {
                 const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
                 if (resp.ok) {
@@ -500,7 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     showFileInfo(file.name);
                     welcomeBanner.classList.add('hidden');
                     
-                    // Refetch public settings to get updated extracted business name from new KB
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
                         const pubData = await publicResp.json();
@@ -537,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (resp.ok) {
                 gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
-                
                 typeWriterEffect(data.answer, answerContent);
                 answerCard.classList.remove('hidden');
             } else {
@@ -570,9 +511,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     if (adminBtn) {
         let longPressTimer;
-        const longPressDuration = 800; // ms
+        const longPressDuration = 800;
 
-        const startPress = (e) => {
+        const startPress = () => {
             longPressTimer = setTimeout(() => {
                 localStorage.removeItem('token');
                 showToast(currentLang === 'ru' ? "Выход из системы" : "Logged out");
@@ -590,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         adminBtn.addEventListener('mousedown', startPress);
         adminBtn.addEventListener('touchstart', startPress, { passive: true });
-        
         adminBtn.addEventListener('mouseup', cancelPress);
         adminBtn.addEventListener('mouseleave', cancelPress);
         adminBtn.addEventListener('touchend', cancelPress);
@@ -634,13 +574,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (resp.ok) {
                     fileInfo.classList.add('hidden');
                     kbDropZone.querySelector('.drop-zone-content').classList.remove('hidden');
-                    
                     const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                     if (publicResp.ok) {
                         const pubData = await publicResp.json();
                         updateTitle(pubData.kb_exists, pubData.businessName);
                     }
-                    
                     await loadSuggestions();
                 }
             } catch (err) {
@@ -679,9 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
         
         document.querySelectorAll('[data-i18n]').forEach(el => {
-            // NEVER overwrite the title here if we already have a custom one
             if (el.id === 'mainTitle' && el.getAttribute('data-custom-title') === 'true') return;
-            // NEVER overwrite source badge if we have automated signature
             if (el.id === 'sourceBadge' && underAnswerText) return;
 
             const key = el.getAttribute('data-i18n');
@@ -692,20 +628,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
 
-        // Update suggestions immediately
         await loadSuggestions();
 
-        // Then update title from settings
         try {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
                 const settings = await publicResp.json();
-                console.log("Language switch title update:", settings.businessName);
-                
-                // Update underAnswerText for the new language
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
-                
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {
@@ -715,8 +645,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateTitle(isKbLoaded, overrideName = null) {
         const customName = (overrideName && overrideName.length > 0) ? overrideName : "";
-        
-        // Hide temporarily before changing text
         mainTitle.classList.remove('visible');
         if (mainSparkle) mainSparkle.classList.remove('visible');
         
@@ -729,7 +657,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainTitle.setAttribute('data-custom-title', 'false');
                 if (mainSparkle) {
                     mainSparkle.style.display = 'block';
-                    // Re-add visible class in next frame for animation to trigger
                     requestAnimationFrame(() => mainSparkle.classList.add('visible'));
                 }
                 const key = mainTitle.getAttribute('data-i18n');
@@ -737,7 +664,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     mainTitle.textContent = translations[currentLang][key];
                 }
             }
-            // Show with animation
             mainTitle.classList.add('visible');
         }, 100);
     }
@@ -748,10 +674,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const creatorLink = document.getElementById('creatorLink');
     const creatorPopup = document.getElementById('creatorPopup');
-
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const promoLink = document.getElementById('promoLink');
-<<<<<<< HEAD
     const copyBtn = document.getElementById('copyBtn');
 
     if (copyBtn) {
@@ -760,24 +684,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (underAnswerText && underAnswerText.trim().length > 0) {
                 textToCopy += "\n\n" + underAnswerText;
             }
-            
             navigator.clipboard.writeText(textToCopy).then(() => {
                 showToast(currentLang === 'ru' ? "Ответ скопирован" : "Answer copied");
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
+            }).catch(err => console.error('Failed to copy: ', err));
         });
     }
-=======
->>>>>>> d5d984198763e60fd88773c884f7f8e590808419
 
     if (promoLink) {
         promoLink.addEventListener('click', (e) => {
             e.preventDefault();
             isRegisterMode = true;
-            authTitle.textContent = 'Регистрация';
-            authBtn.textContent = 'Создать аккаунт';
-            toggleAuthMode.textContent = 'Уже есть аккаунт? Войти';
+            updateAuthLabels();
             showAuth();
         });
     }
@@ -800,11 +717,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 showToast(currentLang === 'ru' ? "Логи очищены" : "Logs cleared");
                 renderLogs([]);
-            } else {
-                showToast(currentLang === 'ru' ? "Ошибка очистки логов" : "Error clearing logs", true);
             }
         } catch (err) {
-            showToast(currentLang === 'ru' ? "Ошибка сети при очистке логов" : "Network error clearing logs", true);
+            showToast("Error", true);
         }
     });
 
@@ -847,11 +762,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 showToast(currentLang === 'ru' ? "Логи скачаны" : "Logs downloaded");
-            } else {
-                showToast(currentLang === 'ru' ? "Ошибка скачивания логов" : "Error downloading logs", true);
             }
         } catch (err) {
-            showToast(currentLang === 'ru' ? "Ошибка сети при скачивании логов" : "Network error downloading logs", true);
+            showToast("Error", true);
         }
     }
 
@@ -861,11 +774,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 const data = await resp.json();
                 renderLogs(data.logs);
-            } else {
-                showToast(currentLang === 'ru' ? "Ошибка загрузки логов" : "Error loading logs", true);
             }
         } catch (err) {
-            showToast(currentLang === 'ru' ? "Ошибка сети при загрузке логов" : "Network error loading logs", true);
+            showToast("Error", true);
         }
     }
 
@@ -876,7 +787,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             e.stopPropagation();
             creatorPopup.classList.toggle('show');
-            
             if (creatorPopup.classList.contains('show')) {
                 const closePopup = (e) => {
                     if (!creatorPopup.contains(e.target)) {
@@ -887,7 +797,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.addEventListener('click', closePopup);
             }
         });
-        
         creatorPopup.addEventListener('click', (e) => e.stopPropagation());
     }
 
