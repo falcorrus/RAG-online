@@ -262,6 +262,11 @@ textarea {
     align-items: center;
 }
 
+textarea::placeholder {
+    color: #64748b; /* Slate 500 */
+    opacity: 0.8;
+}
+
 .send-btn {
     background: var(--brand-color);
     border: none;
