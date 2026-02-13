@@ -245,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleAuth() {
+        console.log('handleAuth: Function called');
         const email = authEmail.value;
         const password = authPass.value;
         const subdomain = authSubdomain.value;
@@ -383,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Settings & UI ---
     async function initSettings() {
+        console.log('initSettings: Function called');
         try {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
@@ -391,22 +393,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
 
                 if (settings.kb_exists === false) {
+                    console.log('initSettings: kb_exists is FALSE, attempting to show welcomeBanner');
                     welcomeBanner.classList.remove('force-hidden'); // Показываем баннер
-                    if (headerTools) headerTools.classList.add('force-hidden');
-                    // searchWrapper остается видимым
-                    if (poweredBy) poweredBy.classList.add('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.add('force-hidden');
-                    if (mainTitle) mainTitle.classList.add('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.add('force-hidden');
+                    // if (headerTools) headerTools.classList.add('force-hidden'); // Закомментировано для отладки
+                    // if (mainSparkle) mainSparkle.classList.add('force-hidden'); // Закомментировано для отладки
+                    // if (mainTitle) mainTitle.classList.add('force-hidden'); // Закомментировано для отладки
+                    // if (poweredBy) poweredBy.classList.add('force-hidden'); // Закомментировано для отладки
+                    // if (creatorFooter) creatorFooter.classList.add('force-hidden'); // Закомментировано для отладки
                     document.body.classList.remove('has-results'); // Показываем suggestions
+                    console.log('initSettings: welcomeBanner class list after remove:', welcomeBanner.classList);
                 } else {
+                    console.log('initSettings: kb_exists is TRUE, attempting to hide welcomeBanner');
                     welcomeBanner.classList.add('force-hidden'); // Скрываем баннер
-                    if (headerTools) headerTools.classList.remove('force-hidden');
-                    // searchWrapper остается видимым
-                    if (poweredBy) poweredBy.classList.remove('force-hidden');
-                    if (creatorFooter) creatorFooter.classList.remove('force-hidden');
-                    if (mainTitle) mainTitle.classList.remove('force-hidden');
-                    if (mainSparkle) mainSparkle.classList.remove('force-hidden');
+                    // if (headerTools) headerTools.classList.remove('force-hidden'); // Закомментировано для отладки
+                    // if (mainSparkle) mainSparkle.classList.remove('force-hidden'); // Закомментировано для отладки
+                    // if (mainTitle) mainTitle.classList.remove('force-hidden'); // Закомментировано для отладки
+                    // if (poweredBy) poweredBy.classList.remove('force-hidden'); // Закомментировано для отладки
+                    // if (creatorFooter) creatorFooter.classList.remove('force-hidden'); // Закомментировано для отладки
+                    console.log('initSettings: welcomeBanner class list after add:', welcomeBanner.classList);
                 }
                 
                 underAnswerText = settings.underAnswerText || "";
@@ -419,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     await setLanguage(currentLang);
                 }
                 
-                updateTitle(settings.kb_exists, settings.businessName); // remove hideHeader parameter
+                // updateTitle(settings.kb_exists, settings.businessName); // remove hideHeader parameter - временно комментируем
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -762,7 +766,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const settings = await publicResp.json();
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
-                updateTitle(settings.kb_exists, settings.businessName);
+                // updateTitle(settings.kb_exists, settings.businessName); // Временно комментируем
             }
         } catch (err) {
             console.warn("Title update failed during language switch", err);

@@ -237,9 +237,17 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
     tenants = get_tenants()
     if auth.email in tenants: raise HTTPException(status_code=400, detail="User already exists")
     
-    # Generate subdomain if not provided
-    sub = auth.subdomain or auth.email.split('@')[0]
+    # Generate subdomain: priority to explicit field, fallback to email prefix
+    raw_sub = auth.subdomain.strip() if auth.subdomain else ""
+    sub = raw_sub if raw_sub else auth.email.split('@')[0]
+    
+    # Cleanup subdomain (alphanumeric and hyphens only)
     sub = re.sub(r'[^a-zA-Z0-9-]', '', sub).lower()
+    
+    # Check for subdomain uniqueness
+    for existing_email, data in tenants.items():
+        if data.get("subdomain") == sub:
+            raise HTTPException(status_code=400, detail=f"Subdomain '{sub}' is already taken")
     
     # Create directory immediately
     get_tenant_dir(auth.email)
