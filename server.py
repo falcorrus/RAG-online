@@ -316,7 +316,7 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
         "password": pwd_context.hash(auth.password),
         "is_admin": email == "ekirshin@gmail.com",
         "subdomain": sub,
-        "settings": {"initiallyOpen": True},
+        "settings": {"initiallyOpen": True, "theme": "glass"},
         "suggestions_cache": {}
     }
     save_tenants(tenants)

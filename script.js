@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminOverlay = document.getElementById('adminOverlay');
     const closeAdminBtn = document.getElementById('closeAdminBtn');
     const saveAdminBtn = document.getElementById('saveAdminBtn');
+    const themeSelect = document.getElementById('themeSelect');
     const kbDropZone = document.getElementById('kbDropZone');
     const kbFileInput = document.getElementById('kbFileInput');
     const fileInfo = document.getElementById('fileInfo');
@@ -589,6 +590,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (authBtn) authBtn.addEventListener('click', handleAuth);
 
+    function applyTheme(theme) {
+        document.body.classList.remove('theme-glass', 'theme-linear');
+        document.body.classList.add(`theme-${theme || 'glass'}`);
+    }
+
     // --- Settings & UI ---
     async function initSettings() {
         console.log('initSettings: Function called');
@@ -597,6 +603,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (publicResp.ok) {
                 const settings = await publicResp.json();
                 
+                // Apply theme from public settings
+                applyTheme(settings.theme || 'glass');
+
                 // Update welcome banner with subdomain
                 const welcomeTenantName = document.getElementById('welcomeTenantName');
                 if (welcomeTenantName && settings.subdomain) {
@@ -627,6 +636,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (resp.ok) {
                 const settings = await resp.json();
                 initiallyOpenToggle.checked = settings.initiallyOpen;
+                if (themeSelect) {
+                    themeSelect.value = settings.theme || 'glass';
+                    applyTheme(settings.theme);
+                }
             }
             
             const kbResp = await apiRequest('/api/tenant/kb');
@@ -701,10 +714,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveSettings() {
         const isChecked = initiallyOpenToggle.checked;
-        const settings = { initiallyOpen: isChecked };
+        const themeValue = themeSelect ? themeSelect.value : 'glass';
+        const settings = { 
+            initiallyOpen: isChecked,
+            theme: themeValue
+        };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
             if (resp.ok) {
+                applyTheme(themeValue);
                 if (!isChecked) document.body.classList.add('minimized');
                 else document.body.classList.remove('minimized');
 
@@ -722,6 +740,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             showToast("Network error", true);
         }
+    }
+
+    if (themeSelect) {
+        themeSelect.addEventListener('change', saveSettings);
     }
 
     async function handleFileSelect(file) {
