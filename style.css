@@ -425,6 +425,20 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     align-items: center;
 }
 
+#confirmationModal .admin-footer {
+    flex-direction: row;
+    gap: 12px;
+}
+
+#confirmationModal .admin-footer button {
+    flex: 1;
+    height: 46px; /* Explicit equal height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
 .btn-danger {
     background: #f43f5e !important;
     color: white !important;
@@ -442,12 +456,15 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     padding: 12px 24px;
+    height: 46px; /* Match btn-danger height */
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s var(--ease-out);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-secondary:hover {
