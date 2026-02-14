@@ -467,6 +467,50 @@ textarea::placeholder {
 
 .main-footer > * { pointer-events: auto; }
 
+/* Admin Select / Inputs */
+.admin-select {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.admin-select:focus {
+    border-color: var(--brand-color);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 4px var(--brand-glow);
+}
+
+.subdomain-input-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.subdomain-suffix {
+    position: absolute;
+    right: 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+#authError {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-top: 16px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
 /* Utilities */
 .hidden { display: none !important; }
 .force-hidden { display: none !important; }
