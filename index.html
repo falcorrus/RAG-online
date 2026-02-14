@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.4">
+    <link rel="stylesheet" href="style.css?v=1.5">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-W2FKP6S6QN"></script>
@@ -16,7 +16,6 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-W2FKP6S6QN');
     </script>
 </head>
@@ -39,9 +38,7 @@
         <button class="icon-btn" id="adminBtn" title="Настройки" data-i18n-title="admin_btn_title">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="3"></circle>
-                <path
-                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                </path>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
         </button>
         <button class="icon-btn" id="minimizeBtn" title="Свернуть" data-i18n-title="minimize_btn_title">
@@ -64,26 +61,24 @@
                     </button>
                 </div>
             </div>
-            <div class="admin-content">
-                <div class="onboarding-steps">
-                    <div class="onboarding-step">
-                        <div class="step-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
-                            </svg>
+            <div class="admin-main">
+                <div class="admin-content">
+                    <div class="onboarding-steps">
+                        <div class="onboarding-step">
+                            <div class="step-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-text" data-i18n="onboarding_step_1">Создайте аккаунт (RAG)</div>
+                            </div>
                         </div>
-                        <div class="step-info">
-                            <div class="step-text" data-i18n="onboarding_step_1">Создайте аккаунт (RAG)</div>
-                        </div>
-                    </div>
-                    <div class="onboarding-step">
-                        <div class="step-icon-wrapper">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>
-                            </svg>
-                        </div>
-                        <div class="step-info">
-                            <div class="step-text" data-i18n="onboarding_step_2">Загрузите знания (markdown, txt)</div>
+                        <div class="onboarding-step">
+                            <div class="step-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                            </div>
+                            <div class="step-info">
+                                <div class="step-text" data-i18n="onboarding_step_2">Загрузите знания (markdown, txt)</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,35 +98,37 @@
                     </button>
                 </div>
             </div>
-            <div class="admin-content">
-                <div class="setting-group">
-                    <label class="setting-label">Email</label>
-                    <input type="email" id="authEmail" class="admin-select" style="width: 100%; box-sizing: border-box;">
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Пароль</label>
-                    <input type="password" id="authPass" class="admin-select" style="width: 100%; box-sizing: border-box;">
-                </div>
-                <div class="setting-group hidden" id="subdomainGroup">
-                    <label class="setting-label" data-i18n="auth_subdomain_label">Желаемый поддомен</label>
-                    <div class="subdomain-input-wrapper">
-                        <input type="text" id="authSubdomain" class="admin-select" placeholder="my-project" style="width: 100%; box-sizing: border-box;">
-                        <span class="subdomain-suffix">.rag.reloto.ru</span>
+            <div class="admin-main">
+                <div class="admin-content">
+                    <div class="setting-group">
+                        <label class="setting-label">Email</label>
+                        <input type="email" id="authEmail" class="admin-select" placeholder="name@company.com">
                     </div>
+                    <div class="setting-group">
+                        <label class="setting-label">Пароль</label>
+                        <input type="password" id="authPass" class="admin-select" placeholder="••••••••">
+                    </div>
+                    <div class="setting-group hidden" id="subdomainGroup">
+                        <label class="setting-label" data-i18n="auth_subdomain_label">Желаемый поддомен</label>
+                        <div class="subdomain-input-wrapper">
+                            <input type="text" id="authSubdomain" class="admin-select" placeholder="my-project">
+                            <span class="subdomain-suffix">.rag.reloto.ru</span>
+                        </div>
+                    </div>
+                    <p id="authError" class="hidden"></p>
                 </div>
-                <p id="authError" style="color: #ff4d4d; font-size: 0.8rem; margin-top: 10px;" class="hidden"></p>
             </div>
-            <div class="admin-footer" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+            <div class="admin-footer auth-footer">
                 <button class="save-btn" id="authBtn" data-i18n="auth_btn_login">Войти</button>
-                <div style="display: flex; gap: 16px; align-items: center;">
-                    <button class="action-btn hidden" id="authBackBtn" style="font-size: 0.85rem; color: var(--text-secondary);">← Назад</button>
-                    <button class="action-btn" id="toggleAuthMode" data-i18n="auth_toggle_register" style="font-size: 0.85rem; color: var(--text-secondary);">Хотите такой же? Регистрация</button>
+                <div class="auth-extra-actions">
+                    <button class="action-btn hidden" id="authBackBtn">← Назад</button>
+                    <button class="action-btn" id="toggleAuthMode" data-i18n="auth_toggle_register">Хотите такой же? Регистрация</button>
                 </div>
             </div>
         </div>
 
         <!-- Admin View -->
-        <div class="admin-panel hidden" id="settingsPanel" style="max-width: 600px;">
+        <div class="admin-panel hidden" id="settingsPanel">
             <div class="admin-header-compact">
                 <div class="header-top">
                     <h2 id="adminPanelTitle" data-i18n="admin_title">Настройки</h2>
@@ -142,7 +139,6 @@
                 <div class="user-badge-wrapper">
                     <span class="user-badge admin-email"></span>
                 </div>
-                
                 <div class="admin-tabs segmented-control">
                     <button class="tab-btn active" data-tab="settings" data-i18n="tab_settings">Настройки</button>
                     <button class="tab-btn" data-tab="logs" id="viewLogsBtn" data-i18n="tab_logs">Логи чата</button>
@@ -153,17 +149,11 @@
                 <!-- Settings Tab -->
                 <div class="tab-content active" id="settingsTab">
                     <div class="admin-content">
-                        <!-- File Drop Zone -->
                         <div class="setting-group">
                             <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
                             <div class="drop-zone" id="kbDropZone">
                                 <div class="drop-zone-content">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                        <polyline points="17 8 12 3 7 8"></polyline>
-                                        <line x1="12" y1="3" x2="12" y2="15"></line>
-                                    </svg>
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                                     <p data-i18n="drop_zone_text">Перетащите .md файл</p>
                                     <input type="file" id="kbFileInput" accept=".md" class="hidden">
                                 </div>
@@ -175,12 +165,9 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="settings-actions" style="margin-top: -8px; margin-bottom: 8px;">
+                        <div class="settings-actions">
                             <button class="action-btn small" id="downloadKbBtn" data-i18n="download_kb_btn">Скачать базу</button>
                         </div>
-
-                        <!-- Toggles -->
                         <div class="setting-group">
                             <div class="toggle-wrapper">
                                 <span class="setting-label" data-i18n="initially_open_label">Изначально открыто</span>
@@ -199,7 +186,7 @@
                         <button class="action-btn small" id="downloadLogsBtn" data-i18n="download_logs_btn">Скачать логи</button>
                         <button class="action-btn small danger" id="clearLogsBtn" data-i18n="clear_logs_btn">Очистить</button>
                     </div>
-                    <div class="admin-content" id="logsContent" style="max-height: 400px; overflow-y: auto;">
+                    <div class="admin-content" id="logsContent">
                         <p data-i18n="no_logs_msg">Логи пока пусты.</p>
                     </div>
                 </div>
@@ -218,17 +205,13 @@
             <ul class="todo-list">
                 <li class="todo-item done">
                     <span class="todo-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                            <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg>
                     </span>
                     <span class="todo-text">Аккаунт зарегистрирован</span>
                 </li>
                 <li class="todo-item" id="todoUpload">
                     <span class="todo-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                     </span>
                     <span class="todo-text">Загрузите файл с заметками в формате Markdown</span>
                 </li>
@@ -242,81 +225,49 @@
         <div class="search-wrapper" id="searchWrapper">
             <div class="title-area">
                 <div class="sparkle-icon force-hidden" id="mainSparkle">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1"></path>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M3 12h3m12 0h3M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1"></path></svg>
                 </div>
                 <h1 data-i18n="title_main" id="mainTitle" class="force-hidden">AI Knowledge Base</h1>
             </div>
 
             <div class="input-container" id="inputContainer">
-                <textarea id="queryInput" placeholder="Спрашивайте в свободной форме" rows="1" data-gramm="false"
-                    wt-ignore-input="true" data-i18n-placeholder="input_placeholder"></textarea>
-
+                <textarea id="queryInput" placeholder="Спрашивайте в свободной форме" rows="1" wt-ignore-input="true" data-i18n-placeholder="input_placeholder"></textarea>
                 <button id="clearBtn" class="clear-btn hidden" title="Clear" data-i18n-title="clear_btn_title">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
-
                 <button id="sendBtn" class="send-btn" aria-label="Search" data-i18n-aria="send_btn_aria">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </button>
             </div>
-
             <div class="suggestions" id="suggestions"></div>
         </div>
 
         <div class="results-area hidden" id="resultsArea">
             <div class="status-indicator">
-                <div class="loader hidden" id="loader">
-                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                </div>
+                <div class="loader hidden" id="loader"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                 <span id="statusText" class="status-text"></span>
             </div>
-
             <div class="answer-card hidden" id="answerCard">
                 <div class="answer-content" id="answerContent"></div>
                 <div class="answer-footer">
                     <span class="source-badge" id="sourceBadge" data-i18n="source_label">Источник: Внутренняя документация</span>
-                    <div class="actions">
-                        <button class="action-btn" id="copyBtn" title="Copy" data-i18n-title="copy_btn_title">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
-                    </div>
+                    <button class="action-btn small" id="copyBtn" title="Copy" data-i18n-title="copy_btn_title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
                 </div>
             </div>
         </div>
     </main>
 
     <footer class="main-footer force-hidden">
-        <div class="powered-by">
-            <a href="#" id="promoLink" data-i18n="promo_link">Создайте свой RAG в 2 клика</a>
-        </div>
-        <div class="creator-footer">
-            made in <a href="#" id="creatorLink">Broz studio</a>
-        </div>
+        <div class="powered-by"><a href="#" id="promoLink" data-i18n="promo_link">Создайте свой RAG в 2 клика</a></div>
+        <div class="creator-footer">made in <a href="#" id="creatorLink">Broz studio</a></div>
     </footer>
 
-    <div class="creator-popup" id="creatorPopup">
-        🚀&nbsp;&nbsp;<a href="https://kirshin.carrd.co/" target="_blank">kirshin.carrd.co</a>
-    </div>
+    <div class="creator-popup" id="creatorPopup">🚀&nbsp;&nbsp;<a href="https://kirshin.carrd.co/" target="_blank">kirshin.carrd.co</a></div>
+    <div id="toast" class="toast"><span class="toast-icon"></span><span id="toastMessage"></span></div>
 
-    <div id="toast" class="toast">
-        <span class="toast-icon"></span>
-        <span id="toastMessage"></span>
-    </div>
-
-    <!-- Confirmation Modal -->
+    <!-- Modals -->
     <div class="admin-overlay hidden" id="confirmationModal">
         <div class="admin-panel" style="max-width: 400px;">
             <div class="admin-header-compact">
@@ -327,30 +278,24 @@
                     </button>
                 </div>
             </div>
-            <div class="admin-content" style="padding-bottom: 0;">
-                <p id="confirmMessage" style="color: var(--text-primary); font-size: 1rem; line-height: 1.5;"></p>
-            </div>
-            <div class="admin-footer" style="justify-content: flex-end; gap: 12px; border-top: none; padding-top: 24px;">
-                <button class="action-btn small" id="cancelConfirmBtn" data-i18n="cancel_btn">Отмена</button>
-                <button class="action-btn small danger" id="confirmActionBtn" data-i18n="delete_btn">Удалить</button>
+            <div class="admin-main"><div class="admin-content"><p id="confirmMessage"></p></div></div>
+            <div class="admin-footer auth-footer">
+                <button class="save-btn btn-danger" id="confirmActionBtn" data-i18n="delete_btn">Удалить</button>
+                <button class="action-btn" id="cancelConfirmBtn" data-i18n="cancel_btn">Отмена</button>
             </div>
         </div>
     </div>
 
-    <!-- Processing Modal -->
     <div class="admin-overlay hidden" id="processingModal">
         <div class="admin-panel" style="max-width: 400px; text-align: center;">
             <div class="admin-content" style="padding: 48px 32px;">
-                <div class="processing-loader">
-                    <div class="spinner"></div>
-                </div>
-                <h2 id="processingTitle" style="margin-top: 24px; font-size: 1.25rem; color: var(--text-primary);" data-i18n="processing_kb_title">База обрабатывается</h2>
-                <p id="processingMessage" style="margin-top: 12px; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;" data-i18n="processing_kb_msg">Подождите несколько секунд...</p>
+                <div class="processing-loader"><div class="spinner"></div></div>
+                <h2 id="processingTitle" style="margin-top: 24px;" data-i18n="processing_kb_title">База обрабатывается</h2>
+                <p id="processingMessage" style="margin-top: 12px; color: var(--text-secondary);">Подождите несколько секунд...</p>
             </div>
         </div>
     </div>
 
-    <script src="script.js?v=3"></script>
+    <script src="script.js?v=4"></script>
 </body>
-
 </html>
