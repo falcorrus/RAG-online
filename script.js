@@ -223,6 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!token) showAuth();
             else {
                 authPanel.classList.add('hidden');
+                onboardingPanel.classList.add('hidden');
                 settingsPanel.classList.remove('hidden');
                 adminOverlay.classList.remove('hidden');
                 toggleUIByKnowledgeBase(true);
@@ -440,6 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showAuth() {
         authPanel.classList.remove('hidden');
         settingsPanel.classList.add('hidden');
+        onboardingPanel.classList.add('hidden');
         adminOverlay.classList.remove('hidden');
     }
 
@@ -901,6 +903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 authPanel.classList.add('hidden');
+                onboardingPanel.classList.add('hidden'); // Ensure onboarding is hidden
                 settingsPanel.classList.remove('hidden');
                 adminOverlay.classList.remove('hidden');
             }
