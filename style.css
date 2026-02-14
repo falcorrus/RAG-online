@@ -456,6 +456,34 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     border-color: rgba(255, 255, 255, 0.2);
 }
 
+/* Auth Extra Actions */
+.auth-extra-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.auth-extra-actions .action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: all 0.2s var(--ease-out);
+    white-space: nowrap;
+}
+
+.auth-extra-actions .action-btn:hover {
+    color: var(--brand-color);
+    background: rgba(255, 255, 255, 0.05);
+}
+
 .save-btn {
     width: 100%;
     background: var(--brand-color);
