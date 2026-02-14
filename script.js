@@ -1092,34 +1092,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function typeWriterEffect(text, element) {
-        element.innerHTML = '';
-        const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(10px)';
+        element.style.transition = 'none';
         
-        // Split by tags and characters to preserve HTML
-        const parts = formattedText.split(/(<[^>]*>)/g);
-        let i = 0;
-        let charIndex = 0;
-        
-        function type() {
-            if (i < parts.length) {
-                if (parts[i].startsWith('<')) {
-                    element.innerHTML += parts[i];
-                    i++;
-                    setTimeout(type, 0);
-                } else {
-                    if (charIndex < parts[i].length) {
-                        element.innerHTML += parts[i].charAt(charIndex);
-                        charIndex++;
-                        setTimeout(type, 15); // Adjust speed here
-                    } else {
-                        i++;
-                        charIndex = 0;
-                        setTimeout(type, 0);
-                    }
-                }
-            }
-        }
-        type();
+        requestAnimationFrame(() => {
+            element.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        });
     }
 
     const creatorLink = document.getElementById('creatorLink');
