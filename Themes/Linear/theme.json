@@ -1,0 +1,27 @@
+{
+  "name": "Linear",
+  "palette": {
+    "background": {
+      "page": "#0b0e14",
+      "modal": "#151921",
+      "surface": "#272a34"
+    },
+    "colors": {
+      "primary": "#6366f1",
+      "text": {
+        "primary": "#f8fafc",
+        "secondary": "#94a3b8",
+        "muted": "#64748b"
+      },
+      "border": "#272a34"
+    }
+  },
+  "geometry": {
+    "borderRadius": {
+      "modal": "20px",
+      "button": "12px",
+      "input": "10px"
+    },
+    "blur": "8px"
+  }
+}
