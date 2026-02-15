@@ -593,8 +593,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authBtn) authBtn.addEventListener('click', handleAuth);
 
     function applyTheme(theme) {
-        document.body.classList.remove('theme-glass', 'theme-linear');
+        document.body.classList.remove('theme-glass', 'theme-linear', 'theme-apple');
         document.body.classList.add(`theme-${theme || 'glass'}`);
+        
+        // Add sparkle icon if it's apple theme and doesn't exist
+        const titleArea = document.querySelector('.title-area');
+        let appleIcon = document.getElementById('appleIcon');
+        
+        if (theme === 'apple') {
+            if (!appleIcon && titleArea) {
+                appleIcon = document.createElement('span');
+                appleIcon.id = 'appleIcon';
+                appleIcon.className = 'material-symbols-outlined';
+                appleIcon.style.color = 'var(--brand-color)';
+                appleIcon.style.marginLeft = '10px';
+                appleIcon.style.fontSize = '24px';
+                appleIcon.textContent = 'auto_awesome';
+                titleArea.appendChild(appleIcon);
+            }
+        } else {
+            if (appleIcon) appleIcon.remove();
+        }
     }
 
     // --- Settings & UI ---
@@ -747,7 +766,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (themeSelect) {
-        themeSelect.addEventListener('change', saveSettings);
+        themeSelect.addEventListener('change', () => {
+            saveSettings();
+        });
     }
 
     async function handleFileSelect(file) {
@@ -1038,6 +1059,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = el.getAttribute('data-i18n-placeholder');
             if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
         });
+
+        updateAuthLabels();
 
         await loadSuggestions();
 

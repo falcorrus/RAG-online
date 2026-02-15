@@ -64,6 +64,7 @@ class UserAuth(BaseModel):
 
 class TenantSettings(BaseModel):
     initiallyOpen: bool
+    theme: Optional[str] = "glass"
     sourceText: Optional[str] = None
 
 class ChatRequest(BaseModel):
@@ -366,8 +367,9 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
         print(f"DEBUG: Saving settings for {user_email}: {settings.dict()}", flush=True)
         tenants = get_tenants()
         if user_email in tenants:
-            # Only update initiallyOpen, defaultLang and businessName are handled by KB logic
+            # Update initiallyOpen and theme
             tenants[user_email]["settings"]["initiallyOpen"] = settings.initiallyOpen
+            tenants[user_email]["settings"]["theme"] = settings.theme
             save_tenants(tenants)
             print(f"DEBUG: Settings saved successfully for {user_email}", flush=True)
             return {"status": "ok"}
@@ -441,8 +443,8 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
     return {"status": "ok"}
 
 @app.get("/api/suggestions")
-async def get_suggestions(request: Request, lang: str = "ru", auth: str = Header(None)):
-    user = await get_current_user(auth, False)
+async def get_suggestions(request: Request, lang: str = "ru", authorization: str = Header(None)):
+    user = await get_current_user(authorization, False)
     owner_email = user["sub"] if user else get_tenant_by_host(request.headers.get("host"))
     tenants = get_tenants()
     
@@ -458,8 +460,8 @@ async def get_suggestions(request: Request, lang: str = "ru", auth: str = Header
     return {"suggestions": fallbacks.get(lang, fallbacks["ru"])}
 
 @app.post("/api/chat")
-async def chat_proxy(request: ChatRequest, req: Request, auth: str = Header(None)):
-    user = await get_current_user(auth, False)
+async def chat_proxy(request: ChatRequest, req: Request, authorization: str = Header(None)):
+    user = await get_current_user(authorization, False)
     owner_email = user["sub"] if user else get_tenant_by_host(req.headers.get("host"))
     
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
