@@ -270,13 +270,18 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     background: transparent;
     border: none;
     color: var(--text-muted);
-    width: 28px; height: 28px;
+    width: 36px; height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     border-radius: 50%;
     transition: 0.2s;
+}
+
+.clear-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 /* Suggestions */
@@ -313,9 +318,40 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     border-radius: var(--radius-card);
     padding: 32px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    position: relative; /* Base for absolute copy button */
 }
 
 .answer-content { line-height: 1.8; font-size: 15px; color: var(--text-primary); }
+
+.answer-footer {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#copyBtn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-secondary);
+    transition: all 0.2s var(--ease-out);
+}
+
+#copyBtn:hover {
+    border-color: var(--divider-color);
+    color: white;
+    background: var(--brand-color);
+}
 
 /* ADMIN PANEL STYLES */
 .admin-overlay {
@@ -629,6 +665,13 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
 
 .save-btn:hover { background: var(--brand-color-hover); transform: translateY(-1px); }
 
+.logs-toolbar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    justify-content: flex-start;
+}
+
 .action-btn.small {
     padding: 8px 16px;
     font-size: 12px;
@@ -637,10 +680,30 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
     border: 1px solid var(--border-color);
     border-radius: 10px;
     color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-out);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 
-.action-btn.small:hover { border-color: var(--divider-color); color: white; }
-.action-btn.danger { color: var(--color-error) !important; }
+.action-btn.small:hover { 
+    border-color: var(--divider-color); 
+    color: white; 
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.action-btn.danger { 
+    color: #f43f5e; 
+    border-color: rgba(244, 63, 94, 0.2) !important;
+}
+
+.action-btn.danger:hover {
+    background: rgba(244, 63, 94, 0.1) !important;
+    border-color: rgba(244, 63, 94, 0.4) !important;
+    color: #fb7185;
+}
 
 /* Main Footer */
 .main-footer {

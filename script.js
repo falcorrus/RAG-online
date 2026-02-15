@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const translations = {
         ru: {
             title_main: "База знаний",
-            input_placeholder: "Спрашивайте в свободной форме",
+            input_placeholder: "Спрашивайте",
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
