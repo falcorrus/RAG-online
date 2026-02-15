@@ -201,12 +201,18 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             # Apply token limit to content for prompt
             limited_content = limit_context_by_tokens(clean_content_for_ai, 2000) # Use 2000 tokens for suggestions/name extraction
             
-            prompt = f"""Analyze this Knowledge Base. 
+            prompt = f"""Analyze this Knowledge Base content. 
+IMPORTANT: You MUST generate the output in {lang_name} language. Even if the KB text below is in another language, you MUST TRANSLATE your generated questions and the Business Name into {lang_name}.
+
 1. Generate 3 typical short questions in {lang_name}. The questions MUST be directly and comprehensively answerable using ONLY the provided KB text.
 2. Extract the Business Name from the "## Название" section under "Общие настройки" and TRANSLATE it into {lang_name}.
 3. Extract the Under-Answer Text (signature) from the "## Подпись" section under "Общие настройки". Keep it EXACTLY as it appears, but translated to {lang_name} ONLY if it contains descriptive labels (e.g., "Contact:"). 
+
 Return ONLY a JSON object: {{"suggestions": ["q1", "q2", "q3"], "businessName": "Name", "underAnswerText": "Contact info"}}.
-KB: {limited_content}"""
+KB content: 
+---
+{limited_content}
+---"""
             
             async with httpx.AsyncClient() as client:
                 resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15.0)
@@ -446,12 +452,17 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
 async def get_suggestions(request: Request, lang: str = "ru", authorization: str = Header(None)):
     user = await get_current_user(authorization, False)
     owner_email = user["sub"] if user else get_tenant_by_host(request.headers.get("host"))
-    tenants = get_tenants()
     
+    print(f"DEBUG: get_suggestions for {owner_email}, requested lang: {lang}", flush=True)
+    
+    tenants = get_tenants()
     if owner_email in tenants:
         cache = tenants[owner_email].get("suggestions_cache", {})
-        if cache.get(lang): return {"suggestions": cache[lang]}
+        if cache.get(lang): 
+            print(f"DEBUG: Returning cached suggestions for {lang}", flush=True)
+            return {"suggestions": cache[lang]}
     
+    print(f"DEBUG: No cache for {lang}, returning fallbacks", flush=True)
     fallbacks = {
         "ru": ["Как оформить отпуск?", "График работы", "Контакты HR"],
         "en": ["How to apply for leave?", "Work schedule", "HR Contacts"],
