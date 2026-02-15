@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050505;
+            --accent-color: #6d5dfc;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --success-color: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            width: 1080px;
+            height: 1920px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            padding: 120px 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .glow {
+            position: absolute;
+            width: 1200px;
+            height: 1200px;
+            background: radial-gradient(circle, rgba(109, 93, 252, 0.15) 0%, rgba(109, 93, 252, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+        }
+
+        .visual-element {
+            width: 100%;
+            height: 700px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 80px;
+            position: relative;
+        }
+
+        .label {
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            font-weight: 600;
+            font-size: 32px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .title {
+            font-size: 88px;
+            font-weight: 800;
+            line-height: 1.15;
+            background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+            max-width: 900px;
+        }
+
+        /* Setup UI Glassmorphism */
+        .setup-card {
+            width: 850px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+            border-radius: 56px;
+            padding: 80px 60px;
+            text-align: left;
+            box-shadow: 0 100px 200px rgba(0,0,0,0.6);
+        }
+
+        .setup-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 60px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 35px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 28px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .step.done {
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .check {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .done .check {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+            font-size: 24px;
+        }
+
+        .step-text {
+            font-size: 32px;
+            color: var(--text-primary);
+        }
+
+        .done .step-text {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        /* Search Bar */
+        .chatgpt-input {
+            width: 900px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 40px 0 60px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+        }
+
+        .chatgpt-input .placeholder {
+            font-size: 38px;
+            color: var(--text-secondary);
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .chatgpt-input .send-btn {
+            width: 80px;
+            height: 80px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            font-size: 40px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
+            font-size: 28px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .footer b {
+            color: var(--accent-color);
+        }
+
+        .icon-large {
+            font-size: 280px;
+            filter: drop-shadow(0 20px 40px rgba(109, 93, 252, 0.3));
+        }
+
+        .notification-icon {
+            width: 260px;
+            height: 260px;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 110px;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="container">
+        <div id="visual-content" class="visual-element"></div>
+        <div id="label" class="label">RAG-online</div>
+        <h1 id="title" class="title">Заголовок</h1>
+        <div class="footer">
+            rag.reloto.ru • <b>AI Business Assistant</b>
+        </div>
+    </div>
+
+    <script>
+        function setSlide(data) {
+            document.getElementById('label').innerText = data.label;
+            document.getElementById('title').innerText = data.title;
+            const visual = document.getElementById('visual-content');
+            
+            visual.innerHTML = '';
+            
+            if (data.id === 1) {
+                visual.innerHTML = '<div class="notification-icon">💬</div>';
+            } else if (data.id === 5) {
+                visual.innerHTML = `
+                    <div class="chatgpt-input">
+                        <div class="placeholder">Как работает RAG в моем бизнесе?</div>
+                        <div class="send-btn">↑</div>
+                    </div>
+                `;
+            } else if (data.id === 7) {
+                visual.innerHTML = `
+                    <div class="setup-card">
+                        <div class="setup-title">Запускаем свой RAG</div>
+                        <div class="step done">
+                            <div class="check">✓</div>
+                            <div class="step-text">Аккаунт зарегистрирован</div>
+                        </div>
+                        <div class="step">
+                            <div class="check"></div>
+                            <div class="step-text">Загрузите файл Markdown</div>
+                        </div>
+                    </div>
+                `;
+            } else if (data.id === 2) {
+                visual.innerHTML = '<div class="icon-large">✨</div>';
+            } else if (data.id === 3) {
+                visual.innerHTML = '<div class="icon-large">🤖</div>';
+            } else if (data.id === 4) {
+                visual.innerHTML = '<div class="icon-large">📄</div>';
+            } else if (data.id === 6) {
+                visual.innerHTML = '<div class="icon-large">⏳</div>';
+            }
+        }
+    </script>
+</body>
+</html>

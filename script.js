@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (underAnswerText && underAnswerText.trim().length > 0) {
             sourceBadge.textContent = (sourcePrefix[currentLang] || sourcePrefix["ru"]) + underAnswerText;
         } else {
-            const key = sourceBadge.getAttribute('data-i18n');
+            const key = sourceBadge.getAttribute('data-i18n') || 'source_label';
             if (translations[currentLang] && translations[currentLang][key]) {
                 sourceBadge.textContent = translations[currentLang][key];
             }
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "Как оформить отпуск?",
             suggestion_2: "График работы",
             suggestion_3: "Контакты HR",
-            source_label: "Для вопросов: @argodon",
+            source_label: "Источник: База знаний",
             admin_title: "Панель управления",
             tab_settings: "Настройки",
             tab_logs: "Логи чата",
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "How to apply for leave?",
             suggestion_2: "Work schedule",
             suggestion_3: "HR Contacts",
-            source_label: "Questions: @argodon",
+            source_label: "Source: Knowledge Base",
             admin_title: "Control Panel",
             tab_settings: "Settings",
             tab_logs: "Chat Logs",
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_1: "Como solicitar férias?",
             suggestion_2: "Horário de trabalho",
             suggestion_3: "Contatos de RH",
-            source_label: "Questões: @argodon",
+            source_label: "Fonte: Base de Conhecimento",
             admin_title: "Painel de Controle",
             tab_settings: "Configurações",
             tab_logs: "Registros",
