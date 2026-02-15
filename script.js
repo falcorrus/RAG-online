@@ -616,6 +616,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!settings.initiallyOpen) document.body.classList.add('minimized');
                 toggleUIByKnowledgeBase(settings.kb_exists);
+                underAnswerText = settings.underAnswerText || "";
+                updateSourceDisplay();
                 updateTitle(settings.kb_exists, settings.businessName);
             }
         } catch (err) {

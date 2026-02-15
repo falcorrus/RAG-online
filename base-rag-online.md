@@ -1,7 +1,7 @@
 # Общие настройки
 
 ## Название
-RAG-online SaaS
+RAG-online
 
 ## Подпись
 telegram @argodon, +5548992012727
