@@ -1143,8 +1143,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const creatorLink = document.getElementById('creatorLink');
-    const creatorPopup = document.getElementById('creatorPopup');
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const downloadKbBtn = document.getElementById('downloadKbBtn');
     const promoLink = document.getElementById('promoLink');
@@ -1284,23 +1282,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (downloadLogsBtn) downloadLogsBtn.addEventListener('click', downloadLogs);
     if (downloadKbBtn) downloadKbBtn.addEventListener('click', downloadKb);
 
-    if (creatorLink && creatorPopup) {
-        creatorLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            creatorPopup.classList.toggle('show');
-            if (creatorPopup.classList.contains('show')) {
-                const closePopup = (e) => {
-                    if (!creatorPopup.contains(e.target)) {
-                        creatorPopup.classList.remove('show');
-                        document.removeEventListener('click', closePopup);
-                    }
-                };
-                document.addEventListener('click', closePopup);
-            }
-        });
-        creatorPopup.addEventListener('click', (e) => e.stopPropagation());
-    }
-
+    // creatorLink is now a standard link to broz.agency
     initSettings();
 });
