@@ -119,19 +119,30 @@ def save_tenant_logs(email: str, logs: List[dict]):
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(logs, f, indent=4, ensure_ascii=False)
 
-def get_tenant_by_host(host: str):
+def get_tenant_info_by_host(host: str):
+    """Returns (owner_email, target_subdomain_or_folder) based on host."""
     if not host:
-        return "ekirshin@gmail.com"
-    parts = host.split('.')
-    # Handle subdomain.rag.reloto.ru (len 4+)
-    if len(parts) >= 4 and parts[-3] == 'rag':
-        subdomain = parts[0]
+        return "ekirshin@gmail.com", "ekirshin"
+    
+    host = host.lower().split(':')[0]
+    
+    # 1. Main site - Always primary admin and primary folder
+    if host == "rag.reloto.ru" or host in ["localhost", "127.0.0.1"]:
+        return "ekirshin@gmail.com", "ekirshin"
+
+    # 2. Project subdomains (*.rag.reloto.ru)
+    if host.endswith(".rag.reloto.ru"):
+        suffix = ".rag.reloto.ru"
+        subdomain = host[:-len(suffix)].split('.')[-1]
+        
         tenants = get_tenants()
         for email, data in tenants.items():
             if data.get("subdomain") == subdomain:
-                return email
-    # Handle rag.reloto.ru (len 3)
-    return "ekirshin@gmail.com"
+                return email, subdomain
+        return None, None
+    
+    # 3. Fallback
+    return "ekirshin@gmail.com", "ekirshin"
 
 def create_token(email: str, is_admin: bool = False):
     payload = { "sub": email, "admin": is_admin, "exp": datetime.utcnow() + timedelta(days=30) }
@@ -339,7 +350,10 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
 
 @app.get("/api/settings")
 async def get_public_settings(request: Request, lang: str = "ru"):
-    owner_email = get_tenant_by_host(request.headers.get("host"))
+    owner_email, subdomain = get_tenant_info_by_host(request.headers.get("host"))
+    if not owner_email:
+        return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": ""}
+    
     tenants = get_tenants()
     if owner_email in tenants:
         tenant = tenants[owner_email]
@@ -355,9 +369,8 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         if not settings["underAnswerText"]:
              settings["underAnswerText"] = ""
             
-        sub = tenant.get("subdomain", get_subdomain_by_email(owner_email))
-        settings["subdomain"] = sub
-        kb_path = os.path.join(get_tenant_dir(sub), "base.md")
+        settings["subdomain"] = subdomain
+        kb_path = os.path.join(get_tenant_dir(subdomain), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
     return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": ""}
@@ -403,7 +416,7 @@ async def login(auth: UserAuth, request: Request):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     # Domain restriction check
-    expected_owner = get_tenant_by_host(host)
+    expected_owner, _ = get_tenant_info_by_host(host)
     # Special case: allow admin/default tenant on localhost or raw IP for debugging
     is_local = "localhost" in host or "127.0.0.1" in host or re.match(r"^\d+\.\d+\.\d+\.\d+", host)
     
@@ -451,7 +464,14 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
 @app.get("/api/suggestions")
 async def get_suggestions(request: Request, lang: str = "ru", authorization: str = Header(None)):
     user = await get_current_user(authorization, False)
-    owner_email = user["sub"] if user else get_tenant_by_host(request.headers.get("host"))
+    owner_email, _ = get_tenant_info_by_host(request.headers.get("host"))
+    
+    # If user is logged in, they see their OWN suggestions regardless of host
+    if user:
+        owner_email = user["sub"]
+    
+    if not owner_email:
+        return {"suggestions": ["Как оформить отпуск?", "График работы", "Контакты HR"]}
     
     print(f"DEBUG: get_suggestions for {owner_email}, requested lang: {lang}", flush=True)
     
@@ -473,18 +493,25 @@ async def get_suggestions(request: Request, lang: str = "ru", authorization: str
 @app.post("/api/chat")
 async def chat_proxy(request: ChatRequest, req: Request, authorization: str = Header(None)):
     user = await get_current_user(authorization, False)
-    owner_email = user["sub"] if user else get_tenant_by_host(req.headers.get("host"))
+    owner_email, subdomain = get_tenant_info_by_host(req.headers.get("host"))
+    
+    # If user is logged in, they talk to their OWN KB
+    if user:
+        owner_email = user["sub"]
+        subdomain = get_subdomain_by_email(owner_email)
+    
+    if not owner_email or not subdomain:
+        return {"answer": "Knowledge base not configured."}
     
     lang_map = {"ru": "Russian", "en": "English", "pt": "Portuguese"}
     target_lang = lang_map.get(request.lang, "Russian")
     
-    print(f"Chat request: email={owner_email}, lang={request.lang} ({target_lang}), query={request.query[:50]}", flush=True)
+    print(f"Chat request: email={owner_email}, subdomain={subdomain}, lang={request.lang} ({target_lang})", flush=True)
     
     tenants = get_tenants()
     if owner_email not in tenants: return {"answer": "Knowledge base not configured."}
     
-    sub = get_subdomain_by_email(owner_email)
-    kb_path = os.path.join(get_tenant_dir(sub), "base.md")
+    kb_path = os.path.join(get_tenant_dir(subdomain), "base.md")
     context = ""
     if os.path.exists(kb_path):
         with open(kb_path, 'r', encoding='utf-8') as f: 

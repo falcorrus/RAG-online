@@ -292,7 +292,8 @@ document.addEventListener('DOMContentLoaded', () => {
             deleting_kb_msg: "Очищаем данные... Подождите несколько секунд.",
             confirm_title: "Подтверждение",
             cancel_btn: "Отмена",
-            delete_btn: "Удалить"
+            delete_btn: "Удалить",
+            admin_logout: "Выйти"
         },
         en: {
             title_main: "AI Knowledge Base",
@@ -338,7 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
             deleting_kb_msg: "Clearing data... Please wait a few seconds.",
             confirm_title: "Confirmation",
             cancel_btn: "Cancel",
-            delete_btn: "Delete"
+            delete_btn: "Delete",
+            admin_logout: "Logout"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -384,7 +386,8 @@ document.addEventListener('DOMContentLoaded', () => {
             deleting_kb_msg: "Limpando dados... Aguarde alguns segundos.",
             confirm_title: "Confirmação",
             cancel_btn: "Cancelar",
-            delete_btn: "Excluir"
+            delete_btn: "Excluir",
+            admin_logout: "Sair"
         }
     };
 
@@ -406,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const response = await fetch(url, options);
-            if (response.status === 401) {
+            if (response.status === 401 || response.status === 403) {
                 localStorage.removeItem('token');
                 showAuth();
             }
@@ -938,6 +941,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (initiallyOpenToggle) {
         initiallyOpenToggle.addEventListener('change', saveSettings);
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            location.reload();
+        });
     }
     
     if (kbDropZone) {
