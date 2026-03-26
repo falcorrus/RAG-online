@@ -545,14 +545,16 @@ MANDATORY RULES:
 5. Maintain a helpful and professional tone.
 
 GENERATIVE UI RULES:
-You MUST use these custom tags when presenting options, pricing, or calls to action. DO NOT use plain lists for services.
-- <ui-button>Label</ui-button> : Use for EVERY call to action (e.g. "Записаться", "Узнать больше").
+You MUST use these custom tags when presenting options, pricing, images or links. DO NOT use plain lists for services.
+- <ui-button>Label</ui-button> : Use for EVERY internal action (e.g. "Записаться", "Узнать больше").
 - <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product.
+- <ui-link href="URL">Label</ui-link> : Use for ALL external links (WhatsApp, Telegram, Website, Maps).
+- <ui-image src="URL">Caption</ui-image> : Use to show photos of products, interior or team.
 Example output:
 "Вот наши тарифы:
-<ui-card title='Старт' price='Бесплатно'>Базовая функциональность, до 100 запросов.</ui-card>
-<ui-card title='Про' price='1500₽'>Полный доступ, поддержка 24/7.</ui-card>
-Для заказа нажмите: <ui-button>Выбрать тариф</ui-button>"
+<ui-card title='Старт' price='Бесплатно'>Базовая функциональность.</ui-card>
+Смотрите фото нашего офиса: <ui-image src='https://example.com/office.jpg'>Наш уютный офис</ui-image>
+Для заказа пишите нам: <ui-link href='https://wa.me/79991234567'>WhatsApp</ui-link> или нажмите: <ui-button>Записаться</ui-button>"
 
 CONTEXT:
 ---

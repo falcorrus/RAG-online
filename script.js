@@ -1159,7 +1159,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return `<button class="ui-button" onclick="window.handleUiButtonClick('${label}')">${label}</button>`;
         });
 
-        // 4. Process newlines (skip if inside ui-card to avoid extra breaks)
+        // 4. Process Generative UI: <ui-link>
+        // Syntax: <ui-link href="url">Label</ui-link>
+        html = html.replace(/<ui-link\s+href=["'](.*?)["']>(.*?)<\/ui-link>/g, (match, href, label) => {
+            return `<a href="${href}" target="_blank" class="ui-link">${label}</a>`;
+        });
+
+        // 5. Process Generative UI: <ui-image>
+        // Syntax: <ui-image src="url">Caption</ui-image>
+        html = html.replace(/<ui-image\s+src=["'](.*?)["']>(.*?)<\/ui-image>/g, (match, src, caption) => {
+            return `
+                <div class="ui-image-container">
+                    <img src="${src}" alt="${caption}" class="ui-image" loading="lazy">
+                    ${caption ? `<div class="ui-image-caption">${caption}</div>` : ''}
+                </div>
+            `;
+        });
+
+        // 6. Process newlines (skip if inside ui-card to avoid extra breaks)
         html = html.replace(/\n/g, '<br>');
 
         element.innerHTML = html;        element.style.opacity = '0';
