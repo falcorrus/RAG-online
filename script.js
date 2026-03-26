@@ -1176,7 +1176,13 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
 
-        // 6. Process newlines (skip if inside ui-card to avoid extra breaks)
+        // 6. Process Generative UI: <ui-badge>
+        // Syntax: <ui-badge>Label</ui-badge>
+        html = html.replace(/<ui-badge>(.*?)<\/ui-badge>/g, (match, label) => {
+            return `<span class="ui-badge">${label}</span>`;
+        });
+
+        // 7. Process newlines (skip if inside ui-card to avoid extra breaks)
         html = html.replace(/\n/g, '<br>');
 
         element.innerHTML = html;        element.style.opacity = '0';

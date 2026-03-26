@@ -70,7 +70,7 @@
     line-height: 1.5;
 }
 
-/* --- NEW COMPONENTS: LINK & IMAGE --- */
+/* --- COMPONENTS: LINK & IMAGE --- */
 .ui-link {
     display: inline-flex;
     align-items: center;
@@ -126,4 +126,27 @@
     background: rgba(0,0,0,0.2);
     text-align: center;
     font-style: italic;
+}
+
+/* --- NEW COMPONENT: BADGE --- */
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    background: rgba(109, 93, 252, 0.15);
+    border: 1px solid var(--brand-color);
+    border-radius: 100px;
+    color: var(--brand-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0.25rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px var(--brand-glow);
+    width: fit-content;
+}
+
+.ui-card .ui-badge {
+    margin: 0 0 0.5rem 0;
 }
