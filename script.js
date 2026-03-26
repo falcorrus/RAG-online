@@ -1131,11 +1131,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function typeWriterEffect(text, element) {
-        element.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-        element.style.opacity = '0';
+        // 1. Process standard Markdown-like formatting
+        let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        // 2. Process Generative UI: <ui-card>
+        // More robust regex to handle any order of attributes and single/double quotes
+        const cardRegex = /<ui-card\b([^>]*)>([\s\S]*?)<\/ui-card>/g;
+        html = html.replace(cardRegex, (match, attrs, desc) => {
+            const titleMatch = attrs.match(/title=["'](.*?)["']/);
+            const priceMatch = attrs.match(/price=["'](.*?)["']/);
+            const title = titleMatch ? titleMatch[1] : "";
+            const price = priceMatch ? priceMatch[1] : "";
+
+            return `
+                <div class="ui-card">
+                    <div class="ui-card-header">
+                        <span class="ui-card-title">${title}</span>
+                        <span class="ui-card-price">${price}</span>
+                    </div>
+                    <div class="ui-card-description">${desc.trim()}</div>
+                </div>
+            `;
+        });
+
+        // 3. Process Generative UI: <ui-button>
+        html = html.replace(/<ui-button>(.*?)<\/ui-button>/g, (match, label) => {
+            return `<button class="ui-button" onclick="window.handleUiButtonClick('${label}')">${label}</button>`;
+        });
+
+        // 4. Process newlines (skip if inside ui-card to avoid extra breaks)
+        html = html.replace(/\n/g, '<br>');
+
+        element.innerHTML = html;        element.style.opacity = '0';
         element.style.transform = 'translateY(10px)';
         element.style.transition = 'none';
-        
+
         requestAnimationFrame(() => {
             element.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
             element.style.opacity = '1';
@@ -1143,6 +1173,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Global handler for UI buttons
+    window.handleUiButtonClick = function(label) {
+        if (queryInput) {
+            queryInput.value = label;
+            processSearch(label);
+        }
+    };
     const downloadLogsBtn = document.getElementById('downloadLogsBtn');
     const downloadKbBtn = document.getElementById('downloadKbBtn');
     const promoLink = document.getElementById('promoLink');

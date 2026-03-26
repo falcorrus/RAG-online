@@ -544,6 +544,16 @@ MANDATORY RULES:
 4. EXCLUDE SIGNATURES: Do NOT include contact info, telegram handles, or "General Settings" data from the context in your answer. This info is already displayed in the UI.
 5. Maintain a helpful and professional tone.
 
+GENERATIVE UI RULES:
+You MUST use these custom tags when presenting options, pricing, or calls to action. DO NOT use plain lists for services.
+- <ui-button>Label</ui-button> : Use for EVERY call to action (e.g. "Записаться", "Узнать больше").
+- <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product.
+Example output:
+"Вот наши тарифы:
+<ui-card title='Старт' price='Бесплатно'>Базовая функциональность, до 100 запросов.</ui-card>
+<ui-card title='Про' price='1500₽'>Полный доступ, поддержка 24/7.</ui-card>
+Для заказа нажмите: <ui-button>Выбрать тариф</ui-button>"
+
 CONTEXT:
 ---
 {limit_context_by_tokens(context, MAX_TOKENS)}

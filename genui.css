@@ -1,0 +1,71 @@
+
+/* --- GENERATIVE UI COMPONENTS --- */
+.ui-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.5rem;
+    background-color: var(--brand-color);
+    color: #fff !important;
+    border-radius: var(--radius-button);
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-speed) var(--ease-out);
+    border: none;
+    margin: 0.75rem 0;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px var(--brand-glow);
+    width: fit-content;
+}
+
+.ui-button:hover {
+    background-color: var(--brand-color-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--brand-glow);
+}
+
+.ui-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    padding: 1.25rem;
+    margin: 1.25rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: all var(--transition-speed) var(--ease-out);
+    text-align: left;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.ui-card:hover {
+    border-color: var(--brand-color);
+    transform: translateY(-2px);
+}
+
+.ui-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--divider-color);
+    padding-bottom: 0.5rem;
+}
+
+.ui-card-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.ui-card-price {
+    color: var(--brand-color);
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.ui-card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
