@@ -283,7 +283,7 @@ body.minimized .floating-btn {
 .container {
     width: 100%;
     max-width: 680px;
-    padding: 2rem;
+    padding: 2rem 2rem 120px 2rem; /* Added 120px bottom padding for safe scrolling */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -613,7 +613,7 @@ body.theme-glass .admin-panel {
 
 .tab-btn.active { background: var(--bg-surface); color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 
-.admin-main { padding: 0 32px; max-height: 60vh; overflow-y: auto; }
+.admin-main { padding: 0 32px 32px 32px; max-height: 75vh; overflow-y: auto; }
 .tab-content { display: none; padding: 24px 0; }
 .tab-content.active { display: block; }
 
