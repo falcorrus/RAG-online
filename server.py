@@ -61,12 +61,13 @@ class UserAuth(BaseModel):
     email: str
     password: str
     subdomain: Optional[str] = None
-
 class TenantSettings(BaseModel):
     initiallyOpen: bool
     theme: Optional[str] = "glass"
     sourceText: Optional[str] = None
+    underAnswerText: Optional[str] = None
 
+# --- Utils ---
 class ChatRequest(BaseModel):
     query: str
     lang: Optional[str] = "ru"
@@ -352,7 +353,7 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
 async def get_public_settings(request: Request, lang: str = "ru"):
     owner_email, subdomain = get_tenant_info_by_host(request.headers.get("host"))
     if not owner_email:
-        return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": ""}
+        return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": ""}
     
     tenants = get_tenants()
     if owner_email in tenants:
@@ -364,16 +365,19 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         if kb_name:
             settings["businessName"] = kb_name
             
-        # Use automated under-answer text from KB
-        settings["underAnswerText"] = tenant.get("underAnswer_cache", {}).get(lang)
-        if not settings["underAnswerText"]:
-             settings["underAnswerText"] = ""
+        # Priority 1: Use manually set under-answer text from settings
+        # Priority 2: Use automated under-answer text from KB
+        manual_under = settings.get("underAnswerText")
+        if manual_under:
+             settings["underAnswerText"] = manual_under
+        else:
+             settings["underAnswerText"] = tenant.get("underAnswer_cache", {}).get(lang, "")
             
         settings["subdomain"] = subdomain
         kb_path = os.path.join(get_tenant_dir(subdomain), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
         return settings
-    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": ""}
+    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": ""}
 
 @app.post("/api/tenant/settings")
 async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):
@@ -386,9 +390,10 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
         print(f"DEBUG: Saving settings for {user_email}: {settings.dict()}", flush=True)
         tenants = get_tenants()
         if user_email in tenants:
-            # Update initiallyOpen and theme
+            # Update initiallyOpen, theme and underAnswerText
             tenants[user_email]["settings"]["initiallyOpen"] = settings.initiallyOpen
             tenants[user_email]["settings"]["theme"] = settings.theme
+            tenants[user_email]["settings"]["underAnswerText"] = settings.underAnswerText
             save_tenants(tenants)
             print(f"DEBUG: Settings saved successfully for {user_email}", flush=True)
             return {"status": "ok"}

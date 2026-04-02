@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeAdminBtn = document.getElementById('closeAdminBtn');
     const saveAdminBtn = document.getElementById('saveAdminBtn');
     const themeSelect = document.getElementById('themeSelect');
+    const underAnswerInput = document.getElementById('underAnswerInput');
     const kbDropZone = document.getElementById('kbDropZone');
     const kbFileInput = document.getElementById('kbFileInput');
     const fileInfo = document.getElementById('fileInfo');
@@ -102,14 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSourceDisplay() {
         if (!sourceBadge) return;
         
-        const sourcePrefix = {
-            "ru": "Для вопросов: ",
-            "en": "Questions: ",
-            "pt": "Questões: "
-        };
-
         if (underAnswerText && underAnswerText.trim().length > 0) {
-            sourceBadge.textContent = (sourcePrefix[currentLang] || sourcePrefix["ru"]) + underAnswerText;
+            sourceBadge.textContent = underAnswerText;
         } else {
             const key = sourceBadge.getAttribute('data-i18n') || 'source_label';
             if (translations[currentLang] && translations[currentLang][key]) {
@@ -263,6 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "База знаний (.md)",
             drop_zone_text: "Перетащите .md файл или кликните для выбора",
             initially_open_label: "Изначально открыто",
+            under_answer_label: "Добавляем в конец ответа",
             save_btn: "Сохранить изменения",
             close_btn: "Закрыть",
             status_analyzing: "Анализирую базу знаний...",
@@ -310,6 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "Knowledge Base (.md)",
             drop_zone_text: "Drag & drop .md file or click to browse",
             initially_open_label: "Initially open",
+            under_answer_label: "Add to end of response",
             save_btn: "Save Changes",
             close_btn: "Close",
             status_analyzing: "Analyzing knowledge base...",
@@ -357,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
             kb_upload_label: "Base de Conhecimento (.md)",
             drop_zone_text: "Arraste um arquivo .md ou clique para selecionar",
             initially_open_label: "Abrir inicialmente",
+            under_answer_label: "Adicionar ao final da resposta",
             save_btn: "Salvar alterações",
             close_btn: "Fechar",
             status_analyzing: "Analisando base de conhecimento...",
@@ -666,6 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     themeSelect.value = settings.theme || 'glass';
                     applyTheme(settings.theme);
                 }
+                if (underAnswerInput) {
+                    underAnswerInput.value = settings.underAnswerText || '';
+                }
             }
             
             const kbResp = await apiRequest('/api/tenant/kb');
@@ -741,9 +742,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function saveSettings() {
         const isChecked = initiallyOpenToggle.checked;
         const themeValue = themeSelect ? themeSelect.value : 'glass';
+        const underValue = underAnswerInput ? underAnswerInput.value : '';
         const settings = { 
             initiallyOpen: isChecked,
-            theme: themeValue
+            theme: themeValue,
+            underAnswerText: underValue
         };
         try {
             const resp = await apiRequest('/api/tenant/settings', 'POST', settings);
@@ -755,6 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
                 if (publicResp.ok) {
                     const pubData = await publicResp.json();
+                    underAnswerText = pubData.underAnswerText || "";
+                    updateSourceDisplay();
                     updateTitle(pubData.kb_exists, pubData.businessName);
                 }
                 
@@ -770,6 +775,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (themeSelect) {
         themeSelect.addEventListener('change', () => {
+            saveSettings();
+        });
+    }
+
+    if (underAnswerInput) {
+        underAnswerInput.addEventListener('change', () => {
             saveSettings();
         });
     }
