@@ -25,7 +25,7 @@ STORAGE_DIR = "storage"
 TENANTS_FILE = os.path.join(STORAGE_DIR, "tenants.json")
 
 # Define token limits
-MAX_TOKENS = 10000
+MAX_TOKENS = 300000
 ENCODING_NAME = "cl100k_base" # This encoding works for gpt models, Gemini might use different one
 
 def count_tokens(text: str) -> int:
@@ -210,7 +210,7 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
             
             # Apply token limit to content for prompt
-            limited_content = limit_context_by_tokens(clean_content_for_ai, 2000) # Use 2000 tokens for suggestions/name extraction
+            limited_content = limit_context_by_tokens(clean_content_for_ai, 20000) # Use 20000 tokens for suggestions/name extraction
             
             prompt = f"""Analyze this Knowledge Base content. 
 IMPORTANT: You MUST generate the output in {lang_name} language. Even if the KB text below is in another language, you MUST TRANSLATE your generated questions and the Business Name into {lang_name}.

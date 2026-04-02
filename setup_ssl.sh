@@ -26,6 +26,7 @@ server {
 
     root /opt/RAG-online;
     index index.html;
+    client_max_body_size 50M;
 
     location /api/ {
         proxy_pass http://localhost:8006/api/;
