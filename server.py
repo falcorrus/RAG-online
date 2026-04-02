@@ -469,11 +469,14 @@ async def upload_kb(data: dict, background_tasks: BackgroundTasks, user=Depends(
 @app.get("/api/suggestions")
 async def get_suggestions(request: Request, lang: str = "ru", authorization: str = Header(None)):
     user = await get_current_user(authorization, False)
-    owner_email, _ = get_tenant_info_by_host(request.headers.get("host"))
+    owner_email, host_subdomain = get_tenant_info_by_host(request.headers.get("host"))
     
-    # If user is logged in, they see their OWN suggestions regardless of host
+    # Logic similar to chat_proxy
     if user:
-        owner_email = user["sub"]
+        logged_email = user["sub"]
+        is_admin = user.get("admin", False)
+        if logged_email == owner_email or is_admin:
+            owner_email = logged_email
     
     if not owner_email:
         return {"suggestions": ["Как оформить отпуск?", "График работы", "Контакты HR"]}
@@ -500,10 +503,22 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
     user = await get_current_user(authorization, False)
     owner_email, subdomain = get_tenant_info_by_host(req.headers.get("host"))
     
-    # If user is logged in, they talk to their OWN KB
+    # Logic: 
+    # 1. If not logged in -> use owner_email from host (public view)
+    # 2. If logged in:
+    #    - If admin -> always see their OWN KB (or we can keep host logic)
+    #    - If current domain owner -> see their own KB
+    #    - If on someone else's domain -> see DOMAIN OWNER'S KB (unless admin)
+    
     if user:
-        owner_email = user["sub"]
-        subdomain = get_subdomain_by_email(owner_email)
+        logged_email = user["sub"]
+        is_admin = user.get("admin", False)
+        
+        # If user is on their own domain OR is an admin, they see their own context
+        # Otherwise, they see the domain owner's context (like a regular visitor)
+        if logged_email == owner_email or is_admin:
+            owner_email = logged_email
+            subdomain = get_subdomain_by_email(owner_email)
     
     if not owner_email or not subdomain:
         return {"answer": "Knowledge base not configured."}
