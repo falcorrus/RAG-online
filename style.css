@@ -57,6 +57,15 @@ body.theme-linear {
     --blur-modal: 8px;
 }
 
+body.theme-apple .creator-footer a {
+    color: #86868B !important;
+}
+
+body.theme-apple .creator-footer a:hover {
+    color: #1D1D1F !important;
+    opacity: 1 !important;
+}
+
 /* --- THEME: APPLE (White Clean) --- */
 body.theme-apple {
     --bg-main: #F2F2F7; 
