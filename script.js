@@ -102,15 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateSourceDisplay() {
         if (!sourceBadge) return;
-        
-        if (underAnswerText && underAnswerText.trim().length > 0) {
-            sourceBadge.textContent = underAnswerText;
-        } else {
-            const key = sourceBadge.getAttribute('data-i18n') || 'source_label';
-            if (translations[currentLang] && translations[currentLang][key]) {
-                sourceBadge.textContent = translations[currentLang][key];
-            }
-        }
+        sourceBadge.classList.add('hidden');
     }
     const authPanel = document.getElementById('authPanel');
     const settingsPanel = document.getElementById('settingsPanel');
@@ -855,7 +847,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (resp.ok) {
                 gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
-                typeWriterEffect(data.answer, answerContent);
+                
+                let fullAnswer = data.answer;
+                if (underAnswerText && underAnswerText.trim().length > 0) {
+                    fullAnswer += "\n\n" + underAnswerText;
+                }
+                
+                typeWriterEffect(fullAnswer, answerContent);
                 answerCard.classList.remove('hidden');
             } else {
                 typeWriterEffect(data.answer || "Ошибка сервера.", answerContent);
@@ -1222,9 +1220,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
             let textToCopy = answerContent.innerText;
-            if (underAnswerText && underAnswerText.trim().length > 0) {
-                textToCopy += "\n\n" + underAnswerText;
-            }
             navigator.clipboard.writeText(textToCopy).then(() => {
                 showToast(currentLang === 'ru' ? "Ответ скопирован" : "Answer copied");
             }).catch(err => console.error('Failed to copy: ', err));
