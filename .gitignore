@@ -5,4 +5,4 @@
 *.log
 node_modules/
 storage/
-__pycache__/
+__pycache__/\n# Obsidian Docs\n!docs

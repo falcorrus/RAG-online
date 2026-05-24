@@ -184,7 +184,7 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     
     # Heuristic for language detection of KB content
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
         prompt = f"Detect the primary language of the following text. Return ONLY the 2-letter ISO 639-1 code (e.g., 'en', 'ru', 'pt'). Text: {content[:1000]}"
         print(f"DEBUG: Sending lang detection prompt for {owner_email}", flush=True)
         async with httpx.AsyncClient() as client:
@@ -208,7 +208,7 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     for code, lang_name in lang_map.items():
         print(f"DEBUG: Generating suggestions for {owner_email} in language {code}", flush=True)
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
             
             # Apply token limit to content for prompt
             limited_content = limit_context_by_tokens(clean_content_for_ai, 20000) # Use 20000 tokens for suggestions/name extraction
@@ -551,7 +551,7 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
         }
         return {"answer": msg.get(target_lang, msg["English"])}
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
     
     # Ultra-strict prompt for language enforcement
     system_content = f"""You are a helpful and professional Knowledge Base assistant.
