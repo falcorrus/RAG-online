@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /storage/
+Disallow: /__pycache__/
+
+Sitemap: https://rag.reloto.ru/sitemap.xml

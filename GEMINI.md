@@ -7,5 +7,5 @@
 ## Deployment
 - **Dev Env:** `deploy-dev.sh`
 - **Main Env:** `deploy.sh`
-- **Policy:** Всегда уточнять цель деплоя (Dev/Main) у пользователя.
+- **Policy:** Всегда уточнять цель деплоя (Dev/Main) у пользователя и запрашивать окончательное подтверждение перед запуском скрипта.
 - **Location on VPS:** `/root/projects/gemini-file-search/` (Alias 'vps')

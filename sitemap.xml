@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://rag.reloto.ru/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://rag.reloto.ru/Stories_Generator/template</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://rag.reloto.ru/Themes/apple_white</loc>
+    <lastmod>2026-02-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://rag.reloto.ru/yandex_fb814bcc144a9ad7</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+</urlset>
