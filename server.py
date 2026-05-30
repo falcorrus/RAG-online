@@ -17,7 +17,7 @@ import subprocess
 import asyncio
 
 load_dotenv(override=True)
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-key-change-me")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
@@ -181,16 +181,27 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     all_suggestions = {}
     all_names = {}
     detected_lang_code = "ru" # Default to Russian if detection fails
-    
-    # Heuristic for language detection of KB content
+    # Heuristic for language detection of KB content via OpenRouter
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
         prompt = f"Detect the primary language of the following text. Return ONLY the 2-letter ISO 639-1 code (e.g., 'en', 'ru', 'pt'). Text: {content[:1000]}"
         print(f"DEBUG: Sending lang detection prompt for {owner_email}", flush=True)
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://easyfaq.online",
+            "X-Title": "easyFAQ"
+        }
+        payload = {
+            "model": "google/gemini-2.5-flash-lite",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1
+        }
         async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=5.0)
+            resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=5.0)
             if resp.status_code == 200:
-                code = resp.json()['candidates'][0]['content']['parts'][0]['text'].strip().lower()
+                code = resp.json()['choices'][0]['message']['content'].strip().lower()
                 if code in lang_map:
                     detected_lang_code = code
                     print(f"DEBUG: Detected language for {owner_email}: {detected_lang_code}", flush=True)
@@ -208,8 +219,6 @@ async def generate_kb_suggestions(owner_email: str, content: str):
     for code, lang_name in lang_map.items():
         print(f"DEBUG: Generating suggestions for {owner_email} in language {code}", flush=True)
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
-            
             # Apply token limit to content for prompt
             limited_content = limit_context_by_tokens(clean_content_for_ai, 20000) # Use 20000 tokens for suggestions/name extraction
             
@@ -226,10 +235,23 @@ KB content:
 {limited_content}
 ---"""
             
+            headers = {
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://easyfaq.online",
+                "X-Title": "easyFAQ"
+            }
+            payload = {
+                "model": "google/gemini-2.5-flash-lite",
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.2
+            }
             async with httpx.AsyncClient() as client:
-                resp = await client.post(url, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15.0)
+                resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=15.0)
                 if resp.status_code == 200:
-                    text = resp.json()['candidates'][0]['content']['parts'][0]['text']
+                    text = resp.json()['choices'][0]['message']['content']
                     clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
                     try:
                         data = json.loads(clean_text)
@@ -589,28 +611,27 @@ CONTEXT:
 
     system_content = prompt_template.replace("{target_lang}", target_lang).replace("{context}", limit_context_by_tokens(context, MAX_TOKENS))
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://easyfaq.online",
+        "X-Title": "easyFAQ"
+    }
 
     payload = {
-        "system_instruction": {
-            "parts": [{"text": system_content}]
-        },
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": request.query}]
-            }
+        "model": "google/gemini-2.5-flash-lite",
+        "messages": [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": request.query}
         ],
-        "generationConfig": {
-            "temperature": 0.2,
-        }
+        "temperature": 0.2
     }
 
     async with httpx.AsyncClient() as client:
         try:
-            resp = await client.post(url, json=payload, timeout=30.0)
+            resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=30.0)
             data = resp.json()
-            answer = data['candidates'][0]['content']['parts'][0]['text']
+            answer = data['choices'][0]['message']['content']
             
             # Save to individual conversation log
             logs = load_tenant_logs(owner_email)
