@@ -551,10 +551,8 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
         }
         return {"answer": msg.get(target_lang, msg["English"])}
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
-    
-    # Ultra-strict prompt for language enforcement
-    system_content = f"""You are a helpful and professional Knowledge Base assistant.
+    # Read system prompt from external file or fallback to default
+    default_prompt = """You are a helpful and professional Knowledge Base assistant.
 Your goal is to provide accurate information based on the provided context.
 
 MANDATORY RULES:
@@ -579,8 +577,19 @@ Example output:
 
 CONTEXT:
 ---
-{limit_context_by_tokens(context, MAX_TOKENS)}
+{context}
 ---"""
+
+    try:
+        with open("MAIN_PROMPT.md", "r", encoding="utf-8") as f:
+            prompt_template = f.read()
+    except Exception as e:
+        print(f"Error reading MAIN_PROMPT.md: {e}, using fallback", flush=True)
+        prompt_template = default_prompt
+
+    system_content = prompt_template.replace("{target_lang}", target_lang).replace("{context}", limit_context_by_tokens(context, MAX_TOKENS))
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
 
     payload = {
         "system_instruction": {
