@@ -128,19 +128,19 @@ def get_tenant_info_by_host(host: str):
     host = host.lower().split(':')[0]
     
     # 1. Main site - Always primary admin and primary folder
-    if host == "rag.reloto.ru" or host in ["localhost", "127.0.0.1"]:
+    if host in ["easyfaq.online", "rag.reloto.ru", "localhost", "127.0.0.1"]:
         return "ekirshin@gmail.com", "ekirshin"
 
-    # 2. Project subdomains (*.rag.reloto.ru)
-    if host.endswith(".rag.reloto.ru"):
-        suffix = ".rag.reloto.ru"
-        subdomain = host[:-len(suffix)].split('.')[-1]
-        
-        tenants = get_tenants()
-        for email, data in tenants.items():
-            if data.get("subdomain") == subdomain:
-                return email, subdomain
-        return None, None
+    # 2. Project subdomains (*.easyfaq.online or *.rag.reloto.ru)
+    for suffix in [".easyfaq.online", ".rag.reloto.ru"]:
+        if host.endswith(suffix):
+            subdomain = host[:-len(suffix)].split('.')[-1]
+            
+            tenants = get_tenants()
+            for email, data in tenants.items():
+                if data.get("subdomain") == subdomain:
+                    return email, subdomain
+            return None, None
     
     # 3. Fallback
     return "ekirshin@gmail.com", "ekirshin"

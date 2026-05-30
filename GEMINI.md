@@ -1,4 +1,4 @@
-# RAG-online (Gemini File Search)
+# easyfaq.online (Gemini File Search)
 
 ## Development & Running
 - **Server Command:** `python3 -m uvicorn server:app --host 0.0.0.0 --port 8006 --reload`

@@ -236,47 +236,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const translations = {
         ru: {
-            title_main: "База знаний",
-            input_placeholder: "Спрашивайте",
-            suggestion_1: "Как оформить отпуск?",
-            suggestion_2: "График работы",
-            suggestion_3: "Контакты HR",
-            source_label: "Источник: База знаний",
+            title_main: "AI Business Consultant",
+            input_placeholder: "Спрашивайте в свободной форме",
+            suggestion_1: "Расскажи о компании",
+            suggestion_2: "Цены и услуги",
+            suggestion_3: "Как сделать заказ?",
+            source_label: "Источник: база знаний бизнеса",
             admin_title: "Панель управления",
             tab_settings: "Настройки",
             tab_logs: "Логи чата",
             download_logs_btn: "Скачать логи",
             download_kb_btn: "Скачать базу",
-            kb_upload_label: "База знаний (.md)",
-            drop_zone_text: "Перетащите .md файл или кликните для выбора",
+            kb_upload_label: "Информация о бизнесе (.md, .txt)",
+            drop_zone_text: "Загрузите файл с вашими FAQ и ценами",
             initially_open_label: "Изначально открыто",
             under_answer_label: "Добавляем в конец ответа",
             save_btn: "Сохранить изменения",
             close_btn: "Закрыть",
-            status_analyzing: "Анализирую базу знаний...",
+            status_analyzing: "Анализирую информацию о бизнесе...",
             status_ai_thinking: "ИИ формирует ответ...",
             view_logs_btn: "Просмотреть логи",
             logs_title: "Логи чата",
             no_logs_msg: "Логи пока пусты.",
             clear_logs_btn: "Очистить все",
             log_item_label: "Запрос",
-            promo_link: "Создайте свой RAG в 2 клика",
+            promo_link: "Создайте свой ИИ-автоответчик в 2 клика",
             auth_btn_login: "Войти",
-            auth_btn_register: "Создай RAG",
+            auth_btn_register: "Создать автоответчик",
             auth_toggle_login: "Уже есть аккаунт? Войти",
             auth_toggle_register: "Хотите такой же? Регистрация",
             welcome_download_demo: "Скачать пример",
             welcome_go_to_settings: "В настройки",
             onboarding_title: "Как это работает",
-            onboarding_step_1: "Создайте аккаунт (RAG)",
-            onboarding_step_2: "Загрузите знания (markdown, txt)",
+            onboarding_step_1: "Зарегистрируйте свою ссылку",
+            onboarding_step_2: "Загрузите файл с информацией о бизнесе",
             onboarding_next: "Далее",
             auth_subdomain_label: "Желаемый поддомен",
             processing_kb_title: "База обрабатывается",
-            processing_kb_msg: "Подождите несколько секунд, страница перезагрузится автоматически...",
+            processing_kb_msg: "Подождите несколько секунд, ваш AI-консультант скоро будет готов...",
             setup_secure_title: "Настраиваем домен",
             setup_secure_msg: "Настраиваем безопасное соединение для вашего домена... Подождите пару секунд.",
-            deleting_kb_title: "Удаление базы",
+            deleting_kb_title: "Удаление данных",
             deleting_kb_msg: "Очищаем данные... Подождите несколько секунд.",
             confirm_title: "Подтверждение",
             cancel_btn: "Отмена",
@@ -284,47 +284,47 @@ document.addEventListener('DOMContentLoaded', () => {
             admin_logout: "Выйти"
         },
         en: {
-            title_main: "AI Knowledge Base",
-            input_placeholder: "Ask a question...",
-            suggestion_1: "How to apply for leave?",
-            suggestion_2: "Work schedule",
-            suggestion_3: "HR Contacts",
-            source_label: "Source: Knowledge Base",
+            title_main: "AI Business Consultant",
+            input_placeholder: "Ask anything about our business",
+            suggestion_1: "What do you offer?",
+            suggestion_2: "Pricing and services",
+            suggestion_3: "How to order?",
+            source_label: "Source: Business Knowledge Base",
             admin_title: "Control Panel",
             tab_settings: "Settings",
             tab_logs: "Chat Logs",
             download_logs_btn: "Download Logs",
             download_kb_btn: "Download KB",
-            kb_upload_label: "Knowledge Base (.md)",
-            drop_zone_text: "Drag & drop .md file or click to browse",
+            kb_upload_label: "Business info (.md, .txt)",
+            drop_zone_text: "Upload your FAQ and price list",
             initially_open_label: "Initially open",
             under_answer_label: "Add to end of response",
             save_btn: "Save Changes",
             close_btn: "Close",
-            status_analyzing: "Analyzing knowledge base...",
+            status_analyzing: "Analyzing business info...",
             status_ai_thinking: "AI is thinking...",
             view_logs_btn: "View Logs",
             logs_title: "Chat Logs",
             no_logs_msg: "No logs yet.",
             clear_logs_btn: "Clear All",
             log_item_label: "Query",
-            promo_link: "Create your RAG in 2 clicks",
+            promo_link: "Create your AI Assistant in 2 clicks",
             auth_btn_login: "Login",
-            auth_btn_register: "Create RAG",
+            auth_btn_register: "Create AI Assistant",
             auth_toggle_login: "Already have an account? Login",
             auth_toggle_register: "Want the same? Register",
             welcome_download_demo: "Download Demo",
             welcome_go_to_settings: "Go to Settings",
             onboarding_title: "How it works",
-            onboarding_step_1: "Create account (RAG)",
-            onboarding_step_2: "Upload knowledge (markdown, txt)",
+            onboarding_step_1: "Register your link",
+            onboarding_step_2: "Upload your business info",
             onboarding_next: "Next",
             auth_subdomain_label: "Desired subdomain",
-            processing_kb_title: "Knowledge base is being processed",
-            processing_kb_msg: "Please wait a few seconds, the page will reload automatically...",
+            processing_kb_title: "Processing data",
+            processing_kb_msg: "Please wait a few seconds, your AI consultant will be ready soon...",
             setup_secure_title: "Setting up domain",
             setup_secure_msg: "Setting up secure connection for your domain... Please wait a few seconds.",
-            deleting_kb_title: "Deleting knowledge base",
+            deleting_kb_title: "Deleting data",
             deleting_kb_msg: "Clearing data... Please wait a few seconds.",
             confirm_title: "Confirmation",
             cancel_btn: "Cancel",
@@ -498,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     
                     setTimeout(() => {
-                        const newUrl = `https://${data.subdomain}.rag.reloto.ru`;
+                        const newUrl = `https://${data.subdomain}.easyfaq.online`;
                         window.location.href = `${newUrl}?token=${data.token}`;
                     }, 10000); // 10 seconds delay
                     return;
@@ -612,6 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Settings & UI ---
     async function initSettings() {
         console.log('initSettings: Function called');
+        translateDOM();
         try {
             const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
             if (publicResp.ok) {
@@ -1062,9 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (content) content.classList.add('hidden');
     }
 
-    async function setLanguage(lang) {
-        currentLang = lang;
-        localStorage.setItem('user_lang', lang);
+    function translateDOM() {
         document.documentElement.lang = currentLang;
         langBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-lang') === currentLang));
         
@@ -1081,7 +1080,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         updateAuthLabels();
+    }
 
+    async function setLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('user_lang', lang);
+        translateDOM();
+        
         await loadSuggestions();
 
         try {
