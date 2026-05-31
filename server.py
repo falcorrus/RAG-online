@@ -320,6 +320,70 @@ async def run_ssl_setup(subdomain: str):
     except Exception as e:
         print(f"ERROR: Exception during SSL setup for {subdomain}: {e}", flush=True)
 
+def update_kb_file(subdomain: str, owner_email: str, under_answer_text: str):
+    """Updates the underAnswerText (Signature) in the tenant's base.md file inside the General Settings section."""
+    kb_path = os.path.join(get_tenant_dir(subdomain), "base.md")
+    if not os.path.exists(kb_path):
+        print(f"DEBUG: KB file does not exist at {kb_path}, skipping file update", flush=True)
+        return
+
+    try:
+        with open(kb_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception as e:
+        print(f"ERROR: Failed to read {kb_path}: {e}", flush=True)
+        return
+
+    # Find the General Settings section
+    # Matches "# Общие настройки", "# General Settings", "# Configurações", "# Настройки" (case-insensitive)
+    # and everything up to the next "# " heading or end of file
+    pattern_section = re.compile(
+        r'(?i)(#\s*(?:Общие настройки|General Settings|Configurações|Настройки).*?)(?=\n#\s|\Z)', 
+        re.DOTALL
+    )
+    
+    match_section = pattern_section.search(content)
+    
+    if match_section:
+        section_text = match_section.group(1)
+        # Find "## Подпись", "## Signature", "## Assinatura", "## underAnswerText" (case-insensitive)
+        # and replace the content under it until the next "## " subheading or end of section
+        pattern_signature = re.compile(
+            r'(?i)(##\s*(?:Подпись|Signature|Assinatura|underAnswerText)[:\s]*\n)(.*?)(?=\n##|\Z)',
+            re.DOTALL
+        )
+        match_sig = pattern_signature.search(section_text)
+        if match_sig:
+            new_sig_section = f"{match_sig.group(1)}{under_answer_text}\n"
+            updated_section = section_text.replace(match_sig.group(0), new_sig_section)
+        else:
+            # If subheading not found, append it to the section
+            updated_section = section_text.rstrip() + f"\n\n## Подпись\n{under_answer_text}\n"
+        
+        content = content.replace(section_text, updated_section)
+    else:
+        # If section not found, prepending it to the file
+        tenants = get_tenants()
+        tenant = tenants.get(owner_email, {})
+        business_names = tenant.get("business_names_cache", {})
+        business_name = next(iter(business_names.values()), "AI Knowledge Base") if business_names else "AI Knowledge Base"
+        
+        new_section = (
+            f"# Общие настройки\n\n"
+            f"## Название\n"
+            f"{business_name}\n\n"
+            f"## Подпись\n"
+            f"{under_answer_text}\n\n"
+        )
+        content = new_section + content
+
+    try:
+        with open(kb_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"DEBUG: Successfully updated underAnswerText in {kb_path}", flush=True)
+    except Exception as e:
+        print(f"ERROR: Failed to write updated KB file {kb_path}: {e}", flush=True)
+
 # --- Routes ---
 @app.post("/api/auth/register")
 async def register(auth: UserAuth, background_tasks: BackgroundTasks):
@@ -416,7 +480,19 @@ async def save_settings_route(settings: TenantSettings, user=Depends(get_current
             tenants[user_email]["settings"]["initiallyOpen"] = settings.initiallyOpen
             tenants[user_email]["settings"]["theme"] = settings.theme
             tenants[user_email]["settings"]["underAnswerText"] = settings.underAnswerText
+            
+            # Immediately update the underAnswer_cache for all languages to ensure the cache stays fresh
+            if "underAnswer_cache" not in tenants[user_email]:
+                tenants[user_email]["underAnswer_cache"] = {}
+            for lang in ["ru", "en", "pt"]:
+                tenants[user_email]["underAnswer_cache"][lang] = settings.underAnswerText or ""
+                
             save_tenants(tenants)
+            
+            # Update the base.md file with the new signature (so downloading file has the edits)
+            subdomain = get_subdomain_by_email(user_email)
+            update_kb_file(subdomain, user_email, settings.underAnswerText or "")
+            
             print(f"DEBUG: Settings saved successfully for {user_email}", flush=True)
             return {"status": "ok"}
         
