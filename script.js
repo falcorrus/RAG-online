@@ -28,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = fileInfo.querySelector('.file-name');
     const removeFileBtn = document.getElementById('removeFileBtn');
     const initiallyOpenToggle = document.getElementById('initiallyOpenToggle');
+    
+    // Editor Elements
+    const modeUploadBtn = document.getElementById('modeUploadBtn');
+    const modeEditBtn = document.getElementById('modeEditBtn');
+    const kbUploadMode = document.getElementById('kbUploadMode');
+    const kbEditMode = document.getElementById('kbEditMode');
+    const kbTextarea = document.getElementById('kbTextarea');
+    const saveKbBtn = document.getElementById('saveKbBtn');
+    const editorStatus = document.getElementById('editorStatus');
     const mainTitle = document.getElementById('mainTitle');
     const mainSparkle = document.getElementById('mainSparkle');
     const logsPanel = document.getElementById('logsPanel');
@@ -281,7 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
             confirm_title: "Подтверждение",
             cancel_btn: "Отмена",
             delete_btn: "Удалить",
-            admin_logout: "Выйти"
+            admin_logout: "Выйти",
+            kb_mode_upload: "Файл",
+            kb_mode_edit: "Редактор",
+            editor_tab_edit: "Редактор",
+            editor_tab_preview: "Предпросмотр",
+            save_kb_btn: "Сохранить",
+            status_saving: "Сохраняем...",
+            status_saved: "Сохранено! ИИ перерабатывает базу...",
+            status_error: "Ошибка сохранения"
         },
         en: {
             title_main: "AI Business Consultant",
@@ -329,7 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
             confirm_title: "Confirmation",
             cancel_btn: "Cancel",
             delete_btn: "Delete",
-            admin_logout: "Logout"
+            admin_logout: "Logout",
+            kb_mode_upload: "File",
+            kb_mode_edit: "Editor",
+            editor_tab_edit: "Editor",
+            editor_tab_preview: "Preview",
+            save_kb_btn: "Save",
+            status_saving: "Saving...",
+            status_saved: "Saved! AI is reprocessing info...",
+            status_error: "Save error"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -377,7 +402,15 @@ document.addEventListener('DOMContentLoaded', () => {
             confirm_title: "Confirmação",
             cancel_btn: "Cancelar",
             delete_btn: "Excluir",
-            admin_logout: "Sair"
+            admin_logout: "Sair",
+            kb_mode_upload: "Arquivo",
+            kb_mode_edit: "Editor",
+            editor_tab_edit: "Editor",
+            editor_tab_preview: "Visualizar",
+            save_kb_btn: "Salvar",
+            status_saving: "Salvando...",
+            status_saved: "Salvo! A IA está processando...",
+            status_error: "Erro ao salvar"
         }
     };
 
@@ -667,6 +700,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const kbData = await kbResp.json();
                 if (kbData.content && kbData.content.trim().length > 0) {
                     showFileInfo("Загруженная база знаний");
+                    if (kbTextarea) {
+                        kbTextarea.value = kbData.content;
+                    }
                 }
             }
             try {
@@ -1001,6 +1037,106 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast("Ошибка при удалении.", true);
                 }
             });
+        });
+    }
+
+    // --- Online Markdown Editor Logic ---
+    // Toggle Upload Mode / Edit Mode
+    if (modeUploadBtn && modeEditBtn && kbUploadMode && kbEditMode) {
+        modeUploadBtn.addEventListener('click', () => {
+            modeUploadBtn.classList.add('active');
+            modeEditBtn.classList.remove('active');
+            kbUploadMode.classList.remove('hidden');
+            kbEditMode.classList.add('hidden');
+            const downloadBtn = document.getElementById('downloadKbBtn');
+            if (downloadBtn) downloadBtn.classList.remove('hidden');
+        });
+
+        modeEditBtn.addEventListener('click', () => {
+            modeEditBtn.classList.add('active');
+            modeUploadBtn.classList.remove('active');
+            kbEditMode.classList.remove('hidden');
+            kbUploadMode.classList.add('hidden');
+            const downloadBtn = document.getElementById('downloadKbBtn');
+            if (downloadBtn) downloadBtn.classList.add('hidden');
+        });
+    }
+
+    // Save KB content
+    if (saveKbBtn && kbTextarea) {
+        saveKbBtn.addEventListener('click', async () => {
+            const content = kbTextarea.value;
+            
+            saveKbBtn.disabled = true;
+            if (editorStatus) {
+                editorStatus.textContent = translations[currentLang]?.status_saving || "Saving...";
+                editorStatus.className = "editor-status-text";
+            }
+
+            try {
+                const resp = await apiRequest('/api/tenant/kb', 'POST', { content });
+                if (resp.ok) {
+                    if (editorStatus) {
+                        editorStatus.textContent = translations[currentLang]?.status_saved || "Saved! AI is reprocessing info...";
+                        editorStatus.className = "editor-status-text success";
+                    }
+
+                    // Update UI state for "has knowledge base"
+                    const hasKb = content.trim().length > 0;
+                    toggleUIByKnowledgeBase(hasKb, false);
+                    
+                    if (hasKb) {
+                        showFileInfo(currentLang === 'ru' ? "Отредактировано онлайн" : "Edited online");
+                    } else {
+                        // Cleared KB
+                        const dropZoneContent = kbDropZone.querySelector('.drop-zone-content');
+                        if (dropZoneContent) dropZoneContent.classList.remove('hidden');
+                        fileInfo.classList.add('hidden');
+                    }
+
+                    // Start smart polling for new suggestions / business name from AI
+                    let pollsCount = 0;
+                    const maxPolls = 4;
+                    const pollInterval = setInterval(async () => {
+                        pollsCount++;
+                        try {
+                            const publicResp = await apiRequest(`/api/settings?lang=${currentLang}`);
+                            if (publicResp.ok) {
+                                const pubData = await publicResp.json();
+                                underAnswerText = pubData.underAnswerText || "";
+                                updateSourceDisplay();
+                                updateTitle(pubData.kb_exists, pubData.businessName);
+                                
+                                // Load suggestions again
+                                await loadSuggestions();
+                            }
+                        } catch (e) {
+                            console.warn("Polling settings failed", e);
+                        }
+
+                        if (pollsCount >= maxPolls) {
+                            clearInterval(pollInterval);
+                            if (editorStatus) {
+                                editorStatus.textContent = "";
+                            }
+                        }
+                    }, 2000);
+
+                } else {
+                    const err = await resp.json();
+                    if (editorStatus) {
+                        editorStatus.textContent = (translations[currentLang]?.status_error || "Error") + ": " + (err.detail || "");
+                        editorStatus.className = "editor-status-text error";
+                    }
+                }
+            } catch (err) {
+                if (editorStatus) {
+                    editorStatus.textContent = (translations[currentLang]?.status_error || "Error") + ": Network error";
+                    editorStatus.className = "editor-status-text error";
+                }
+            } finally {
+                saveKbBtn.disabled = false;
+            }
         });
     }
 

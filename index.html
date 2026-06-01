@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=1.5">
+    <link rel="stylesheet" href="style.css?v=1.6">
     <link rel="stylesheet" href="genui.css?v=1.0">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <script type="application/ld+json">
@@ -186,18 +186,39 @@
                 <div class="tab-content active" id="settingsTab">
                     <div class="admin-content">
                         <div class="setting-group">
-                            <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
-                            <div class="drop-zone" id="kbDropZone">
-                                <div class="drop-zone-content">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                    <p data-i18n="drop_zone_text">Перетащите .md файл</p>
-                                    <input type="file" id="kbFileInput" accept=".md" class="hidden">
+                            <div class="kb-header-row">
+                                <label class="setting-label" data-i18n="kb_upload_label">База знаний (.md)</label>
+                                <div class="kb-mode-toggle segmented-control mini">
+                                    <button class="mode-btn active" id="modeUploadBtn" data-mode="upload" data-i18n="kb_mode_upload">Файл</button>
+                                    <button class="mode-btn" id="modeEditBtn" data-mode="edit" data-i18n="kb_mode_edit">Редактор</button>
                                 </div>
-                                <div class="file-info hidden" id="fileInfo">
-                                    <span class="file-name"></span>
-                                    <button class="icon-close-btn small" id="removeFileBtn">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                    </button>
+                            </div>
+                            
+                            <!-- Upload Mode -->
+                            <div id="kbUploadMode" class="kb-mode-container">
+                                <div class="drop-zone" id="kbDropZone">
+                                    <div class="drop-zone-content">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                        <p data-i18n="drop_zone_text">Перетащите .md файл</p>
+                                        <input type="file" id="kbFileInput" accept=".md" class="hidden">
+                                    </div>
+                                    <div class="file-info hidden" id="fileInfo">
+                                        <span class="file-name"></span>
+                                        <button class="icon-close-btn small" id="removeFileBtn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit Mode -->
+                            <div id="kbEditMode" class="kb-mode-container hidden">
+                                <div class="editor-body">
+                                    <textarea id="kbTextarea" placeholder="# Заголовок..." class="admin-textarea"></textarea>
+                                </div>
+                                <div class="editor-actions">
+                                    <button class="action-btn small" id="saveKbBtn" data-i18n="save_kb_btn">Сохранить</button>
+                                    <span id="editorStatus" class="editor-status-text"></span>
                                 </div>
                             </div>
                         </div>

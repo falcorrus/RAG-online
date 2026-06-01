@@ -1277,3 +1277,117 @@ body.theme-apple .todo-item {
 body.has-results .container { justify-content: flex-start; padding-top: 4rem; }
 .results-area { width: 100%; margin-top: 1rem; opacity: 0; transform: translateY(20px); transition: all 0.4s var(--ease-out); pointer-events: none; }
 body.has-results .results-area { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* --- Online Markdown Editor --- */
+.kb-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.segmented-control.mini {
+    padding: 3px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    display: flex;
+    gap: 2px;
+}
+
+.segmented-control.mini .mode-btn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.segmented-control.mini .mode-btn.active {
+    background: var(--brand-color);
+    color: white;
+    box-shadow: 0 2px 8px var(--brand-glow);
+}
+
+.kb-mode-container {
+    transition: all 0.3s ease;
+}
+
+.editor-body {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.admin-textarea {
+    width: 100%;
+    min-height: 280px;
+    max-height: 500px;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+    text-align: left !important;
+}
+
+/* Custom Scrollbar for editor */
+.admin-textarea::-webkit-scrollbar {
+    width: 8px;
+}
+.admin-textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+.admin-textarea::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+.admin-textarea::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.editor-status-text {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: all 0.3s ease;
+}
+.editor-status-text.success {
+    color: #4ade80;
+}
+.editor-status-text.error {
+    color: #f87171;
+}
+
+#saveKbBtn {
+    background: var(--brand-color);
+    color: white;
+    border: 1px solid var(--brand-color);
+    box-shadow: 0 4px 12px var(--brand-glow);
+}
+
+#saveKbBtn:hover {
+    background: var(--brand-color-hover);
+    border-color: var(--brand-color-hover);
+    color: white;
+}
+
