@@ -192,14 +192,14 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             "X-Title": "easyFAQ"
         }
         payload = {
-            "model": "google/gemini-2.5-flash-lite",
+            "model": "gemini-2.5-flash-lite",
             "messages": [
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.1
         }
         async with httpx.AsyncClient() as client:
-            resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=5.0)
+            resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=5.0)
             if resp.status_code == 200:
                 code = resp.json()['choices'][0]['message']['content'].strip().lower()
                 if code in lang_map:
@@ -242,14 +242,14 @@ KB content:
                 "X-Title": "easyFAQ"
             }
             payload = {
-                "model": "google/gemini-2.5-flash-lite",
+                "model": "gemini-2.5-flash-lite",
                 "messages": [
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.2
             }
             async with httpx.AsyncClient() as client:
-                resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=15.0)
+                resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=15.0)
                 if resp.status_code == 200:
                     text = resp.json()['choices'][0]['message']['content']
                     clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
@@ -695,7 +695,7 @@ CONTEXT:
     }
 
     payload = {
-        "model": "google/gemini-2.5-flash-lite",
+        "model": "gemini-2.5-flash-lite",
         "messages": [
             {"role": "system", "content": system_content},
             {"role": "user", "content": request.query}
@@ -705,7 +705,7 @@ CONTEXT:
 
     async with httpx.AsyncClient() as client:
         try:
-            resp = await client.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=30.0)
+            resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=30.0)
             data = resp.json()
             answer = data['choices'][0]['message']['content']
             
