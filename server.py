@@ -706,6 +706,9 @@ CONTEXT:
     async with httpx.AsyncClient() as client:
         try:
             resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=30.0)
+            if resp.status_code != 200:
+                print(f"Chat API failed with status {resp.status_code}: {resp.text}", flush=True)
+                return {"answer": "AI connection error"}
             data = resp.json()
             answer = data['choices'][0]['message']['content']
             
