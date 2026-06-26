@@ -162,6 +162,47 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
         if required: raise HTTPException(status_code=401, detail="Invalid token")
         return None
 
+async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
+    primary_model = "gemini-2.5-flash"
+    fallback_model = "gemini-2.5-flash-lite"
+    
+    payload_copy = payload.copy()
+    payload_copy["model"] = primary_model
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            print(f"DEBUG: Trying primary model '{primary_model}'...", flush=True)
+            resp = await client.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers=headers,
+                json=payload_copy,
+                timeout=timeout
+            )
+            if resp.status_code == 200:
+                print(f"DEBUG: Primary model '{primary_model}' succeeded", flush=True)
+                return resp
+            print(f"WARNING: Primary model '{primary_model}' failed with status {resp.status_code}: {resp.text}", flush=True)
+        except Exception as e:
+            print(f"WARNING: Primary model '{primary_model}' failed with exception: {e}", flush=True)
+            
+        payload_copy["model"] = fallback_model
+        try:
+            print(f"DEBUG: Trying fallback model '{fallback_model}'...", flush=True)
+            resp = await client.post(
+                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                headers=headers,
+                json=payload_copy,
+                timeout=timeout
+            )
+            if resp.status_code == 200:
+                print(f"DEBUG: Fallback model '{fallback_model}' succeeded", flush=True)
+            else:
+                print(f"ERROR: Fallback model '{fallback_model}' failed with status {resp.status_code}: {resp.text}", flush=True)
+            return resp
+        except Exception as e:
+            print(f"ERROR: Fallback model '{fallback_model}' failed with exception: {e}", flush=True)
+            raise e
+
 async def generate_kb_suggestions(owner_email: str, content: str):
     """Automatically generate suggested questions and business name from KB content using AI."""
     print(f"DEBUG: Starting generate_kb_suggestions for {owner_email}", flush=True)
@@ -192,21 +233,19 @@ async def generate_kb_suggestions(owner_email: str, content: str):
             "X-Title": "easyFAQ"
         }
         payload = {
-            "model": "gemini-2.5-flash-lite",
             "messages": [
                 {"role": "user", "content": prompt}
             ],
             "temperature": 0.1
         }
-        async with httpx.AsyncClient() as client:
-            resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=5.0)
-            if resp.status_code == 200:
-                code = resp.json()['choices'][0]['message']['content'].strip().lower()
-                if code in lang_map:
-                    detected_lang_code = code
-                    print(f"DEBUG: Detected language for {owner_email}: {detected_lang_code}", flush=True)
-            else:
-                print(f"ERROR: Lang detection API call failed with status {resp.status_code}: {resp.text}", flush=True)
+        resp = await call_gemini_api(payload, headers, timeout=5.0)
+        if resp.status_code == 200:
+            code = resp.json()['choices'][0]['message']['content'].strip().lower()
+            if code in lang_map:
+                detected_lang_code = code
+                print(f"DEBUG: Detected language for {owner_email}: {detected_lang_code}", flush=True)
+        else:
+            print(f"ERROR: Lang detection API call failed with status {resp.status_code}: {resp.text}", flush=True)
     except Exception as e:
         print(f"ERROR: Error detecting language for {owner_email}: {e}", flush=True)
 
@@ -242,36 +281,34 @@ KB content:
                 "X-Title": "easyFAQ"
             }
             payload = {
-                "model": "gemini-2.5-flash-lite",
                 "messages": [
                     {"role": "user", "content": prompt}
                 ],
                 "temperature": 0.2
             }
-            async with httpx.AsyncClient() as client:
-                resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=15.0)
-                if resp.status_code == 200:
-                    text = resp.json()['choices'][0]['message']['content']
-                    clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
-                    try:
-                        data = json.loads(clean_text)
-                        all_suggestions[code] = data.get("suggestions", [])
-                        
-                        b_name = data.get("businessName", "").strip()
-                        # If English name still contains Cyrillic, try to strip it or use fallback
-                        if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
-                            b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
-                            if any('\u0400' <= c <= '\u04FF' for c in b_name):
-                                b_name = "AI Knowledge Base" 
-                        all_names[code] = b_name
-                        
-                        if "under_answers" not in locals(): under_answers = {}
-                        under_answers[code] = data.get("underAnswerText", "").strip()
-                        
-                        print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={all_names[code]}, underAnswer={under_answers[code]}", flush=True)
-                    except json.JSONDecodeError as json_err:
-                        print(f"ERROR: JSONDecodeError for {code}: {json_err}")
-                        all_suggestions[code] = found_q[:3]
+            resp = await call_gemini_api(payload, headers, timeout=15.0)
+            if resp.status_code == 200:
+                text = resp.json()['choices'][0]['message']['content']
+                clean_text = re.sub(r'```json\s*|\s*```', '', text).strip()
+                try:
+                    data = json.loads(clean_text)
+                    all_suggestions[code] = data.get("suggestions", [])
+                    
+                    b_name = data.get("businessName", "").strip()
+                    # If English name still contains Cyrillic, try to strip it or use fallback
+                    if code == "en" and any('\u0400' <= c <= '\u04FF' for c in b_name):
+                        b_name = re.sub(r'\s*\([\u0400-\u04FF\s]+\)', '', b_name)
+                        if any('\u0400' <= c <= '\u04FF' for c in b_name):
+                            b_name = "AI Knowledge Base" 
+                    all_names[code] = b_name
+                    
+                    if "under_answers" not in locals(): under_answers = {}
+                    under_answers[code] = data.get("underAnswerText", "").strip()
+                    
+                    print(f"DEBUG: Generated for {owner_email}, {code}: suggestions={len(all_suggestions[code])}, name={all_names[code]}, underAnswer={under_answers[code]}", flush=True)
+                except json.JSONDecodeError as json_err:
+                    print(f"ERROR: JSONDecodeError for {code}: {json_err}")
+                    all_suggestions[code] = found_q[:3]
         except Exception as e:
             print(f"ERROR: Error generating suggestions for {code}: {e}")
     
@@ -695,7 +732,6 @@ CONTEXT:
     }
 
     payload = {
-        "model": "gemini-2.5-flash-lite",
         "messages": [
             {"role": "system", "content": system_content},
             {"role": "user", "content": request.query}
@@ -703,30 +739,29 @@ CONTEXT:
         "temperature": 0.2
     }
 
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.post("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", headers=headers, json=payload, timeout=30.0)
-            if resp.status_code != 200:
-                print(f"Chat API failed with status {resp.status_code}: {resp.text}", flush=True)
-                return {"answer": "AI connection error"}
-            data = resp.json()
-            answer = data['choices'][0]['message']['content']
-            
-            # Save to individual conversation log
-            logs = load_tenant_logs(owner_email)
-            logs.append({
-                "timestamp": datetime.now().isoformat(),
-                "lang": request.lang,
-                "query": request.query,
-                "answer": answer
-            })
-            save_tenant_logs(owner_email, logs)
-
-            print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
-            return {"answer": answer}
-        except Exception as e:
-            print(f"Chat error: {e}", flush=True)
+    try:
+        resp = await call_gemini_api(payload, headers, timeout=30.0)
+        if resp.status_code != 200:
+            print(f"Chat API failed with status {resp.status_code}: {resp.text}", flush=True)
             return {"answer": "AI connection error"}
+        data = resp.json()
+        answer = data['choices'][0]['message']['content']
+        
+        # Save to individual conversation log
+        logs = load_tenant_logs(owner_email)
+        logs.append({
+            "timestamp": datetime.now().isoformat(),
+            "lang": request.lang,
+            "query": request.query,
+            "answer": answer
+        })
+        save_tenant_logs(owner_email, logs)
+
+        print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
+        return {"answer": answer}
+    except Exception as e:
+        print(f"Chat error: {e}", flush=True)
+        return {"answer": "AI connection error"}
 
 @app.get("/api/tenant/logs")
 async def get_conversation_logs(user=Depends(get_current_user)):
