@@ -21,3 +21,17 @@
      - Переписывает конфиг `${subdomain}.rag.reloto.ru` на постоянный 301-редирект на `https://${subdomain}.easyfaq.online$request_uri`.
      - Применяет настройки в Nginx.
    - Скрипт задеплоен на VPS через `deploy.sh`.
+
+## [2026-06-26] Ошибка "AI connection error" в чате на easyFAQ
+
+### Описание проблемы
+Пользователи получали ошибку `AI connection error` при отправке запросов в чат. В логах службы uvicorn на VPS фиксировались ошибки 503 Service Unavailable: `This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.` от эндпоинта Google AI Studio при обращении к модели `gemini-2.5-flash-lite`.
+
+### Решение
+1. **Переход на стабильную модель**:
+   - В качестве основной модели выбрана `gemini-2.5-flash` вместо `gemini-2.5-flash-lite`, так как она имеет более высокие лимиты и стабильно работает в периоды пиковой нагрузки.
+2. **Отказоустойчивость (Fallback)**:
+   - В [server.py](file:///Users/eugene/MyProjects/easyFAQ.online/server.py) добавлена общая асинхронная функция `call_gemini_api`. Она сначала пытается выполнить запрос к основной модели `gemini-2.5-flash`. Если запрос завершается ошибкой (код не 200 или исключение сети), она автоматически делает повторную попытку к резервной модели `gemini-2.5-flash-lite`.
+   - Все вызовы API (языковая детекция, генерация suggestions и чат-ассистент) переведены на использование этой функции.
+3. **Деплой**:
+   - Изменения задеплоены на VPS, служба `easyfaq-online.service` перезапущена. Запросы к чату теперь проходят успешно.
