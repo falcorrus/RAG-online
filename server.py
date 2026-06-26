@@ -163,17 +163,23 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
         return None
 
 async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
-    primary_model = "gemini-2.5-flash"
-    fallback_model = "gemini-2.5-flash-lite"
+    if API_KEY and API_KEY.startswith("sk-or-v1-"):
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        primary_model = "google/gemini-2.5-flash"
+        fallback_model = "google/gemini-2.5-flash-lite"
+    else:
+        api_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        primary_model = "gemini-2.5-flash"
+        fallback_model = "gemini-2.5-flash-lite"
     
     payload_copy = payload.copy()
     payload_copy["model"] = primary_model
     
     async with httpx.AsyncClient() as client:
         try:
-            print(f"DEBUG: Trying primary model '{primary_model}'...", flush=True)
+            print(f"DEBUG: Trying primary model '{primary_model}' on {api_url}...", flush=True)
             resp = await client.post(
-                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                api_url,
                 headers=headers,
                 json=payload_copy,
                 timeout=timeout
@@ -187,9 +193,9 @@ async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
             
         payload_copy["model"] = fallback_model
         try:
-            print(f"DEBUG: Trying fallback model '{fallback_model}'...", flush=True)
+            print(f"DEBUG: Trying fallback model '{fallback_model}' on {api_url}...", flush=True)
             resp = await client.post(
-                "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+                api_url,
                 headers=headers,
                 json=payload_copy,
                 timeout=timeout
