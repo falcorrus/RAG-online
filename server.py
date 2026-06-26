@@ -162,52 +162,122 @@ async def get_current_user(authorization: str = Header(None), required: bool = T
         if required: raise HTTPException(status_code=401, detail="Invalid token")
         return None
 
+LIMIT_FILE = "storage/aidev_limit.txt"
+
+def is_aidev_limited() -> bool:
+    if not os.path.exists(LIMIT_FILE):
+        return False
+    try:
+        with open(LIMIT_FILE, "r") as f:
+            saved_date = f.read().strip()
+        today = datetime.now().strftime("%Y-%m-%d")
+        return saved_date == today
+    except:
+        return False
+
+def mark_aidev_limited():
+    try:
+        os.makedirs(os.path.dirname(LIMIT_FILE), exist_ok=True)
+        today = datetime.now().strftime("%Y-%m-%d")
+        with open(LIMIT_FILE, "w") as f:
+            f.write(today)
+        print(f"DEBUG: Marked ai.dev as limited for today: {today}", flush=True)
+    except Exception as e:
+        print(f"ERROR: Failed to write {LIMIT_FILE}: {e}", flush=True)
+
 async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
-    if API_KEY and API_KEY.startswith("sk-or-v1-"):
+    aidev_key = os.getenv("AIDEV_API_KEY")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    
+    use_openrouter = True
+    
+    # Check if we should try ai.dev first
+    if aidev_key and not is_aidev_limited():
+        use_openrouter = False
+        
+    if not openrouter_key:
+        use_openrouter = False
+
+    if use_openrouter:
+        # --- OPENROUTER PATH ---
         api_url = "https://openrouter.ai/api/v1/chat/completions"
         primary_model = "google/gemini-2.5-flash"
         fallback_model = "google/gemini-2.5-flash-lite"
+        
+        headers_copy = headers.copy()
+        headers_copy["Authorization"] = f"Bearer {openrouter_key}"
+        
+        payload_copy = payload.copy()
+        payload_copy["model"] = primary_model
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                print(f"DEBUG: [OpenRouter] Trying primary model '{primary_model}'...", flush=True)
+                resp = await client.post(api_url, headers=headers_copy, json=payload_copy, timeout=timeout)
+                if resp.status_code == 200:
+                    return resp
+                print(f"WARNING: [OpenRouter] Primary model '{primary_model}' failed with status {resp.status_code}: {resp.text}", flush=True)
+            except Exception as e:
+                print(f"WARNING: [OpenRouter] Primary model '{primary_model}' failed with exception: {e}", flush=True)
+                
+            payload_copy["model"] = fallback_model
+            try:
+                print(f"DEBUG: [OpenRouter] Trying fallback model '{fallback_model}'...", flush=True)
+                resp = await client.post(api_url, headers=headers_copy, json=payload_copy, timeout=timeout)
+                return resp
+            except Exception as e:
+                print(f"ERROR: [OpenRouter] Fallback model '{fallback_model}' failed: {e}", flush=True)
+                raise e
     else:
+        # --- AI.DEV PATH (Google AI Studio) ---
         api_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
         primary_model = "gemini-2.5-flash"
         fallback_model = "gemini-2.5-flash-lite"
-    
-    payload_copy = payload.copy()
-    payload_copy["model"] = primary_model
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            print(f"DEBUG: Trying primary model '{primary_model}' on {api_url}...", flush=True)
-            resp = await client.post(
-                api_url,
-                headers=headers,
-                json=payload_copy,
-                timeout=timeout
-            )
-            if resp.status_code == 200:
-                print(f"DEBUG: Primary model '{primary_model}' succeeded", flush=True)
+        
+        headers_copy = headers.copy()
+        headers_copy["Authorization"] = f"Bearer {aidev_key}"
+        
+        payload_copy = payload.copy()
+        payload_copy["model"] = primary_model
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                print(f"DEBUG: [ai.dev] Trying primary model '{primary_model}'...", flush=True)
+                resp = await client.post(api_url, headers=headers_copy, json=payload_copy, timeout=timeout)
+                if resp.status_code == 200:
+                    return resp
+                
+                # Check for rate limit (429)
+                if resp.status_code == 429:
+                    print(f"WARNING: [ai.dev] Primary model hit 429. Marking ai.dev as limited.", flush=True)
+                    mark_aidev_limited()
+                    if openrouter_key:
+                        print("DEBUG: Switching to OpenRouter fallback immediately...", flush=True)
+                        return await call_gemini_api(payload, headers, timeout)
+                
+                print(f"WARNING: [ai.dev] Primary model failed with status {resp.status_code}: {resp.text}", flush=True)
+            except Exception as e:
+                print(f"WARNING: [ai.dev] Primary model failed with exception: {e}", flush=True)
+                
+            payload_copy["model"] = fallback_model
+            try:
+                print(f"DEBUG: [ai.dev] Trying fallback model '{fallback_model}'...", flush=True)
+                resp = await client.post(api_url, headers=headers_copy, json=payload_copy, timeout=timeout)
+                
+                if resp.status_code == 429:
+                    print(f"WARNING: [ai.dev] Fallback model hit 429. Marking ai.dev as limited.", flush=True)
+                    mark_aidev_limited()
+                    if openrouter_key:
+                        print("DEBUG: Switching to OpenRouter fallback immediately...", flush=True)
+                        return await call_gemini_api(payload, headers, timeout)
+                        
                 return resp
-            print(f"WARNING: Primary model '{primary_model}' failed with status {resp.status_code}: {resp.text}", flush=True)
-        except Exception as e:
-            print(f"WARNING: Primary model '{primary_model}' failed with exception: {e}", flush=True)
-            
-        payload_copy["model"] = fallback_model
-        try:
-            print(f"DEBUG: Trying fallback model '{fallback_model}' on {api_url}...", flush=True)
-            resp = await client.post(
-                api_url,
-                headers=headers,
-                json=payload_copy,
-                timeout=timeout
-            )
-            if resp.status_code == 200:
-                print(f"DEBUG: Fallback model '{fallback_model}' succeeded", flush=True)
-            else:
-                print(f"ERROR: Fallback model '{fallback_model}' failed with status {resp.status_code}: {resp.text}", flush=True)
-            return resp
-        except Exception as e:
-            print(f"ERROR: Fallback model '{fallback_model}' failed with exception: {e}", flush=True)
-            raise e
+            except Exception as e:
+                print(f"ERROR: [ai.dev] Fallback model failed with exception: {e}", flush=True)
+                if openrouter_key:
+                    print("DEBUG: Switching to OpenRouter fallback due to exception...", flush=True)
+                    return await call_gemini_api(payload, headers, timeout)
+                raise e
 
 async def generate_kb_suggestions(owner_email: str, content: str):
     """Automatically generate suggested questions and business name from KB content using AI."""
