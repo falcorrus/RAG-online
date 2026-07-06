@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Header, Request, BackgroundTasks
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -278,6 +279,147 @@ async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
                     print("DEBUG: Switching to OpenRouter fallback due to exception...", flush=True)
                     return await call_gemini_api(payload, headers, timeout)
                 raise e
+
+def load_genui_rules_from_catalog() -> str:
+    catalog_path = "components_catalog.json"
+    if not os.path.exists(catalog_path):
+        return ""
+    try:
+        with open(catalog_path, "r", encoding="utf-8") as f:
+            catalog = json.load(f)
+        
+        rules = "GENERATIVE UI RULES:\n"
+        rules += "You MUST use these custom components (HTML tags) to present rich layouts like products, actions, lists, images, badges, links, or collapsible sections. DO NOT output raw markdown list tables or generic lists where these tags fit.\n\n"
+        
+        for comp_name, config in catalog.items():
+            desc = config.get("description", "")
+            attrs = config.get("attributes", {})
+            children = config.get("children", "Content")
+            
+            # Generate example tag
+            attr_str = ""
+            for attr_name, attr_desc in attrs.items():
+                attr_str += f' {attr_name}="Value"'
+                
+            rules += f"- <{comp_name}{attr_str}>{children}</{comp_name}> : {desc}\n"
+            if attrs:
+                rules += "  Attributes:\n"
+                for attr_name, attr_desc in attrs.items():
+                    rules += f"    * {attr_name}: {attr_desc}\n"
+                    
+        rules += "\nExample output:\n"
+        rules += "\"Вот наши тарифы:\n"
+        rules += "<ui-card title='Старт' price='Бесплатно'><ui-badge>Выгодно</ui-badge> Базовая функциональность.</ui-card>\n"
+        rules += "Для деталей кликните:\n"
+        rules += "<ui-accordion title='Технические требования'>Требуется браузер с поддержкой HTML5.</ui-accordion>\n"
+        rules += "Для заказа нажмите: <ui-button>Записаться</ui-button> или пишите в <ui-link href='https://t.me/example'>Telegram</ui-link>\"\n"
+        
+        return rules
+    except Exception as e:
+        print(f"Error generating GenUI rules from catalog: {e}", flush=True)
+        return ""
+
+async def call_gemini_api_stream(payload: dict, headers: dict, timeout: float = 30.0):
+    payload = payload.copy()
+    payload["stream"] = True
+    
+    aidev_key = os.getenv("AIDEV_API_KEY")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+    
+    use_openrouter = True
+    if aidev_key and not is_aidev_limited():
+        use_openrouter = False
+    if not openrouter_key:
+        use_openrouter = False
+
+    if use_openrouter:
+        api_url = "https://openrouter.ai/api/v1/chat/completions"
+        primary_model = "google/gemini-2.5-flash"
+        fallback_model = "google/gemini-2.5-flash-lite"
+        
+        headers_copy = headers.copy()
+        headers_copy["Authorization"] = f"Bearer {openrouter_key}"
+        
+        payload_copy = payload.copy()
+        payload_copy["model"] = primary_model
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                print(f"DEBUG: [OpenRouter Stream] Trying primary model '{primary_model}'...", flush=True)
+                async with client.stream("POST", api_url, headers=headers_copy, json=payload_copy, timeout=timeout) as response:
+                    if response.status_code == 200:
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                yield line + "\n\n"
+                        return
+                    print(f"WARNING: [OpenRouter Stream] Primary model failed with status {response.status_code}", flush=True)
+            except Exception as e:
+                print(f"WARNING: [OpenRouter Stream] Primary model failed with exception: {e}", flush=True)
+                
+            payload_copy["model"] = fallback_model
+            try:
+                print(f"DEBUG: [OpenRouter Stream] Trying fallback model '{fallback_model}'...", flush=True)
+                async with client.stream("POST", api_url, headers=headers_copy, json=payload_copy, timeout=timeout) as response:
+                    if response.status_code == 200:
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                yield line + "\n\n"
+            except Exception as e:
+                print(f"ERROR: [OpenRouter Stream] Fallback model '{fallback_model}' failed: {e}", flush=True)
+                yield f"data: {json.dumps({'choices': [{'delta': {'content': 'AI connection error'}}]})}\n\n"
+    else:
+        api_url = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+        primary_model = "gemini-2.5-flash"
+        fallback_model = "gemini-2.5-flash-lite"
+        
+        headers_copy = headers.copy()
+        headers_copy["Authorization"] = f"Bearer {aidev_key}"
+        
+        payload_copy = payload.copy()
+        payload_copy["model"] = primary_model
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                print(f"DEBUG: [ai.dev Stream] Trying primary model '{primary_model}'...", flush=True)
+                async with client.stream("POST", api_url, headers=headers_copy, json=payload_copy, timeout=timeout) as response:
+                    if response.status_code == 200:
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                yield line + "\n\n"
+                        return
+                    if response.status_code == 429:
+                        print(f"WARNING: [ai.dev Stream] Hit 429. Marking limited.", flush=True)
+                        mark_aidev_limited()
+                        if openrouter_key:
+                            async for chunk in call_gemini_api_stream(payload, headers, timeout):
+                                yield chunk
+                            return
+            except Exception as e:
+                print(f"WARNING: [ai.dev Stream] Primary model failed with exception: {e}", flush=True)
+                
+            payload_copy["model"] = fallback_model
+            try:
+                print(f"DEBUG: [ai.dev Stream] Trying fallback model '{fallback_model}'...", flush=True)
+                async with client.stream("POST", api_url, headers=headers_copy, json=payload_copy, timeout=timeout) as response:
+                    if response.status_code == 200:
+                        async for line in response.aiter_lines():
+                            if line.startswith("data: "):
+                                yield line + "\n\n"
+                        return
+                    if response.status_code == 429:
+                        print(f"WARNING: [ai.dev Stream] Fallback hit 429. Marking limited.", flush=True)
+                        mark_aidev_limited()
+                        if openrouter_key:
+                            async for chunk in call_gemini_api_stream(payload, headers, timeout):
+                                yield chunk
+                            return
+            except Exception as e:
+                print(f"ERROR: [ai.dev Stream] Fallback failed: {e}", flush=True)
+                if openrouter_key:
+                    async for chunk in call_gemini_api_stream(payload, headers, timeout):
+                        yield chunk
+                    return
+                yield f"data: {json.dumps({'choices': [{'delta': {'content': 'AI connection error'}}]})}\n\n"
 
 async def generate_kb_suggestions(owner_email: str, content: str):
     """Automatically generate suggested questions and business name from KB content using AI."""
@@ -714,19 +856,10 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
     user = await get_current_user(authorization, False)
     owner_email, subdomain = get_tenant_info_by_host(req.headers.get("host"))
     
-    # Logic: 
-    # 1. If not logged in -> use owner_email from host (public view)
-    # 2. If logged in:
-    #    - If admin -> always see their OWN KB (or we can keep host logic)
-    #    - If current domain owner -> see their own KB
-    #    - If on someone else's domain -> see DOMAIN OWNER'S KB (unless admin)
-    
     if user:
         logged_email = user["sub"]
         is_admin = user.get("admin", False)
         
-        # If user is on their own domain OR is an admin, they see their own context
-        # Otherwise, they see the domain owner's context (like a regular visitor)
         if logged_email == owner_email or is_admin:
             owner_email = logged_email
             subdomain = get_subdomain_by_email(owner_email)
@@ -748,10 +881,7 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
         with open(kb_path, 'r', encoding='utf-8') as f: 
             context = f.read()
             
-    # CRITICAL: Remove General Settings section from AI context to prevent duplication
     context = re.sub(r'(?i)#\s*(Общие настройки|General Settings|Configurações|Служебная информация).*?(?=#|\Z)', '', context, flags=re.DOTALL)
-    
-    # Remove HTML comments to keep them hidden from AI
     context = re.sub(r'<!--.*?-->', '', context, flags=re.DOTALL)
 
     if not context.strip():
@@ -762,7 +892,6 @@ async def chat_proxy(request: ChatRequest, req: Request, authorization: str = He
         }
         return {"answer": msg.get(target_lang, msg["English"])}
 
-    # Read system prompt from external file or fallback to default
     default_prompt = """You are a helpful and professional Knowledge Base assistant.
 Your goal is to provide accurate information based on the provided context.
 
@@ -773,18 +902,7 @@ MANDATORY RULES:
 4. EXCLUDE SIGNATURES: Do NOT include contact info, telegram handles, or "General Settings" data from the context in your answer. This info is already displayed in the UI.
 5. Maintain a helpful and professional tone.
 
-GENERATIVE UI RULES:
-You MUST use these custom tags when presenting options, pricing, images, badges or links. DO NOT use plain lists for services.
-- <ui-button>Label</ui-button> : Use for EVERY internal action (e.g. "Записаться", "Узнать больше").
-- <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product.
-- <ui-link href="URL">Label</ui-link> : Use for ALL external links (WhatsApp, Telegram, Website, Maps).
-- <ui-image src="URL">Caption</ui-image> : Use to show photos of products, interior or team.
-- <ui-badge>Label</ui-badge> : Use for highlights (e.g. "NEW", "HOT", "Акция", "В наличии").
-Example output:
-"Вот наши тарифы:
-<ui-card title='Старт' price='Бесплатно'><ui-badge>Выгодно</ui-badge> Базовая функциональность.</ui-card>
-Смотрите фото нашего офиса: <ui-image src='https://example.com/office.jpg'>Наш уютный офис</ui-image>
-Для заказа пишите нам: <ui-link href='https://wa.me/79991234567'>WhatsApp</ui-link> или нажмите: <ui-button>Записаться</ui-button>"
+{genui_rules}
 
 CONTEXT:
 ---
@@ -798,7 +916,19 @@ CONTEXT:
         print(f"Error reading MAIN_PROMPT.md: {e}, using fallback", flush=True)
         prompt_template = default_prompt
 
-    system_content = prompt_template.replace("{target_lang}", target_lang).replace("{context}", limit_context_by_tokens(context, MAX_TOKENS))
+    genui_rules_text = load_genui_rules_from_catalog()
+    if not genui_rules_text:
+        genui_rules_text = """GENERATIVE UI RULES:
+You MUST use these custom tags when presenting options, pricing, images, badges or links. DO NOT use plain lists for services.
+- <ui-button>Label</ui-button> : Use for EVERY internal action (e.g. "Записаться", "Узнать больше").
+- <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product.
+- <ui-link href="URL">Label</ui-link> : Use for ALL external links (WhatsApp, Telegram, Website, Maps).
+- <ui-image src="URL">Caption</ui-image> : Use to show photos of products, interior or team.
+- <ui-badge>Label</ui-badge> : Use for highlights (e.g. "NEW", "HOT", "Акция", "В наличии")."""
+
+    system_content = prompt_template.replace("{target_lang}", target_lang)\
+                                     .replace("{genui_rules}", genui_rules_text)\
+                                     .replace("{context}", limit_context_by_tokens(context, MAX_TOKENS))
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -815,29 +945,38 @@ CONTEXT:
         "temperature": 0.2
     }
 
-    try:
-        resp = await call_gemini_api(payload, headers, timeout=30.0)
-        if resp.status_code != 200:
-            print(f"Chat API failed with status {resp.status_code}: {resp.text}", flush=True)
-            return {"answer": "AI connection error"}
-        data = resp.json()
-        answer = data['choices'][0]['message']['content']
-        
-        # Save to individual conversation log
-        logs = load_tenant_logs(owner_email)
-        logs.append({
-            "timestamp": datetime.now().isoformat(),
-            "lang": request.lang,
-            "query": request.query,
-            "answer": answer
-        })
-        save_tenant_logs(owner_email, logs)
+    async def event_generator():
+        full_answer = ""
+        try:
+            async for chunk in call_gemini_api_stream(payload, headers):
+                if chunk.strip().startswith("data: "):
+                    data_str = chunk.strip()[6:]
+                    if data_str == "[DONE]":
+                        pass
+                    else:
+                        try:
+                            data_json = json.loads(data_str)
+                            delta = data_json.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                            full_answer += delta
+                        except:
+                            pass
+                yield chunk
+        finally:
+            if full_answer:
+                try:
+                    logs = load_tenant_logs(owner_email)
+                    logs.append({
+                        "timestamp": datetime.now().isoformat(),
+                        "lang": request.lang,
+                        "query": request.query,
+                        "answer": full_answer
+                    })
+                    save_tenant_logs(owner_email, logs)
+                    print(f"AI response received ({len(full_answer)} chars) for {target_lang} (saved to logs)", flush=True)
+                except Exception as ex:
+                    print(f"Error saving chat log from stream: {ex}", flush=True)
 
-        print(f"AI response received ({len(answer)} chars) for {target_lang}", flush=True)
-        return {"answer": answer}
-    except Exception as e:
-        print(f"Chat error: {e}", flush=True)
-        return {"answer": "AI connection error"}
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.get("/api/tenant/logs")
 async def get_conversation_logs(user=Depends(get_current_user)):

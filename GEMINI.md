@@ -9,3 +9,8 @@
 - **Main Env:** `deploy.sh`
 - **Policy:** Всегда уточнять цель деплоя (Dev/Main) у пользователя и запрашивать окончательное подтверждение перед запуском скрипта.
 - **Location on VPS:** `/root/projects/gemini-file-search/` (Alias 'vps')
+
+## Generative UI (v1.1)
+- **Streaming:** Включен по умолчанию (FastAPI `StreamingResponse` и SSE на клиенте).
+- **Components Catalog:** [components_catalog.json](file:///Users/eugene/MyProjects/easyFAQ.online/components_catalog.json).
+- **New Components:** Добавлен `<ui-accordion title="...">содержимое</ui-accordion>`.

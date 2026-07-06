@@ -877,26 +877,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const resp = await apiRequest('/api/chat', 'POST', { query, lang: currentLang });
-            const data = await resp.json();
+            
+            if (!resp.ok) {
+                const data = await resp.json();
+                loader.classList.add('hidden');
+                statusText.textContent = "";
+                updateMessageContent(answerContent, data.answer || "Ошибка сервера.");
+                answerCard.classList.remove('hidden');
+                return;
+            }
 
             loader.classList.add('hidden');
             statusText.textContent = "";
-            
-            if (resp.ok) {
-                gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
+            answerContent.innerHTML = "";
+            answerCard.classList.remove('hidden');
+
+            gtag('event', 'search', { 'search_term': query, 'hostname': window.location.hostname });
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            let answerText = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
                 
-                let fullAnswer = data.answer;
-                if (underAnswerText && underAnswerText.trim().length > 0) {
-                    fullAnswer += "\n\n" + underAnswerText;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n\n");
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    const cleanLine = line.trim();
+                    if (!cleanLine.startsWith("data: ")) continue;
+                    const dataStr = cleanLine.substring(6);
+                    if (dataStr === "[DONE]") continue;
+
+                    try {
+                        const dataJson = JSON.parse(dataStr);
+                        const delta = dataJson.choices?.[0]?.delta?.content || "";
+                        answerText += delta;
+                        updateMessageContent(answerContent, answerText);
+                    } catch (e) {
+                        console.error("Error parsing streaming chunk:", e);
+                    }
                 }
-                
-                typeWriterEffect(fullAnswer, answerContent);
-                answerCard.classList.remove('hidden');
-            } else {
-                typeWriterEffect(data.answer || "Ошибка сервера.", answerContent);
-                answerCard.classList.remove('hidden');
             }
+
+            // Append signature at the very end
+            if (underAnswerText && underAnswerText.trim().length > 0) {
+                answerText += "\n\n" + underAnswerText;
+            }
+            updateMessageContent(answerContent, answerText);
         } catch (err) {
+            console.error("Chat error:", err);
             loader.classList.add('hidden');
             statusText.textContent = "Ошибка сети.";
         }
@@ -1280,69 +1314,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function typeWriterEffect(text, element) {
-        // 1. Process standard Markdown-like formatting
-        let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    function parseGenUI(text) {
+        const nodes = [];
+        const regex = /<ui-([a-z-]+)\b([^>]*)>([\s\S]*?)(?:<\/ui-\1>|$)/g;
+        
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = regex.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                nodes.push({
+                    type: 'text',
+                    content: text.substring(lastIndex, match.index)
+                });
+            }
+            
+            const tagName = 'ui-' + match[1];
+            const rawAttrs = match[2];
+            const content = match[3];
+            
+            const attrs = {};
+            const attrRegex = /(\w+)=["'](.*?)["']/g;
+            let attrMatch;
+            while ((attrMatch = attrRegex.exec(rawAttrs)) !== null) {
+                attrs[attrMatch[1]] = attrMatch[2];
+            }
+            
+            nodes.push({
+                type: 'component',
+                name: tagName,
+                attrs: attrs,
+                content: content
+            });
+            
+            lastIndex = regex.lastIndex;
+        }
+        
+        if (lastIndex < text.length) {
+            nodes.push({
+                type: 'text',
+                content: text.substring(lastIndex)
+            });
+        }
+        
+        return nodes;
+    }
 
-        // 2. Process Generative UI: <ui-card>
-        // More robust regex to handle any order of attributes and single/double quotes
-        const cardRegex = /<ui-card\b([^>]*)>([\s\S]*?)<\/ui-card>/g;
-        html = html.replace(cardRegex, (match, attrs, desc) => {
-            const titleMatch = attrs.match(/title=["'](.*?)["']/);
-            const priceMatch = attrs.match(/price=["'](.*?)["']/);
-            const title = titleMatch ? titleMatch[1] : "";
-            const price = priceMatch ? priceMatch[1] : "";
-
-            return `
-                <div class="ui-card">
-                    <div class="ui-card-header">
-                        <span class="ui-card-title">${title}</span>
-                        <span class="ui-card-price">${price}</span>
+    function renderNode(node) {
+        if (node.type === 'text') {
+            let html = node.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\n/g, '<br>');
+            const span = document.createElement('span');
+            span.innerHTML = html;
+            return span;
+        }
+        
+        if (node.type === 'component') {
+            const container = document.createElement('div');
+            container.className = `ui-component-container`;
+            
+            if (node.name === 'ui-card') {
+                const title = node.attrs.title || '';
+                const price = node.attrs.price || '';
+                container.innerHTML = `
+                    <div class="ui-card">
+                        <div class="ui-card-header">
+                            <span class="ui-card-title">${title}</span>
+                            <span class="ui-card-price">${price}</span>
+                        </div>
+                        <div class="ui-card-description">${node.content.trim().replace(/\n/g, '<br>')}</div>
                     </div>
-                    <div class="ui-card-description">${desc.trim()}</div>
-                </div>
-            `;
-        });
+                `;
+            } else if (node.name === 'ui-button') {
+                const button = document.createElement('button');
+                button.className = 'ui-button';
+                button.onclick = () => window.handleUiButtonClick(node.content);
+                button.textContent = node.content;
+                container.appendChild(button);
+            } else if (node.name === 'ui-link') {
+                const link = document.createElement('a');
+                link.className = 'ui-link';
+                link.href = node.attrs.href || '#';
+                link.target = '_blank';
+                link.textContent = node.content;
+                container.appendChild(link);
+            } else if (node.name === 'ui-image') {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'ui-image-container';
+                const img = document.createElement('img');
+                img.src = node.attrs.src || '';
+                img.alt = node.content;
+                img.className = 'ui-image';
+                img.loading = 'lazy';
+                imgContainer.appendChild(img);
+                if (node.content) {
+                    const caption = document.createElement('div');
+                    caption.className = 'ui-image-caption';
+                    caption.textContent = node.content;
+                    imgContainer.appendChild(caption);
+                }
+                container.appendChild(imgContainer);
+            } else if (node.name === 'ui-badge') {
+                const badge = document.createElement('span');
+                badge.className = 'ui-badge';
+                badge.textContent = node.content;
+                container.appendChild(badge);
+            } else if (node.name === 'ui-accordion') {
+                const title = node.attrs.title || 'Подробнее';
+                const accordion = document.createElement('div');
+                accordion.className = 'ui-accordion';
+                
+                const header = document.createElement('div');
+                header.className = 'ui-accordion-header';
+                header.innerHTML = `<span>${title}</span><span class="ui-accordion-icon">▼</span>`;
+                
+                const content = document.createElement('div');
+                content.className = 'ui-accordion-content hidden';
+                content.innerHTML = node.content.trim().replace(/\n/g, '<br>');
+                
+                header.onclick = () => {
+                    const isHidden = content.classList.contains('hidden');
+                    if (isHidden) {
+                        content.classList.remove('hidden');
+                        header.querySelector('.ui-accordion-icon').textContent = '▲';
+                    } else {
+                        content.classList.add('hidden');
+                        header.querySelector('.ui-accordion-icon').textContent = '▼';
+                    }
+                };
+                
+                accordion.appendChild(header);
+                accordion.appendChild(content);
+                container.appendChild(accordion);
+            } else {
+                container.innerHTML = `
+                    <div class="ui-custom-card">
+                        <div class="ui-custom-header">${node.name}</div>
+                        <div class="ui-custom-attrs">${JSON.stringify(node.attrs)}</div>
+                        <div class="ui-custom-content">${node.content}</div>
+                    </div>
+                `;
+            }
+            return container;
+        }
+    }
 
-        // 3. Process Generative UI: <ui-button>
-        html = html.replace(/<ui-button>(.*?)<\/ui-button>/g, (match, label) => {
-            return `<button class="ui-button" onclick="window.handleUiButtonClick('${label}')">${label}</button>`;
-        });
-
-        // 4. Process Generative UI: <ui-link>
-        // Syntax: <ui-link href="url">Label</ui-link>
-        html = html.replace(/<ui-link\s+href=["'](.*?)["']>(.*?)<\/ui-link>/g, (match, href, label) => {
-            return `<a href="${href}" target="_blank" class="ui-link">${label}</a>`;
-        });
-
-        // 5. Process Generative UI: <ui-image>
-        // Syntax: <ui-image src="url">Caption</ui-image>
-        html = html.replace(/<ui-image\s+src=["'](.*?)["']>(.*?)<\/ui-image>/g, (match, src, caption) => {
-            return `
-                <div class="ui-image-container">
-                    <img src="${src}" alt="${caption}" class="ui-image" loading="lazy">
-                    ${caption ? `<div class="ui-image-caption">${caption}</div>` : ''}
-                </div>
-            `;
-        });
-
-        // 6. Process Generative UI: <ui-badge>
-        // Syntax: <ui-badge>Label</ui-badge>
-        html = html.replace(/<ui-badge>(.*?)<\/ui-badge>/g, (match, label) => {
-            return `<span class="ui-badge">${label}</span>`;
-        });
-
-        // 7. Process newlines (skip if inside ui-card to avoid extra breaks)
-        html = html.replace(/\n/g, '<br>');
-
-        element.innerHTML = html;        element.style.opacity = '0';
-        element.style.transform = 'translateY(10px)';
-        element.style.transition = 'none';
-
-        requestAnimationFrame(() => {
-            element.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
+    function updateMessageContent(element, text) {
+        const nodes = parseGenUI(text);
+        element.innerHTML = '';
+        nodes.forEach(node => {
+            element.appendChild(renderNode(node));
         });
     }
 

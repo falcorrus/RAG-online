@@ -1,0 +1,39 @@
+{
+  "ui-card": {
+    "description": "Use for presenting products, services, tariffs, or plans. ALWAYS include title and price attributes.",
+    "attributes": {
+      "title": "The name of the service or product",
+      "price": "The cost of the service/product (e.g. Free, $10, 1500 руб.)"
+    },
+    "children": "Detailed description of the product or service."
+  },
+  "ui-button": {
+    "description": "Use for quick actions or suggested queries. Clicking this will automatically search for the button's text.",
+    "children": "Text of the button/action (e.g. Learn more, Book now, Записаться)."
+  },
+  "ui-link": {
+    "description": "Use for all external links (e.g. WhatsApp, Telegram, Website, Maps, Socials).",
+    "attributes": {
+      "href": "The complete absolute URL"
+    },
+    "children": "Label for the link (e.g. WhatsApp, Telegram, Open Map)."
+  },
+  "ui-image": {
+    "description": "Use to display images of products, interiors, offices, certificates, or team members.",
+    "attributes": {
+      "src": "The direct URL to the image"
+    },
+    "children": "Brief caption describing the image."
+  },
+  "ui-badge": {
+    "description": "Use to highlight states, features, or promotions.",
+    "children": "Text inside the badge (e.g. NEW, HOT, Sale, 10% OFF)."
+  },
+  "ui-accordion": {
+    "description": "Use for expandable content or details (collapsible details box). Good for technical parameters or long FAQ sub-sections.",
+    "attributes": {
+      "title": "The header text of the collapsible section"
+    },
+    "children": "The content hidden inside the collapsible block (opens on click)."
+  }
+}

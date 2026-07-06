@@ -150,3 +150,55 @@
 .ui-card .ui-badge {
     margin: 0 0 0.5rem 0;
 }
+
+/* --- NEW COMPONENT: ACCORDION --- */
+.ui-accordion {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    margin: 1rem 0;
+    overflow: hidden;
+    transition: all var(--transition-speed) var(--ease-out);
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.ui-accordion:hover {
+    border-color: var(--brand-color);
+}
+
+.ui-accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background var(--transition-speed) var(--ease-out);
+    user-select: none;
+}
+
+.ui-accordion-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ui-accordion-icon {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: transform var(--transition-speed) var(--ease-out);
+}
+
+.ui-accordion-content {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    border-top: 1px solid var(--divider-color);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.ui-accordion-content.hidden {
+    display: none;
+}
