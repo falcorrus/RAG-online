@@ -149,40 +149,30 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const applyState = (kb) => {
-            if (!kb) {
-                // State: NO KNOWLEDGE BASE
-                if (welcomeBanner) {
-                    welcomeBanner.classList.remove('force-hidden');
-                    welcomeBanner.classList.remove('fade-out');
-                }
-                
-                // Hide everything else
-                if (searchWrapper) searchWrapper.classList.add('force-hidden');
-                if (headerTools) headerTools.classList.add('force-hidden');
-                if (mainFooter) mainFooter.classList.add('force-hidden');
-                
-                document.body.classList.remove('has-results');
-                if (mainTitle) mainTitle.classList.remove('visible');
-                if (mainSparkle) mainSparkle.classList.remove('visible');
-            } else {
-                // State: KNOWLEDGE BASE EXISTS
-                if (welcomeBanner) {
-                    welcomeBanner.classList.add('fade-out');
-                    setTimeout(() => welcomeBanner.classList.add('force-hidden'), 500);
-                }
-                
-                // Show everything else
-                if (searchWrapper) searchWrapper.classList.remove('force-hidden');
-                if (headerTools) headerTools.classList.remove('force-hidden');
-                if (mainFooter) mainFooter.classList.remove('force-hidden');
+            // Always show main screen elements regardless of KB status
+            if (searchWrapper) searchWrapper.classList.remove('force-hidden');
+            if (headerTools) headerTools.classList.remove('force-hidden');
+            if (mainFooter) mainFooter.classList.remove('force-hidden');
+            
+            if (mainSparkle) {
+                mainSparkle.classList.remove('force-hidden');
+                mainSparkle.classList.add('visible');
+            }
+            if (mainTitle) {
+                mainTitle.classList.remove('force-hidden');
+                mainTitle.classList.add('visible');
+            }
 
-                if (mainSparkle) {
-                    mainSparkle.classList.remove('force-hidden');
-                    mainSparkle.classList.add('visible');
+            if (!kb) {
+                // State: NO KNOWLEDGE BASE - Show welcome modal
+                if (welcomeBanner) {
+                    welcomeBanner.classList.remove('hidden');
                 }
-                if (mainTitle) {
-                    mainTitle.classList.remove('force-hidden');
-                    mainTitle.classList.add('visible');
+                document.body.classList.remove('has-results');
+            } else {
+                // State: KNOWLEDGE BASE EXISTS - Hide welcome modal
+                if (welcomeBanner) {
+                    welcomeBanner.classList.add('hidden');
                 }
             }
         };

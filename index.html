@@ -273,28 +273,7 @@
     </div>
 
     <main class="container" id="mainContainer">
-        <!-- Welcome Banner -->
-        <div class="welcome-banner force-hidden" id="welcomeBanner">
-            <h2 class="welcome-title">Ваш AI-автоответчик готов <span id="welcomeTenantName"></span></h2>
-            <ul class="todo-list">
-                <li class="todo-item done">
-                    <span class="todo-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-1.814a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clip-rule="evenodd" /></svg>
-                    </span>
-                    <span class="todo-text">Ссылка зарегистрирована</span>
-                </li>
-                <li class="todo-item" id="todoUpload">
-                    <span class="todo-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                    </span>
-                    <span class="todo-text">Загрузите текстовый файл с информацией о бизнесе</span>
-                </li>
-            </ul>
-            <div class="welcome-actions">
-                <button class="welcome-btn secondary" id="downloadDemoBtn" data-i18n="welcome_download_demo">Скачать пример</button>
-                <button class="welcome-btn primary" id="goToSettingsBtn" data-i18n="welcome_go_to_settings">В настройки</button>
-            </div>
-        </div>
+
 
         <div class="search-wrapper" id="searchWrapper">
             <div class="title-area">
@@ -341,6 +320,32 @@
     <div id="toast" class="toast"><span class="toast-icon"></span><span id="toastMessage"></span></div>
 
     <!-- Modals -->
+    <!-- Welcome Modal (поверх главного экрана) -->
+    <div class="admin-overlay hidden" id="welcomeBanner">
+        <div class="admin-panel" style="max-width: 440px; text-align: center;">
+            <div class="admin-header-compact">
+                <div class="header-top">
+                    <h2 class="welcome-title" style="margin: 0; font-size: 1.3rem;">Ваш ИИ-автоответчик готов <span id="welcomeTenantName"></span></h2>
+                    <button class="icon-close-btn small" onclick="document.getElementById('welcomeBanner').classList.add('hidden')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="admin-main">
+                <div class="admin-content" style="padding: 20px 0; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+                    <div style="font-size: 3rem;">🤖</div>
+                    <p style="font-size: 1rem; line-height: 1.5; color: var(--text-primary); font-weight: 500; margin: 0;" data-i18n="welcome_modal_text">
+                        В настройках загрузите текстовый файл с информацией о бизнесе
+                    </p>
+                </div>
+            </div>
+            <div class="admin-footer auth-footer" style="justify-content: center; gap: 12px;">
+                <button class="welcome-btn secondary" id="downloadDemoBtn" data-i18n="welcome_download_demo">Скачать пример</button>
+                <button class="save-btn" id="goToSettingsBtn" style="margin-left: 0;" data-i18n="welcome_go_to_settings">В настройки</button>
+            </div>
+        </div>
+    </div>
+
     <div class="admin-overlay hidden" id="confirmationModal">
         <div class="admin-panel" style="max-width: 400px;">
             <div class="admin-header-compact">
