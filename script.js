@@ -290,7 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
             save_kb_btn: "Сохранить",
             status_saving: "Сохраняем...",
             status_saved: "Сохранено! ИИ перерабатывает базу...",
-            status_error: "Ошибка сохранения"
+            status_error: "Ошибка сохранения",
+            welcome_modal_text: "В настройках загрузите текстовый файл с информацией о бизнесе"
         },
         en: {
             title_main: "AI Business Consultant",
@@ -348,7 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
             save_kb_btn: "Save",
             status_saving: "Saving...",
             status_saved: "Saved! AI is reprocessing info...",
-            status_error: "Save error"
+            status_error: "Save error",
+            welcome_modal_text: "In settings, upload a text file with information about your business"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -406,7 +408,8 @@ document.addEventListener('DOMContentLoaded', () => {
             save_kb_btn: "Salvar",
             status_saving: "Salvando...",
             status_saved: "Salvo! A IA está processando...",
-            status_error: "Erro ao salvar"
+            status_error: "Erro ao salvar",
+            welcome_modal_text: "Nas configurações, envie um arquivo de texto com informações sobre a sua empresa"
         }
     };
 
@@ -709,8 +712,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             try {
                 await loadSuggestions();
+                await loadLogs();
             } catch (e) {
-                console.warn("Admin loadSuggestions failed", e);
+                console.warn("Admin init data (suggestions/logs) failed", e);
             }
         } catch (err) {
             console.error("Admin data fetch failed", err);
