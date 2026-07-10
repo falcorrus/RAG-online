@@ -242,7 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_3: "Как сделать заказ?",
             source_label: "Источник: база знаний бизнеса",
             admin_title: "Панель управления",
-            tab_settings: "Настройки",
+            kb_tab_label: "База",
+            appearance_tab_label: "Оформление",
             tab_logs: "Логи чата",
             download_logs_btn: "Скачать логи",
             download_kb_btn: "Скачать базу",
@@ -301,7 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_3: "How to order?",
             source_label: "Source: Business Knowledge Base",
             admin_title: "Control Panel",
-            tab_settings: "Settings",
+            kb_tab_label: "Base",
+            appearance_tab_label: "Appearance",
             tab_logs: "Chat Logs",
             download_logs_btn: "Download Logs",
             download_kb_btn: "Download base",
@@ -360,7 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestion_3: "Contatos de RH",
             source_label: "Fonte: Base de Conhecimento",
             admin_title: "Painel de Controle",
-            tab_settings: "Configurações",
+            kb_tab_label: "Base",
+            appearance_tab_label: "Aparência",
             tab_logs: "Registros",
             download_logs_btn: "Baixar logs",
             download_kb_btn: "Baixar base",
@@ -997,9 +1000,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (!token) showAuth();
             else {
-                // Reset to settings tab
-                tabBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === 'settings'));
-                tabContents.forEach(content => content.classList.toggle('active', content.id === 'settingsTab'));
+                // Reset to kb tab
+                tabBtns.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === 'kb'));
+                tabContents.forEach(content => content.classList.toggle('active', content.id === 'kbTab'));
 
                 // Set admin info from token
                 try {

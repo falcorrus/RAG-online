@@ -168,55 +168,61 @@
         <div class="admin-panel hidden" id="settingsPanel">
             <div class="admin-header-compact">
                 <div class="header-top">
-                    <h2 id="adminPanelTitle" data-i18n="admin_title">Настройки</h2>
+                    <h2 id="adminPanelTitle" data-i18n="admin_title">Панель управления</h2>
                     <button class="icon-close-btn" id="closeAdminBtn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
-                <div class="user-badge-wrapper">
-                    <span class="user-badge admin-email"></span>
-                    <button class="logout-btn" id="logoutBtn" data-i18n="admin_logout">Выйти</button>
+                <div class="user-badge-wrapper" style="margin-bottom: 12px; margin-top: 2px;">
+                    <span class="user-badge admin-email" style="font-size: 13px; color: var(--text-secondary); opacity: 0.85;"></span>
+                    <button class="logout-btn" id="logoutBtn" data-i18n="admin_logout" style="margin-left: auto;">Выйти</button>
+                </div>
+                <div class="admin-tabs segmented-control">
+                    <button class="tab-btn active" data-tab="kb" data-i18n="kb_tab_label">База</button>
+                    <button class="tab-btn" data-tab="appearance" data-i18n="appearance_tab_label">Оформление</button>
+                    <button class="tab-btn" data-tab="logs" id="viewLogsBtn" data-i18n="tab_logs">Логи чата</button>
                 </div>
             </div>
 
             <div class="admin-main">
-                <div class="settings-grid">
-                    
-                    <!-- Card 1: Knowledge Base -->
-                    <div class="settings-card card-kb">
-                        <div class="kb-header-row" style="margin-bottom: 12px;">
-                            <label class="setting-label" data-i18n="kb_upload_label" style="margin-bottom: 0;">База знаний (.md)</label>
-                            <div class="kb-mode-toggle segmented-control mini">
-                                <button class="mode-btn active" id="modeUploadBtn" data-mode="upload" data-i18n="kb_mode_upload">Файл</button>
-                                <button class="mode-btn" id="modeEditBtn" data-mode="edit" data-i18n="kb_mode_edit">Редактор</button>
-                            </div>
-                        </div>
-                        
-                        <!-- Upload Mode -->
-                        <div id="kbUploadMode" class="kb-mode-container">
-                            <div class="drop-zone" id="kbDropZone">
-                                <div class="drop-zone-content">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                                    <p data-i18n="drop_zone_text">Перетащите .md файл</p>
-                                    <input type="file" id="kbFileInput" accept=".md" class="hidden">
-                                </div>
-                                <div class="file-info hidden" id="fileInfo">
-                                    <span class="file-name"></span>
-                                    <button class="icon-close-btn small" id="removeFileBtn">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                    </button>
+                <!-- KB Tab -->
+                <div class="tab-content active" id="kbTab">
+                    <div class="admin-content" style="padding-top: 0;">
+                        <div class="setting-group">
+                            <div class="kb-header-row" style="margin-bottom: 12px;">
+                                <label class="setting-label" data-i18n="kb_upload_label" style="margin-bottom: 0;">База знаний (.md)</label>
+                                <div class="kb-mode-toggle segmented-control mini">
+                                    <button class="mode-btn active" id="modeUploadBtn" data-mode="upload" data-i18n="kb_mode_upload">Файл</button>
+                                    <button class="mode-btn" id="modeEditBtn" data-mode="edit" data-i18n="kb_mode_edit">Редактор</button>
                                 </div>
                             </div>
-                        </div>
+                            
+                            <!-- Upload Mode -->
+                            <div id="kbUploadMode" class="kb-mode-container">
+                                <div class="drop-zone" id="kbDropZone">
+                                    <div class="drop-zone-content">
+                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                        <p data-i18n="drop_zone_text">Перетащите .md файл</p>
+                                        <input type="file" id="kbFileInput" accept=".md" class="hidden">
+                                    </div>
+                                    <div class="file-info hidden" id="fileInfo">
+                                        <span class="file-name"></span>
+                                        <button class="icon-close-btn small" id="removeFileBtn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <!-- Edit Mode -->
-                        <div id="kbEditMode" class="kb-mode-container hidden">
-                            <div class="editor-body">
-                                <textarea id="kbTextarea" placeholder="# Заголовок..." class="admin-textarea"></textarea>
-                            </div>
-                            <div class="editor-actions">
-                                <button class="action-btn small" id="saveKbBtn" data-i18n="save_kb_btn">Сохранить</button>
-                                <span id="editorStatus" class="editor-status-text"></span>
+                            <!-- Edit Mode -->
+                            <div id="kbEditMode" class="kb-mode-container hidden">
+                                <div class="editor-body">
+                                    <textarea id="kbTextarea" placeholder="# Заголовок..." class="admin-textarea"></textarea>
+                                </div>
+                                <div class="editor-actions">
+                                    <button class="action-btn small" id="saveKbBtn" data-i18n="save_kb_btn">Сохранить</button>
+                                    <span id="editorStatus" class="editor-status-text"></span>
+                                </div>
                             </div>
                         </div>
 
@@ -225,23 +231,27 @@
                         </div>
 
                         <!-- AI Response closing signature -->
-                        <div style="margin-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+                        <div class="setting-group" style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px;">
                             <label class="setting-label" data-i18n="under_answer_label">Добавляем в конец ответа</label>
                             <input type="text" id="underAnswerInput" class="admin-select" maxlength="50" placeholder="Напр.: Для вопросов @username" style="margin-bottom: 0;">
                         </div>
                     </div>
-                    
-                    <div class="settings-column-right">
-                        <!-- Card 2: Appearance -->
-                        <div class="settings-card card-appearance">
+                </div>
+
+                <!-- Appearance Tab -->
+                <div class="tab-content" id="appearanceTab">
+                    <div class="admin-content" style="padding-top: 0;">
+                        <div class="setting-group">
                             <label class="setting-label" data-i18n="theme_label">Тема оформления</label>
-                            <select id="themeSelect" class="admin-select" style="margin-bottom: 16px;">
+                            <select id="themeSelect" class="admin-select">
                                 <option value="glass">Glass (Default)</option>
                                 <option value="linear">Linear</option>
                                 <option value="apple">Apple (White)</option>
                                 <option value="dune">Dune (Sci-Fi)</option>
                             </select>
-                            
+                        </div>
+
+                        <div class="setting-group" style="margin-top: 16px;">
                             <div class="toggle-wrapper">
                                 <span class="setting-label" data-i18n="initially_open_label" style="margin-bottom: 0;">Изначально открыто</span>
                                 <label class="switch">
@@ -250,22 +260,23 @@
                                 </label>
                             </div>
                         </div>
-                        
-                        <!-- Card 3: Chat Logs -->
-                        <div class="settings-card card-logs">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label class="setting-label" data-i18n="tab_logs" style="margin-bottom: 0;">Логи чата</label>
-                                <div class="logs-toolbar" style="margin: 0; gap: 8px; display: flex;">
-                                    <button class="action-btn small mini" id="downloadLogsBtn" data-i18n="download_logs_btn">Скачать</button>
-                                    <button class="action-btn small danger mini" id="clearLogsBtn" data-i18n="clear_logs_btn">Очистить</button>
-                                </div>
-                            </div>
-                            <div class="logs-container-scroll" id="logsContent">
-                                <p data-i18n="no_logs_msg">Логи пока пусты.</p>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-content" id="logsTab">
+                    <div class="admin-content" style="padding-top: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <label class="setting-label" data-i18n="tab_logs" style="margin-bottom: 0;">Логи чата</label>
+                            <div class="logs-toolbar" style="margin: 0; gap: 8px; display: flex;">
+                                <button class="action-btn small mini" id="downloadLogsBtn" data-i18n="download_logs_btn">Скачать</button>
+                                <button class="action-btn small danger mini" id="clearLogsBtn" data-i18n="clear_logs_btn">Очистить</button>
                             </div>
                         </div>
+                        <div class="logs-container-scroll" id="logsContent">
+                            <p data-i18n="no_logs_msg">Логи пока пусты.</p>
+                        </div>
                     </div>
-
                 </div>
             </div>
 

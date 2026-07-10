@@ -557,7 +557,7 @@ textarea::placeholder { color: var(--text-muted); opacity: 0.8; }
 }
 
 #settingsPanel {
-    max-width: 820px;
+    max-width: 620px;
 }
 
 body.theme-glass .admin-panel {
