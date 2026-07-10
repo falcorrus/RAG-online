@@ -15,3 +15,7 @@
 - **Streaming:** Включен по умолчанию (FastAPI `StreamingResponse` и SSE на клиенте).
 - **Components Catalog:** [components_catalog.json](file:///Users/eugene/MyProjects/easyFAQ.online/components_catalog.json).
 - **New Components:** Добавлен `<ui-accordion title="...">содержимое</ui-accordion>`.
+
+## Artifacts Policy
+- **Location:** Если работаем в папке проекта, где есть документация, то создаваемые артефакты сохранять в папке `artefacts` в корне проекта (создать её, если не существует).
+
