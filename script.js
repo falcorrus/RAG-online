@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             processing_kb_title: "База обрабатывается",
             processing_kb_msg: "Подождите несколько секунд, ваш AI-консультант скоро будет готов...",
             setup_secure_title: "Настраиваем домен",
-            setup_secure_msg: "Настраиваем безопасное соединение для вашего домена... Подождите пару секунд.",
+            setup_secure_msg: "Настраиваем безопасное соединение (SSL). Это занимает около 30-40 секунд, пожалуйста, не закрывайте вкладку...",
             deleting_kb_title: "Удаление данных",
             deleting_kb_msg: "Очищаем данные... Подождите несколько секунд.",
             confirm_title: "Подтверждение",
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             processing_kb_title: "Processing data",
             processing_kb_msg: "Please wait a few seconds, your AI consultant will be ready soon...",
             setup_secure_title: "Setting up domain",
-            setup_secure_msg: "Setting up secure connection for your domain... Please wait a few seconds.",
+            setup_secure_msg: "Configuring secure connection (SSL). This takes about 30-40 seconds, please do not close the tab...",
             deleting_kb_title: "Deleting data",
             deleting_kb_msg: "Clearing data... Please wait a few seconds.",
             confirm_title: "Confirmation",
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
             processing_kb_title: "Base sendo processada",
             processing_kb_msg: "Aguarde alguns segundos, a página será recarregada automaticamente...",
             setup_secure_title: "Configurando domínio",
-            setup_secure_msg: "Configurando uma conexão segura para o seu domínio... Aguarde alguns segundos.",
+            setup_secure_msg: "Configurando uma conexão segura (SSL). Isso leva cerca de 30-40 segundos, por favor não feche esta aba...",
             deleting_kb_title: "Excluindo base de conhecimento",
             deleting_kb_msg: "Limpando dados... Aguarde alguns segundos.",
             confirm_title: "Confirmação",
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => {
                         const newUrl = `https://${data.subdomain}.easyfaq.online`;
                         window.location.href = `${newUrl}?token=${data.token}`;
-                    }, 10000); // 10 seconds delay
+                    }, 35000); // 35 seconds delay to allow Let's Encrypt SSL setup
                     return;
                 }
 
