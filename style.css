@@ -57,6 +57,33 @@ body.theme-linear {
     --blur-modal: 8px;
 }
 
+/* --- THEME: DUNE (Desert Sci-Fi Dark) --- */
+body.theme-dune {
+    --bg-main: #090e0d; 
+    --bg-modal: #111a18;
+    --bg-surface: #0f1715e6;
+    --bg-input: rgba(6, 12, 10, 0.36);
+    
+    --brand-color: #e6a15d;
+    --brand-color-hover: #ffc77e;
+    --brand-glow: rgba(230, 161, 93, 0.25);
+    
+    --text-primary: #f5e5c8;
+    --text-secondary: #b9aa93;
+    --text-muted: #8f8373;
+    
+    --border-color: #e8b87733;
+    --divider-color: #e8b8771f;
+    --overlay-bg: rgba(2, 5, 4, 0.72);
+    
+    --radius-modal: 26px;
+    --radius-button: 14px;
+    --radius-input: 12px;
+    --radius-card: 18px;
+    
+    --blur-modal: 18px;
+}
+
 body.theme-apple .creator-footer a {
     color: #86868B !important;
 }

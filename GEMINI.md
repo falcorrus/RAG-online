@@ -2,6 +2,7 @@
 
 ## Development & Running
 - **Server Command:** `python3 -m uvicorn server:app --host 0.0.0.0 --port 8006 --reload`
+- **Background Policy:** Всегда запускать сервер в фоне (используя `WaitMsBeforeAsync`), чтобы продолжать диалог с пользователем, и обязательно выводить ссылку на локальный адрес сервера: `http://localhost:8006`.
 - **Settings:** Данные 'Общие настройки' из Obsidian нельзя перефразировать.
 
 ## Deployment

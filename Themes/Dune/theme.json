@@ -1,0 +1,27 @@
+{
+  "name": "Dune",
+  "palette": {
+    "background": {
+      "page": "#090e0d",
+      "modal": "#111a18",
+      "surface": "#0f1715e6"
+    },
+    "colors": {
+      "primary": "#e6a15d",
+      "text": {
+        "primary": "#f5e5c8",
+        "secondary": "#b9aa93",
+        "muted": "#8f8373"
+      },
+      "border": "#e8b87733"
+    }
+  },
+  "geometry": {
+    "borderRadius": {
+      "modal": "26px",
+      "button": "14px",
+      "input": "12px"
+    },
+    "blur": "18px"
+  }
+}

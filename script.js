@@ -273,12 +273,14 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_btn_login: "Войти",
             auth_btn_register: "Создать автоответчик",
             auth_toggle_login: "Уже есть аккаунт? Войти",
-            auth_toggle_register: "Хотите такой же? Регистрация",
+            auth_toggle_register: "Хотите такой же? Создать ссылку",
             welcome_download_demo: "Скачать пример",
             welcome_go_to_settings: "В настройки",
             onboarding_title: "Как это работает",
-            onboarding_step_1: "Зарегистрируйте свою ссылку",
-            onboarding_step_2: "Загрузите файл с информацией о бизнесе",
+            onboarding_step_1: "Создайте адрес вашего ИИ-консультанта",
+            onboarding_desc_1: "Придумайте имя для поддомена (например, my-shop.easyfaq.online). По этому адресу клиенты смогут задавать вопросы вашему автоответчику.",
+            onboarding_step_2: "Загрузите или напишите информацию о бизнесе",
+            onboarding_desc_2: "Загрузите текстовый файл (.txt, .md) с вашим списком вопросы-ответы, ценами, описанием услуг и т.д. Вы можете загружать и выгружать файл или менять его во встроенном редакторе в любой момент.",
             onboarding_next: "Далее",
             auth_subdomain_label: "Желаемый поддомен",
             processing_kb_title: "База обрабатывается",
@@ -329,12 +331,14 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_btn_login: "Login",
             auth_btn_register: "Create AI Assistant",
             auth_toggle_login: "Already have an account? Login",
-            auth_toggle_register: "Want the same? Register",
+            auth_toggle_register: "Want the same? Create link",
             welcome_download_demo: "Download Demo",
             welcome_go_to_settings: "Go to Settings",
             onboarding_title: "How it works",
-            onboarding_step_1: "Register your link",
-            onboarding_step_2: "Upload your business info",
+            onboarding_step_1: "Create your AI consultant's link",
+            onboarding_desc_1: "Choose a subdomain (e.g., my-shop.easyfaq.online). Customers will ask questions to your AI assistant using this link.",
+            onboarding_step_2: "Upload or write your business details",
+            onboarding_desc_2: "Upload a text file (.txt, .md) containing your FAQ list, pricing, or service description. You can also edit this text later directly inside the admin panel.",
             onboarding_next: "Next",
             auth_subdomain_label: "Desired subdomain",
             processing_kb_title: "Processing data",
@@ -385,12 +389,14 @@ document.addEventListener('DOMContentLoaded', () => {
             auth_btn_login: "Entrar",
             auth_btn_register: "Criar RAG",
             auth_toggle_login: "Já tem uma conta? Entrar",
-            auth_toggle_register: "Quer un igual? Registre-се",
+            auth_toggle_register: "Quer um igual? Criar link",
             welcome_download_demo: "Baixar Demonstração",
             welcome_go_to_settings: "Configurações",
             onboarding_title: "Como funciona",
-            onboarding_step_1: "Criar conta (RAG)",
-            onboarding_step_2: "Carregar conhecimento (markdown, txt)",
+            onboarding_step_1: "Crie o endereço do seu consultor de IA",
+            onboarding_desc_1: "Escolha um nome para o subdomínio (ex: my-shop.easyfaq.online). Clientes farão perguntas ao seu assistente de IA usando este link.",
+            onboarding_step_2: "Carregue ou escreva as informações do negócio",
+            onboarding_desc_2: "Envie um arquivo de texto (.txt, .md) contendo seu FAQ, preços ou descrição dos serviços. Você também poderá editar este texto mais tarde diretamente no painel de administração.",
             onboarding_next: "Próximo",
             auth_subdomain_label: "Subdomínio desejado",
             processing_kb_title: "Base sendo processada",
@@ -577,7 +583,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateAuthLabels() {
-        authTitle.textContent = currentLang === 'ru' ? (isRegisterMode ? 'Регистрация' : 'Вход в систему') : (isRegisterMode ? 'Registration' : 'Login');
+        if (currentLang === 'ru') {
+            authTitle.textContent = isRegisterMode ? 'Создайте ссылку на консультанта' : 'Вход в систему';
+        } else if (currentLang === 'pt') {
+            authTitle.textContent = isRegisterMode ? 'Criar link do consultor' : 'Entrar';
+        } else {
+            authTitle.textContent = isRegisterMode ? 'Create consultant link' : 'Login';
+        }
         
         if (isRegisterMode) {
             subdomainGroup.classList.remove('hidden');
@@ -619,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (authBtn) authBtn.addEventListener('click', handleAuth);
 
     function applyTheme(theme) {
-        document.body.classList.remove('theme-glass', 'theme-linear', 'theme-apple');
+        document.body.classList.remove('theme-glass', 'theme-linear', 'theme-apple', 'theme-dune');
         document.body.classList.add(`theme-${theme || 'glass'}`);
         
         // Add sparkle icon if it's apple theme and doesn't exist
