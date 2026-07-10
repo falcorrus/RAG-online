@@ -303,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tab_settings: "Settings",
             tab_logs: "Chat Logs",
             download_logs_btn: "Download Logs",
-            download_kb_btn: "Download KB",
+            download_kb_btn: "Download base",
             kb_upload_label: "Business info (.md, .txt)",
             drop_zone_text: "Upload your FAQ and price list",
             initially_open_label: "Initially open",
