@@ -288,6 +288,47 @@
 
     <main class="container" id="mainContainer">
 
+        <!-- Левая промо-панель для Split-лендинга (показывается только на главном сайте) -->
+        <div class="landing-promo-side hidden" id="landingPromoSide">
+            <div class="promo-content-wrapper">
+                <div class="promo-logo-badge">easyFAQ.online</div>
+                <h1 class="promo-title" data-i18n="promo_title">Превратите ваши заметки в ИИ-автоответчик за 5 минут</h1>
+                <p class="promo-description" data-i18n="promo_description">Загрузите текстовый файл и получите персональную страницу с умным чат-ботом для мгновенных ответов на вопросы клиентов 24/7.</p>
+                
+                <ul class="promo-features">
+                    <li>
+                        <span class="material-symbols-outlined feature-icon">bolt</span>
+                        <div class="feature-info">
+                            <h3 data-i18n="feature_setup_title">Быстрый запуск</h3>
+                            <p data-i18n="feature_setup_desc">Достаточно загрузить обычный файл заметок в формате Markdown (.md) или TXT.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="material-symbols-outlined feature-icon">translate</span>
+                        <div class="feature-info">
+                            <h3 data-i18n="feature_lang_title">Абсолютная мультиязычность</h3>
+                            <p data-i18n="feature_lang_desc">Клиенты могут спрашивать на португальском, английском или испанском — ИИ ответит на их языке.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="material-symbols-outlined feature-icon">palette</span>
+                        <div class="feature-info">
+                            <h3 data-i18n="feature_design_title">Премиум-дизайн</h3>
+                            <p data-i18n="feature_design_desc">Современный стиль Glassmorphism с гибкой настройкой под ваш личный бренд.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="material-symbols-outlined feature-icon">contact_support</span>
+                        <div class="feature-info">
+                            <h3 data-i18n="feature_links_title">Быстрая связь</h3>
+                            <p data-i18n="feature_links_desc">«Умная подпись» с быстрыми ссылками для перевода прогретых лидов прямо в ваш Telegram.</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <button class="promo-cta-btn" id="promoCtaBtn" data-i18n="promo_cta_btn">Создать автоответчик бесплатно</button>
+            </div>
+        </div>
 
         <div class="search-wrapper" id="searchWrapper">
             <div class="title-area">
@@ -351,6 +392,15 @@
                     <p style="font-size: 1rem; line-height: 1.5; color: var(--text-primary); font-weight: 500; margin: 0;" data-i18n="welcome_modal_text">
                         В настройках загрузите текстовый файл с информацией о бизнесе
                     </p>
+                    <div class="template-selector-wrapper" style="width: 100%; text-align: left; margin-top: 8px;">
+                        <label class="setting-label" style="font-size: 0.85rem; margin-bottom: 6px; display: block; opacity: 0.85;" data-i18n="select_template_label">Выберите шаблон для вашей ниши:</label>
+                        <select id="welcomeTemplateSelect" class="admin-select" style="width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: var(--text-primary); cursor: pointer;">
+                            <option value="telegram" data-i18n="template_opt_tg">Telegram-канал (Реклама / FAQ)</option>
+                            <option value="expert" data-i18n="template_opt_expert">Визитка эксперта / Коуча</option>
+                            <option value="secondbrain" data-i18n="template_opt_brain">Личные заметки (Second Brain)</option>
+                            <option value="demo" selected data-i18n="template_opt_demo">Пример фитнес-клуба (по умолчанию)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div class="admin-footer auth-footer" style="justify-content: center; gap: 12px;">

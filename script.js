@@ -292,7 +292,23 @@ document.addEventListener('DOMContentLoaded', () => {
             status_saving: "Сохраняем...",
             status_saved: "Сохранено! ИИ перерабатывает базу...",
             status_error: "Ошибка сохранения",
-            welcome_modal_text: "В настройках загрузите текстовый файл с информацией о бизнесе"
+            welcome_modal_text: "В настройках загрузите текстовый файл с информацией о бизнесе",
+            select_template_label: "Выберите шаблон для вашей ниши:",
+            template_opt_tg: "Telegram-канал (Реклама / FAQ)",
+            template_opt_expert: "Визитка эксперта / Коуча",
+            template_opt_brain: "Личные заметки (Second Brain)",
+            template_opt_demo: "Пример фитнес-клуба (по умолчанию)",
+            promo_title: "Превратите ваши заметки в ИИ-автоответчик за 5 минут",
+            promo_description: "Загрузите текстовый файл и получите персональную страницу с умным чат-ботом для мгновенных ответов на вопросы клиентов 24/7.",
+            feature_setup_title: "Быстрый запуск",
+            feature_setup_desc: "Достаточно загрузить обычный файл заметок в формате Markdown (.md) или TXT.",
+            feature_lang_title: "Абсолютная мультиязычность",
+            feature_lang_desc: "Клиенты могут спрашивать на португальском, английском или испанском — ИИ ответит на их языке.",
+            feature_design_title: "Премиум-дизайн",
+            feature_design_desc: "Современный стиль Glassmorphism с гибкой настройкой под ваш личный бренд.",
+            feature_links_title: "Быстрая связь",
+            feature_links_desc: "«Умная подпись» с быстрыми ссылками для перевода прогретых лидов прямо в ваш Telegram.",
+            promo_cta_btn: "Создать автоответчик бесплатно"
         },
         en: {
             title_main: "AI Business Consultant",
@@ -352,7 +368,23 @@ document.addEventListener('DOMContentLoaded', () => {
             status_saving: "Saving...",
             status_saved: "Saved! AI is reprocessing info...",
             status_error: "Save error",
-            welcome_modal_text: "In settings, upload a text file with information about your business"
+            welcome_modal_text: "In settings, upload a text file with information about your business",
+            select_template_label: "Select template for your niche:",
+            template_opt_tg: "Telegram Channel (Promo / FAQ)",
+            template_opt_expert: "Expert / Coach Business Card",
+            template_opt_brain: "Personal Notes (Second Brain)",
+            template_opt_demo: "Fitness Club Example (default)",
+            promo_title: "Turn your Markdown into an AI Assistant in 5 minutes",
+            promo_description: "Upload a text file and get a personal page with a smart chatbot for instant customer answers 24/7.",
+            feature_setup_title: "Fast Setup",
+            feature_setup_desc: "Just upload a regular notes file in Markdown (.md) or TXT format.",
+            feature_lang_title: "Absolute Multilinguality",
+            feature_lang_desc: "Customers can ask in Portuguese, English, or Spanish — AI will reply in their language.",
+            feature_design_title: "Premium Design",
+            feature_design_desc: "Modern Glassmorphism style with flexible customization to match your personal brand.",
+            feature_links_title: "Quick Contact",
+            feature_links_desc: "Smart signature with quick links to route warm leads straight to your Telegram.",
+            promo_cta_btn: "Create free AI assistant"
         },
         pt: {
             title_main: "Base de Conhecimento AI",
@@ -412,7 +444,23 @@ document.addEventListener('DOMContentLoaded', () => {
             status_saving: "Salvando...",
             status_saved: "Salvo! A IA está processando...",
             status_error: "Erro ao salvar",
-            welcome_modal_text: "Nas configurações, envie um arquivo de texto com informações sobre a sua empresa"
+            welcome_modal_text: "Nas configurações, envie um arquivo de texto com informações sobre a sua empresa",
+            select_template_label: "Escolha o modelo para o seu nicho:",
+            template_opt_tg: "Canal do Telegram (Promo / FAQ)",
+            template_opt_expert: "Cartão de Visita de Especialista / Coach",
+            template_opt_brain: "Notas Pessoais (Second Brain)",
+            template_opt_demo: "Exemplo de Academia de Fitness (padrão)",
+            promo_title: "Transforme suas notas em um Assistente de IA em 5 minutos",
+            promo_description: "Envie um arquivo de texto e tenha uma página pessoal com um chatbot inteligente para respostas instantâneas 24/7.",
+            feature_setup_title: "Configuração Rápida",
+            feature_setup_desc: "Basta carregar um arquivo de notas comum no formato Markdown (.md) ou TXT.",
+            feature_lang_title: "Multilinguismo Absoluto",
+            feature_lang_desc: "Os clientes podem perguntar em português, inglês ou espanhol — a IA responderá no idioma deles.",
+            feature_design_title: "Design Premium",
+            feature_design_desc: "Estilo Glassmorphism moderno com personalização flexível para combinar com sua marca pessoal.",
+            feature_links_title: "Contato Rápido",
+            feature_links_desc: "Assinatura inteligente com links rápidos para direcionar leads quentes direto para o seu Telegram.",
+            promo_cta_btn: "Criar assistente de IA grátis"
         }
     };
 
@@ -447,21 +495,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function downloadDemoFile() {
         try {
-            const response = await fetch('/RAG-demo.md');
-            if (!response.ok) throw new Error('Demo file not found');
+            const selectEl = document.getElementById('welcomeTemplateSelect');
+            const templateType = selectEl ? selectEl.value : 'demo';
+            
+            let filePath = '/RAG-demo.md';
+            let downloadName = 'RAG-demo.md';
+            
+            if (templateType === 'telegram') {
+                filePath = '/templates/telegram.md';
+                downloadName = 'FAQ-Telegram.md';
+            } else if (templateType === 'expert') {
+                filePath = '/templates/expert.md';
+                downloadName = 'FAQ-Expert.md';
+            } else if (templateType === 'secondbrain') {
+                filePath = '/templates/secondbrain.md';
+                downloadName = 'Second-Brain.md';
+            }
+            
+            const response = await fetch(filePath);
+            if (!response.ok) throw new Error('Template file not found');
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'RAG-demo.md';
+            a.download = downloadName;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            showToast(currentLang === 'ru' ? "Файл RAG-demo.md скачан" : "RAG-demo.md downloaded");
+            
+            let successMsg = "Файл скачан";
+            if (currentLang === 'ru') {
+                successMsg = `Шаблон ${downloadName} скачан`;
+            } else if (currentLang === 'pt') {
+                successMsg = `Modelo ${downloadName} baixado`;
+            } else {
+                successMsg = `Template ${downloadName} downloaded`;
+            }
+            showToast(successMsg);
         } catch (err) {
             console.error('Download error:', err);
-            showToast("Error downloading demo file", true);
+            showToast("Error downloading template file", true);
         }
     }
 
@@ -673,6 +747,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 underAnswerText = settings.underAnswerText || "";
                 updateSourceDisplay();
                 updateTitle(settings.kb_exists, settings.businessName);
+
+                // Toggle split layout for landing promo if it's the main site
+                const landingPromoSide = document.getElementById('landingPromoSide');
+                const mainContainer = document.getElementById('mainContainer');
+                if (settings.is_main_site) {
+                    if (landingPromoSide) landingPromoSide.classList.remove('hidden');
+                    if (mainContainer) mainContainer.classList.add('split-layout');
+                } else {
+                    if (landingPromoSide) landingPromoSide.classList.add('hidden');
+                    if (mainContainer) mainContainer.classList.remove('split-layout');
+                }
             }
         } catch (err) {
             console.error("Public settings fetch failed", err);
@@ -1505,6 +1590,19 @@ document.addEventListener('DOMContentLoaded', () => {
             onboardingPanel.classList.remove('hidden');
             adminOverlay.classList.remove('hidden');
             isRegisterMode = true; // Fix: Should be true for registration flow
+            updateAuthLabels();
+        });
+    }
+
+    const promoCtaBtn = document.getElementById('promoCtaBtn');
+    if (promoCtaBtn) {
+        promoCtaBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            authPanel.classList.add('hidden');
+            settingsPanel.classList.add('hidden');
+            onboardingPanel.classList.remove('hidden');
+            adminOverlay.classList.remove('hidden');
+            isRegisterMode = true;
             updateAuthLabels();
         });
     }

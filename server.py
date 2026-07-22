@@ -692,9 +692,12 @@ async def register(auth: UserAuth, background_tasks: BackgroundTasks):
 
 @app.get("/api/settings")
 async def get_public_settings(request: Request, lang: str = "ru"):
-    owner_email, subdomain = get_tenant_info_by_host(request.headers.get("host"))
+    host = request.headers.get("host", "").lower().split(':')[0]
+    is_main_site = host in ["easyfaq.online", "rag.reloto.ru", "localhost", "127.0.0.1"]
+    
+    owner_email, subdomain = get_tenant_info_by_host(host)
     if not owner_email:
-        return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": ""}
+        return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": "", "is_main_site": is_main_site}
     
     tenants = get_tenants()
     if owner_email in tenants:
@@ -717,8 +720,9 @@ async def get_public_settings(request: Request, lang: str = "ru"):
         settings["subdomain"] = subdomain
         kb_path = os.path.join(get_tenant_dir(subdomain), "base.md")
         settings["kb_exists"] = os.path.exists(kb_path) and os.path.getsize(kb_path) > 0
+        settings["is_main_site"] = is_main_site
         return settings
-    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": ""}
+    return {"initiallyOpen": True, "businessName": "AI Knowledge Base", "kb_exists": False, "subdomain": "", "underAnswerText": "", "is_main_site": is_main_site}
 
 @app.post("/api/tenant/settings")
 async def save_settings_route(settings: TenantSettings, user=Depends(get_current_user)):
