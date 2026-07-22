@@ -385,7 +385,7 @@ body.minimized .floating-btn {
     width: 100%;
 }
 
-.title-area h1 { font-size: 24px; font-weight: 600; text-align: center; }
+.title-area h1, .title-area h2 { font-size: 24px; font-weight: 600; text-align: center; }
 
 /* Input Container */
 .input-container {
