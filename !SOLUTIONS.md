@@ -108,3 +108,27 @@
    - Локальный и удаленный (на VPS) `.env` файлы проекта обновлены: значение `OPENROUTER_API_KEY` (которое используется в `server.py` под капотом) заменено на личный стабильный ключ `AIzaSyAE_cUFJrx...[ЗАМАСКИРОВАНО]`.
 3. **Результат**:
    - Служба `easyfaq-online.service` успешно перезапущена. Чат на поддомене [spain.easyfaq.online](https://spain.easyfaq.online/) теперь работает мгновенно и без сбоев квоты.
+
+## [2026-07-22] Внедрение Split-лендинга (Вариант 1) и исправление высоты панели настроек
+
+### Описание проблемы
+1. **Воронка конверсии:** Ранее при заходе на главный домен `easyfaq.online` (без поддомена) сразу открывался полноэкранный чат-бот. Холодные пользователи не считывали ценность продукта (что это бесплатный конструктор ИИ-консультантов из Markdown) и уходили. Нужен был лендинг с живым демо.
+2. **Верстка панели настроек:** На экранах ноутбуков с небольшой высотой (или при сжатии окна) панель настроек вылезала по вертикали, и нижняя кнопка управления (например, «Закрыть» или «Удалить») скрывалась за пределами экрана.
+
+### Решение
+1. **Split-лендинг на главном домене:**
+   - В [server.py](file:///Users/eugene/MyProjects/easyFAQ.online/server.py) в API `/api/settings` добавлен флаг `is_main_site`.
+   - В [index.html](file:///Users/eugene/MyProjects/easyFAQ.online/index.html) добавлена левая промо-панель `.landing-promo-side` с описанием ценности, фичами (Material Symbols иконки) и CTA-кнопкой «Создать автоответчик бесплатно».
+   - В [style.css](file:///Users/eugene/MyProjects/easyFAQ.online/style.css) добавлена сетка `.split-layout` (60/40 на десктопе, 1 колонка на мобилках).
+   - В [script.js](file:///Users/eugene/MyProjects/easyFAQ.online/script.js) добавлена локализация промо-текстов (RU/EN/PT), логика активации split-layout при `is_main_site == true` и привязка клика по кнопке CTA к открытию онбординга.
+2. **Шаблоны документов (Onboarding):**
+   - Создана папка `templates` с 3 готовыми шаблонами: для Telegram-канала ([telegram.md](file:///Users/eugene/MyProjects/easyFAQ.online/templates/telegram.md)), для визитки эксперта ([expert.md](file:///Users/eugene/MyProjects/easyFAQ.online/templates/expert.md)) и для личных заметок ([secondbrain.md](file:///Users/eugene/MyProjects/easyFAQ.online/templates/secondbrain.md)).
+   - В приветственное окно `welcomeBanner` встроен селектор, позволяющий пользователю при регистрации скачать пример под свою нишу.
+3. **Фикс высоты настроек:**
+   - В [style.css](file:///Users/eugene/MyProjects/easyFAQ.online/style.css) для `.admin-panel` задано ограничение `max-height: calc(100vh - 40px);`.
+   - Для внутренней части `.admin-main` убрана фиксированная максимальная высота `75vh` и установлено свойство `flex: 1;`. Теперь при уменьшении окна браузера шапка и подвал (с кнопкой закрытия) всегда прижаты к экрану, а центральная часть сжимается и скроллится.
+
+### Результат
+- Изменения успешно протестированы локально с помощью Playwright-скриншотов.
+- Выполнен деплой на Production (скрипт `deploy.sh` на основной VPS). Все изменения применены на `easyfaq.online`.
+
