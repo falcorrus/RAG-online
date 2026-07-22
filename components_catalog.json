@@ -1,9 +1,9 @@
 {
   "ui-card": {
-    "description": "Use for presenting products, services, tariffs, or plans. ALWAYS include title and price attributes.",
+    "description": "Use for presenting products, services, tariffs, or plans. Include price only if explicitly mentioned in the context (DO NOT invent or assume prices).",
     "attributes": {
       "title": "The name of the service or product",
-      "price": "The cost of the service/product (e.g. Free, $10, 1500 руб.)"
+      "price": "The cost of the service/product (ONLY if explicitly mentioned in the context. Omit this attribute if the price is unknown)."
     },
     "children": "Detailed description of the product or service."
   },

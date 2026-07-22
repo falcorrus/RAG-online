@@ -925,7 +925,7 @@ CONTEXT:
         genui_rules_text = """GENERATIVE UI RULES:
 You MUST use these custom tags when presenting options, pricing, images, badges or links. DO NOT use plain lists for services.
 - <ui-button>Label</ui-button> : Use for EVERY internal action (e.g. "Записаться", "Узнать больше").
-- <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product.
+- <ui-card title="Name" price="Value">Description</ui-card> : Use for EACH service or product. Include price only if explicitly mentioned in the context (do NOT invent it).
 - <ui-link href="URL">Label</ui-link> : Use for ALL external links (WhatsApp, Telegram, Website, Maps).
 - <ui-image src="URL">Caption</ui-image> : Use to show photos of products, interior or team.
 - <ui-badge>Label</ui-badge> : Use for highlights (e.g. "NEW", "HOT", "Акция", "В наличии")."""

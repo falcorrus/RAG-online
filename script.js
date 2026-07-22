@@ -1470,11 +1470,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (node.name === 'ui-card') {
                 const title = node.attrs.title || '';
                 const price = node.attrs.price || '';
+                const priceHtml = price ? `<span class="ui-card-price">${price}</span>` : '';
                 container.innerHTML = `
                     <div class="ui-card">
                         <div class="ui-card-header">
                             <span class="ui-card-title">${title}</span>
-                            <span class="ui-card-price">${price}</span>
+                            ${priceHtml}
                         </div>
                         <div class="ui-card-description">${node.content.trim().replace(/\n/g, '<br>')}</div>
                     </div>
