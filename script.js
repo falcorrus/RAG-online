@@ -3,8 +3,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for token in URL (after registration redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get('token');
+    const langFromUrl = urlParams.get('lang');
+    if (langFromUrl) {
+        localStorage.setItem('user_lang', langFromUrl);
+    }
     if (tokenFromUrl) {
         localStorage.setItem('token', tokenFromUrl);
+    }
+    if (tokenFromUrl || langFromUrl) {
         // Clean up URL without reloading
         const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
         window.history.replaceState({path: cleanUrl}, '', cleanUrl);
@@ -163,16 +169,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 mainTitle.classList.add('visible');
             }
 
+            const token = localStorage.getItem('token');
             if (!kb) {
-                // State: NO KNOWLEDGE BASE - Show welcome modal
-                if (welcomeBanner) {
-                    welcomeBanner.classList.remove('hidden');
+                // State: NO KNOWLEDGE BASE
+                if (token) {
+                    // Show welcome modal ONLY for authenticated owner
+                    if (welcomeBanner) {
+                        welcomeBanner.classList.remove('hidden');
+                    }
+                } else {
+                    // Hide welcome modal for regular visitors/guests
+                    if (welcomeBanner) {
+                        welcomeBanner.classList.add('hidden');
+                    }
+                    // Show client-facing placeholder or disable input
+                    if (queryInput) {
+                        queryInput.disabled = true;
+                        if (currentLang === 'ru') {
+                            queryInput.placeholder = "ИИ-консультант готовится к запуску...";
+                        } else if (currentLang === 'pt') {
+                            queryInput.placeholder = "O consultor de IA está se preparando...";
+                        } else {
+                            queryInput.placeholder = "AI consultant is preparing to launch...";
+                        }
+                    }
                 }
                 document.body.classList.remove('has-results');
             } else {
                 // State: KNOWLEDGE BASE EXISTS - Hide welcome modal
                 if (welcomeBanner) {
                     welcomeBanner.classList.add('hidden');
+                }
+                if (queryInput) {
+                    queryInput.disabled = false;
+                    if (currentLang === 'ru') {
+                        queryInput.placeholder = "Спросите меня о чем угодно...";
+                    } else if (currentLang === 'pt') {
+                        queryInput.placeholder = "Pergunte-me qualquer coisa...";
+                    } else {
+                        queryInput.placeholder = "Ask me anything...";
+                    }
                 }
             }
         };
@@ -205,6 +241,12 @@ document.addEventListener('DOMContentLoaded', () => {
         goToSettingsBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('DEBUG: goToSettingsBtn clicked');
+            
+            // Скрываем приветственный баннер, чтобы показать панель авторизации/настроек
+            if (welcomeBanner) {
+                welcomeBanner.classList.add('hidden');
+            }
+            
             const token = localStorage.getItem('token');
             if (!token) showAuth();
             else {
@@ -498,18 +540,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectEl = document.getElementById('welcomeTemplateSelect');
             const templateType = selectEl ? selectEl.value : 'demo';
             
-            let filePath = '/RAG-demo.md';
-            let downloadName = 'RAG-demo.md';
+            let langSuffix = '';
+            if (currentLang === 'en') langSuffix = '_en';
+            else if (currentLang === 'pt') langSuffix = '_pt';
+            
+            let filePath = `/RAG-demo${langSuffix}.md`;
+            let downloadName = `RAG-demo${langSuffix}.md`;
             
             if (templateType === 'telegram') {
-                filePath = '/templates/telegram.md';
-                downloadName = 'FAQ-Telegram.md';
+                filePath = `/templates/telegram${langSuffix}.md`;
+                downloadName = `FAQ-Telegram${langSuffix}.md`;
             } else if (templateType === 'expert') {
-                filePath = '/templates/expert.md';
-                downloadName = 'FAQ-Expert.md';
+                filePath = `/templates/expert${langSuffix}.md`;
+                downloadName = `FAQ-Expert${langSuffix}.md`;
             } else if (templateType === 'secondbrain') {
-                filePath = '/templates/secondbrain.md';
-                downloadName = 'Second-Brain.md';
+                filePath = `/templates/secondbrain${langSuffix}.md`;
+                downloadName = `Second-Brain${langSuffix}.md`;
             }
             
             const response = await fetch(filePath);
@@ -608,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     setTimeout(() => {
                         const newUrl = `https://${data.subdomain}.easyfaq.online`;
-                        window.location.href = `${newUrl}?token=${data.token}`;
+                        window.location.href = `${newUrl}?token=${data.token}&lang=${currentLang}`;
                     }, 35000); // 35 seconds delay to allow Let's Encrypt SSL setup
                     return;
                 }
