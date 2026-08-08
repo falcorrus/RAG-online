@@ -233,10 +233,40 @@ async def call_gemini_api(payload: dict, headers: dict, timeout: float = 15.0):
             # If OpenRouter failed and we have aidev_key, fallback to ai.dev
             if aidev_key:
                 print("DEBUG: [OpenRouter] Failed. Fallback to ai.dev...", flush=True)
-                return await _call_aidev_api_direct(payload, headers, timeout)
-            return resp
+                resp = await _call_aidev_api_direct(payload, headers, timeout)
+                if resp.status_code == 200:
+                    return resp
+            
+            # Emergency fallback: Local Ollama model on VPS
+            return await _call_ollama_api_fallback(payload, timeout)
     else:
-        return await _call_aidev_api_direct(payload, headers, timeout)
+        resp = await _call_aidev_api_direct(payload, headers, timeout)
+        if resp and resp.status_code == 200:
+            return resp
+        # If ai.dev failed, try OpenRouter if key is present
+        if openrouter_key:
+            print("DEBUG: [ai.dev] Failed. Fallback to OpenRouter...", flush=True)
+            return await call_gemini_api(payload, headers, timeout)
+        # Emergency fallback: Local Ollama model on VPS
+        return await _call_ollama_api_fallback(payload, timeout)
+
+async def _call_ollama_api_fallback(payload: dict, timeout: float = 60.0):
+    ollama_url = "http://127.0.0.1:11434/v1/chat/completions"
+    model = "gemma4:e4b"
+    payload_copy = payload.copy()
+    payload_copy["model"] = model
+    
+    print(f"DEBUG: [Ollama Fallback] Trying local model '{model}'...", flush=True)
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.post(ollama_url, json=payload_copy, timeout=timeout)
+            if resp.status_code == 200:
+                return resp
+            print(f"WARNING: [Ollama Fallback] Local model failed with status {resp.status_code}", flush=True)
+            return resp
+        except Exception as e:
+            print(f"ERROR: [Ollama Fallback] Local model failed with exception: {e}", flush=True)
+            raise e
 
 async def _call_aidev_api_direct(payload: dict, headers: dict, timeout: float = 15.0):
     aidev_key = os.getenv("AIDEV_API_KEY")
@@ -328,6 +358,26 @@ def load_genui_rules_from_catalog() -> str:
         print(f"Error generating GenUI rules from catalog: {e}", flush=True)
         return ""
 
+async def _call_ollama_stream_fallback(payload: dict, timeout: float = 60.0):
+    ollama_url = "http://127.0.0.1:11434/v1/chat/completions"
+    model = "gemma4:e4b"
+    payload_copy = payload.copy()
+    payload_copy["model"] = model
+    payload_copy["stream"] = True
+    
+    print(f"DEBUG: [Ollama Stream Fallback] Trying local model '{model}'...", flush=True)
+    async with httpx.AsyncClient() as client:
+        try:
+            async with client.stream("POST", ollama_url, json=payload_copy, timeout=timeout) as response:
+                if response.status_code == 200:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data: "):
+                            yield line + "\n\n"
+                    return
+                print(f"WARNING: [Ollama Stream] Local model failed with status {response.status_code}", flush=True)
+        except Exception as e:
+            print(f"WARNING: [Ollama Stream] Local model failed with exception: {e}", flush=True)
+
 async def call_gemini_api_stream(payload: dict, headers: dict, timeout: float = 30.0):
     payload = payload.copy()
     payload["stream"] = True
@@ -396,6 +446,13 @@ async def call_gemini_api_stream(payload: dict, headers: dict, timeout: float = 
             chunk_yielded = True
         if chunk_yielded:
             return
+
+    # Emergency fallback: Local Ollama model on VPS
+    if not chunk_yielded:
+        print("DEBUG: Cloud AI streaming providers failed. Trying local VPS Ollama model...", flush=True)
+        async for chunk in _call_ollama_stream_fallback(payload, timeout=60.0):
+            yield chunk
+            chunk_yielded = True
 
     if not chunk_yielded:
         print("ERROR: All AI streaming providers failed. Emitting fallback error message.", flush=True)
